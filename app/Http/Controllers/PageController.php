@@ -13,9 +13,13 @@ class PageController extends Controller
     {
         // Fetch data for home page sections
         $services = Service::where('active', true)->take(3)->get();
-        // $posts = Post::where('published', true)->latest()->take(3)->get();
+        $products = Product::where('active', true)
+            ->where('stock', '>', 0)
+            ->latest()
+            ->take(6)
+            ->get();
         
-        return view('welcome', compact('services'));
+        return view('welcome', compact('services', 'products'));
     }
 
     public function about()

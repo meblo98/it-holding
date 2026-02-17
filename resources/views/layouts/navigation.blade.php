@@ -1,43 +1,72 @@
-<nav class="bg-white border-b border-gray-100" x-data="{ open: false }">
+<nav class="bg-navy-500 dark:bg-navy-700 border-b border-navy-600 dark:border-navy-800 transition-colors duration-200" x-data="{ open: false }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('home') }}" class="font-bold text-xl text-primary">
+                    <a href="{{ route('home') }}" class="font-bold text-xl text-white hover:text-gold-400 transition-colors">
                         {{ config('app.name') }}
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                    <a href="{{ route('home') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('home') ? 'border-indigo-400 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out">
+                    <a href="{{ route('home') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('home') ? 'border-gold-500 text-gold-400' : 'border-transparent text-white/90 hover:text-white hover:border-white/30' }} text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out">
                         Accueil
                     </a>
-                    <a href="{{ route('about') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('about') ? 'border-indigo-400 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out">
+                    <a href="{{ route('about') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('about') ? 'border-gold-500 text-gold-400' : 'border-transparent text-white/90 hover:text-white hover:border-white/30' }} text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out">
                         À propos
                     </a>
-                    <a href="{{ route('services.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('services.*') ? 'border-indigo-400 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out">
+                    <a href="{{ route('services.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('services.*') ? 'border-gold-500 text-gold-400' : 'border-transparent text-white/90 hover:text-white hover:border-white/30' }} text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out">
                         Services
                     </a>
-                    <a href="{{ route('portfolio.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('portfolio.*') ? 'border-indigo-400 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out">
+                   <a href="{{ route('portfolio.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('portfolio.*') ? 'border-gold-500 text-gold-400' : 'border-transparent text-white/90 hover:text-white hover:border-white/30' }} text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out">
                         Portfolio
                     </a>
-                    <a href="{{ route('shop.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('shop.*') ? 'border-indigo-400 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out">
+                    <a href="{{ route('shop.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('shop.*') ? 'border-gold-500 text-gold-400' : 'border-transparent text-white/90 hover:text-white hover:border-white/30' }} text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out">
                         Boutique
                     </a>
-                    <a href="{{ route('blog.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('blog.*') ? 'border-indigo-400 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out">
+                    <a href="{{ route('blog.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('blog.*') ? 'border-gold-500 text-gold-400' : 'border-transparent text-white/90 hover:text-white hover:border-white/30' }} text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out">
                         Blog
                     </a>
-                    <a href="{{ route('contact.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('contact.*') ? 'border-indigo-400 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out">
+                    <a href="{{ route('contact.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('contact.*') ? 'border-gold-500 text-gold-400' : 'border-transparent text-white/90 hover:text-white hover:border-white/30' }} text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out">
                         Contact
                     </a>
                 </div>
             </div>
 
             <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ml-6">
+            <div class="hidden sm:flex sm:items-center sm:ml-6 space-x-2">
+                <!-- Dark Mode Toggle -->
+                <button onclick="toggleDarkMode()" class="p-2 text-white/80 dark:text-white/60 hover:text-gold-400 dark:hover:text-gold-400 focus:outline-none transition duration-150 ease-in-out rounded-lg hover:bg-navy-600 dark:hover:bg-navy-800" title="Toggle Dark Mode">
+                    <!-- Sun Icon (shown in dark mode) -->
+                    <svg class="hidden dark:block h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    <!-- Moon Icon (shown in light mode) -->
+                    <svg class="block dark:hidden h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                    </svg>
+                </button>
+
+                <!-- Cart Icon -->
+                <a href="{{ route('shop.cart') }}" class="relative p-2 text-white/80 dark:text-white/60 hover:text-gold-400 dark:hover:text-gold-400 focus:outline-none transition duration-150 ease-in-out rounded-lg hover:bg-navy-600 dark:hover:bg-navy-800">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    @php
+                        $cart = Session::get('cart', []);
+                        $cartCount = array_sum(array_column($cart, 'quantity'));
+                    @endphp
+                    @if($cartCount > 0)
+                        <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-navy-900 transform translate-x-1/2 -translate-y-1/2 bg-gold-500 rounded-full">
+                            {{ $cartCount }}
+                        </span>
+                    @endif
+                </a>
+
                 @auth
+
                     <div class="relative" x-data="{ open: false }" @click.away="open = false" @close.stop="open = false">
                         <div @click="open = ! open">
                             <button class="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out">

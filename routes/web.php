@@ -26,8 +26,10 @@ Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
 Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
 Route::get('/shop/{slug}', [ShopController::class, 'show'])->name('shop.show');
 Route::get('/cart', [ShopController::class, 'cart'])->name('shop.cart');
-Route::get('/shop/add-to-cart/{id}', [ShopController::class, 'addToCart'])->name('shop.addToCart');
+Route::post('/cart/add/{id}', [ShopController::class, 'addToCart'])->name('shop.addToCart');
+Route::post('/cart/update', [ShopController::class, 'updateCart'])->name('shop.updateCart');
 Route::get('/remove-from-cart/{id}', [ShopController::class, 'removeFromCart'])->name('shop.removeFromCart');
+
 
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
