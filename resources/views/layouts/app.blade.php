@@ -126,6 +126,25 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+
+        /* Cross-browser fixes for text gradients and color rendering (improves Firefox) */
+        :root {
+            color-scheme: light dark;
+        }
+
+        /* Ensure background-clip:text works in Firefox/Chrome and text becomes transparent to show gradient */
+        .bg-clip-text,
+        .text-gradient {
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+
+        /* Ensure SVG icons inherit color consistently */
+        svg {
+            color: inherit;
+        }
     </style>
     @stack('styles')
 </head>

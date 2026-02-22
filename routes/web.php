@@ -26,6 +26,9 @@ Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
 Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
 Route::get('/shop/{slug}', [ShopController::class, 'show'])->name('shop.show');
 Route::get('/cart', [ShopController::class, 'cart'])->name('shop.cart');
+Route::get('/checkout', [ShopController::class, 'checkout'])->name('shop.checkout');
+Route::post('/checkout', [ShopController::class, 'placeOrder'])->name('shop.placeOrder');
+Route::get('/thanks/{order}', [ShopController::class, 'thanks'])->name('shop.thanks');
 Route::post('/cart/add/{id}', [ShopController::class, 'addToCart'])->name('shop.addToCart');
 Route::post('/cart/update', [ShopController::class, 'updateCart'])->name('shop.updateCart');
 Route::get('/remove-from-cart/{id}', [ShopController::class, 'removeFromCart'])->name('shop.removeFromCart');
@@ -56,5 +59,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::resource('projects', \App\Http\Controllers\Admin\ProjectController::class);
     Route::resource('posts', \App\Http\Controllers\Admin\PostController::class);
     Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
+    Route::delete('products/{product}/images/{image}', [\App\Http\Controllers\Admin\ProductController::class, 'destroyImage'])->name('products.images.destroy');
     Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class)->only(['index', 'show', 'update']);
 });

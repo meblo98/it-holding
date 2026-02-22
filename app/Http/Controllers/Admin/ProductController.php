@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\ProductImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -15,7 +16,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::latest()->paginate(10);
+        $products = Product::with('images')->latest()->paginate(10);
         return view('admin.products.index', compact('products'));
     }
 
@@ -38,6 +39,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|max:2048',
+            'images.*' => 'nullable|image|max:4096',
             'active' => 'boolean',
         ]);
 
@@ -49,8 +51,18 @@ class ProductController extends Controller
             $validated['image'] = $path;
         }
 
-        Product::create($validated);
+        $product = Product::create($validated);
 
+        // Handle multiple images upload
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                $path = $file->store('products', 'public');
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'path' => $path,
+                ]);
+            }
+        }
         return redirect()->route('admin.products.index')->with('success', 'Produit créé avec succès.');
     }
 
@@ -76,11 +88,13 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|max:2048',
+            'images.*' => 'nullable|image|max:4096',
             'active' => 'boolean',
         ]);
 
         $validated['slug'] = Str::slug($request->name);
         $validated['active'] = $request->boolean('active');
+
 
         if ($request->hasFile('image')) {
             if ($product->image) {
@@ -92,6 +106,17 @@ class ProductController extends Controller
 
         $product->update($validated);
 
+        // Handle new multiple images upload
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                $path = $file->store('products', 'public');
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'path' => $path,
+                ]);
+            }
+        }
+
         return redirect()->route('admin.products.index')->with('success', 'Produit mis à jour avec succès.');
     }
 
@@ -102,12 +127,33 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
 
+
+        // delete main image
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
+        }
+
+        // delete related images files
+        foreach ($product->images as $img) {
+            Storage::disk('public')->delete($img->path);
         }
 
         $product->delete();
 
         return redirect()->route('admin.products.index')->with('success', 'Produit supprimé avec succès.');
+    }
+
+    /**
+     * Remove a single product image.
+     */
+    public function destroyImage(string $productId, string $imageId)
+    {
+        $product = Product::findOrFail($productId);
+        $image = ProductImage::where('product_id', $product->id)->where('id', $imageId)->firstOrFail();
+
+        Storage::disk('public')->delete($image->path);
+        $image->delete();
+
+        return redirect()->back()->with('success', 'Image supprimée.');
     }
 }

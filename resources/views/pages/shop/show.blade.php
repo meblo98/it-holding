@@ -57,23 +57,20 @@
                     <!-- Compact Image Section / Gallery -->
                     <div class="lg:col-span-2 bg-gradient-to-br from-gray-50 to-gray-100 p-8">
                         <div class="w-full max-w-md mx-auto">
-                            @if ($product->image)
+                            @if ($product->images->count())
                                 <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
-                                    <img loading="lazy" src="{{ asset('storage/' . $product->image) }}"
+                                    <img loading="lazy" src="{{ asset('storage/' . $product->images->first()->path) }}"
                                         alt="{{ $product->name }}" class="w-full h-96 object-contain">
                                 </div>
 
                                 <div class="mt-4 flex items-center space-x-3">
-                                    <button type="button"
-                                        class="w-16 h-16 rounded-lg overflow-hidden border-2 border-transparent hover:border-indigo-300 focus:outline-none">
-                                        <img loading="lazy" src="{{ asset('storage/' . $product->image) }}" alt="thumb"
-                                            class="w-full h-full object-cover">
-                                    </button>
-                                    <button type="button"
-                                        class="w-16 h-16 rounded-lg overflow-hidden border-2 border-transparent hover:border-indigo-300 focus:outline-none">
-                                        <img loading="lazy" src="{{ asset('storage/' . $product->image) }}" alt="thumb"
-                                            class="w-full h-full object-cover">
-                                    </button>
+                                    @foreach ($product->images->take(4) as $thumb)
+                                        <button type="button"
+                                            class="w-16 h-16 rounded-lg overflow-hidden border-2 border-transparent hover:border-indigo-300 focus:outline-none">
+                                            <img loading="lazy" src="{{ asset('storage/' . $thumb->path) }}" alt="thumb"
+                                                class="w-full h-full object-cover">
+                                        </button>
+                                    @endforeach
                                 </div>
                             @else
                                 <div
@@ -309,7 +306,7 @@
             buttons.forEach(btn => {
                 btn.addEventListener('click', function() {
                     buttons.forEach(b => b.classList.remove('border-indigo-600',
-                    'text-indigo-600'));
+                        'text-indigo-600'));
                     buttons.forEach(b => b.classList.add('border-transparent', 'text-gray-600'));
 
                     this.classList.remove('border-transparent');

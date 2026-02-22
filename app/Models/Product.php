@@ -24,4 +24,9 @@ class Product extends Model
         'stock' => 'integer',
         'active' => 'boolean',
     ];
+
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
 }
