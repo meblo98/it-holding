@@ -95,13 +95,17 @@
                                                             class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
                                                             <span>Télécharger des fichiers</span>
                                                             <input id="images" name="images[]" type="file"
-                                                                class="sr-only" multiple>
+                                                                class="sr-only" accept="image/*" multiple
+                                                                onchange="validateImages(event)">
                                                         </label>
                                                     </div>
-                                                    <p class="text-xs text-gray-500">PNG, JPG, GIF — plusieurs fichiers, 4MB
-                                                        max chacun</p>
+                                                    <p class="text-xs text-gray-500">PNG, JPG, GIF — maximum 10 fichiers,
+                                                        2MB chacun</p>
+                                                    <p id="image-error" class="text-xs text-red-600 mt-2 hidden"></p>
                                                 </div>
                                             </div>
+                                            <div id="preview-container"
+                                                class="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
                                         </div>
 
                                         <div class="col-span-6 flex items-start">
@@ -130,4 +134,67 @@
                             </div>
                         </form>
                     </div>
-                @endsection
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function validateImages(event) {
+            const files = event.target.files;
+            const maxSize = 2 * 1024 * 1024; // 2MB en bytes
+            const maxFiles = 10;
+            const errorElement = document.getElementById('image-error');
+            const previewContainer = document.getElementById('preview-container');
+            let errorMessage = '';
+
+            if (files.length > maxFiles) {
+                errorMessage = `Vous ne pouvez pas télécharger plus de ${maxFiles} fichiers.`;
+            } else {
+                for (let file of files) {
+                    if (file.size > maxSize) {
+                        errorMessage = `Le fichier "${file.name}" dépasse 2MB.`;
+                        break;
+                    }
+                    if (!file.type.match('image.*')) {
+                        errorMessage = `Le fichier "${file.name}" n'est pas une image valide.`;
+                        break;
+                    }
+                }
+            }
+
+            if (errorMessage) {
+                errorElement.textContent = errorMessage;
+                errorElement.classList.remove('hidden');
+                event.target.value = '';
+                previewContainer.innerHTML = '';
+            } else {
+                errorElement.classList.add('hidden');
+                errorElement.textContent = '';
+                displayImagePreviews(files, previewContainer);
+            }
+        }
+
+        function displayImagePreviews(files, container) {
+            container.innerHTML = '';
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'relative group';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" alt="${file.name}" class="w-full h-32 object-cover rounded-lg shadow-sm">
+                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <p class="text-white text-xs text-center px-2 truncate">${file.name}</p>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500 truncate">${file.name}</p>
+                    `;
+                    container.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+@endsection

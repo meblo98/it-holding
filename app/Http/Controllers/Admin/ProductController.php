@@ -39,7 +39,8 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|max:2048',
-            'images.*' => 'nullable|image|max:4096',
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'nullable|image|max:2048',
             'active' => 'boolean',
         ]);
 
@@ -55,12 +56,18 @@ class ProductController extends Controller
 
         // Handle multiple images upload
         if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $file) {
-                $path = $file->store('products', 'public');
-                ProductImage::create([
-                    'product_id' => $product->id,
-                    'path' => $path,
-                ]);
+            try {
+                foreach ($request->file('images') as $file) {
+                    if (!$file->isValid()) continue;
+                    $path = $file->store('products', 'public');
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'path' => $path,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                \Log::error('Product images upload error (store): ' . $e->getMessage());
+                return redirect()->back()->with('error', 'Erreur lors de l\'upload des images.')->withInput();
             }
         }
         return redirect()->route('admin.products.index')->with('success', 'Produit créé avec succès.');
@@ -88,7 +95,8 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|max:2048',
-            'images.*' => 'nullable|image|max:4096',
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'nullable|image|max:2048',
             'active' => 'boolean',
         ]);
 
@@ -108,12 +116,18 @@ class ProductController extends Controller
 
         // Handle new multiple images upload
         if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $file) {
-                $path = $file->store('products', 'public');
-                ProductImage::create([
-                    'product_id' => $product->id,
-                    'path' => $path,
-                ]);
+            try {
+                foreach ($request->file('images') as $file) {
+                    if (!$file->isValid()) continue;
+                    $path = $file->store('products', 'public');
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'path' => $path,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                \Log::error('Product images upload error (update): ' . $e->getMessage());
+                return redirect()->back()->with('error', 'Erreur lors de l\'upload des images.')->withInput();
             }
         }
 
