@@ -179,8 +179,8 @@
                             @csrf
 
                             @if ($product->stock > 0)
-                                <div class="flex items-end gap-4">
-                                    <div class="flex-shrink-0">
+                                <div class="flex flex-col sm:flex-row sm:items-end gap-4">
+                                    <div class="flex-shrink-0 w-full sm:w-auto">
                                         <label for="quantity"
                                             class="block text-sm font-semibold text-gray-900 mb-3">Quantité</label>
                                         <div class="flex items-center space-x-3">
@@ -218,7 +218,7 @@
                                         </div>
 
                                         <button type="submit"
-                                            class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 border border-transparent rounded-xl shadow-lg py-3 px-6 flex items-center justify-center text-base font-semibold text-white hover:from-indigo-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform hover:scale-105 transition-all duration-200 h-12">
+                                            class="w-full sm:flex-1 bg-gradient-to-r from-indigo-600 to-indigo-700 border border-transparent rounded-xl shadow-lg py-3 px-6 flex items-center justify-center text-base font-semibold text-white hover:from-indigo-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform hover:scale-105 transition-all duration-200 h-12">
                                             <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
