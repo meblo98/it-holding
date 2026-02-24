@@ -73,34 +73,42 @@
                                     }
                                 @endphp
 
+                                <!-- Main Image -->
                                 <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
-                                    <img loading="lazy" src="{{ $mainUrl }}" alt="{{ $product->name }}"
-                                        class="w-full h-96 object-contain">
+                                    <img id="main-image" loading="lazy" src="{{ $mainUrl }}" alt="{{ $product->name }}"
+                                        class="w-full h-96 object-contain transition-opacity duration-300">
                                 </div>
 
-                                <div class="mt-4 flex items-center space-x-3">
-                                    @foreach ($product->images->take(4) as $thumb)
-                                        @php
-                                            $rawThumb = $thumb->path;
-                                            $tPath = $rawThumb ? preg_replace('#^(/?storage/)#', '', $rawThumb) : null;
-                                            if (
-                                                $tPath &&
-                                                \Illuminate\Support\Facades\Storage::disk('public')->exists($tPath)
-                                            ) {
-                                                $thumbUrl = '/storage/' . ltrim($tPath, '/');
-                                            } elseif ($rawThumb && filter_var($rawThumb, FILTER_VALIDATE_URL)) {
-                                                $thumbUrl = $rawThumb;
-                                            } else {
-                                                $thumbUrl = $tPath ? asset('storage/' . ltrim($tPath, '/')) : null;
-                                            }
-                                        @endphp
-                                        <button type="button"
-                                            class="w-16 h-16 rounded-lg overflow-hidden border-2 border-transparent hover:border-indigo-300 focus:outline-none">
-                                            <img loading="lazy" src="{{ $thumbUrl }}" alt="thumb"
-                                                class="w-full h-full object-cover">
-                                        </button>
-                                    @endforeach
-                                </div>
+                                <!-- Thumbnail Gallery -->
+                                @if ($product->images->count() > 1)
+                                    <div class="mt-4 flex items-center gap-2 overflow-x-auto pb-2">
+                                        @foreach ($product->images as $index => $img)
+                                            @php
+                                                $rawThumb = $img->path;
+                                                $tPath = $rawThumb
+                                                    ? preg_replace('#^(/?storage/)#', '', $rawThumb)
+                                                    : null;
+                                                if (
+                                                    $tPath &&
+                                                    \Illuminate\Support\Facades\Storage::disk('public')->exists($tPath)
+                                                ) {
+                                                    $thumbUrl = '/storage/' . ltrim($tPath, '/');
+                                                } elseif ($rawThumb && filter_var($rawThumb, FILTER_VALIDATE_URL)) {
+                                                    $thumbUrl = $rawThumb;
+                                                } else {
+                                                    $thumbUrl = $tPath ? asset('storage/' . ltrim($tPath, '/')) : null;
+                                                }
+                                            @endphp
+                                            <button type="button"
+                                                class="gallery-thumb flex-shrink-0 border-2 rounded-lg {{ $index === 0 ? 'border-indigo-500' : 'border-gray-300' }} hover:border-indigo-400 transition-colors focus:outline-none"
+                                                data-image="{{ $thumbUrl }}" onclick="changeMainImage(this)">
+                                                <img loading="lazy" src="{{ $thumbUrl }}"
+                                                    alt="Image {{ $index + 1 }}"
+                                                    class="w-16 h-16 rounded-lg object-cover">
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                @endif
                             @else
                                 <div
                                     class="aspect-square bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl flex items-center justify-center shadow-lg">
@@ -326,6 +334,23 @@
             const currentValue = parseInt(input.value);
             if (currentValue > 1) {
                 input.value = currentValue - 1;
+            }
+        }
+
+        // Gallery image switcher
+        function changeMainImage(button) {
+            const imageUrl = button.getAttribute('data-image');
+            const mainImage = document.getElementById('main-image');
+            if (mainImage && imageUrl) {
+                mainImage.src = imageUrl;
+
+                // Update active thumbnail border
+                document.querySelectorAll('.gallery-thumb').forEach(thumb => {
+                    thumb.classList.remove('border-indigo-500');
+                    thumb.classList.add('border-gray-300');
+                });
+                button.classList.remove('border-gray-300');
+                button.classList.add('border-indigo-500');
             }
         }
 
