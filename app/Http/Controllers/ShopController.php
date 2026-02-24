@@ -14,13 +14,13 @@ class ShopController extends Controller
 {
     public function index()
     {
-        $products = Product::where('active', true)->where('stock', '>', 0)->paginate(12);
+        $products = Product::where('active', true)->where('stock', '>', 0)->with('images')->paginate(12);
         return view('pages.shop.index', compact('products'));
     }
 
     public function show($slug)
     {
-        $product = Product::where('slug', $slug)->where('active', true)->firstOrFail();
+        $product = Product::where('slug', $slug)->where('active', true)->with('images')->firstOrFail();
         return view('pages.shop.show', compact('product'));
     }
 

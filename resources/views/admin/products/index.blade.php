@@ -25,12 +25,24 @@
                         <div class="flex items-center justify-between">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 h-10 w-10">
-                                    @if ($product->images->count())
-                                        <img class="h-10 w-10 rounded-full object-cover"
-                                            src="{{ asset('storage/' . $product->images->first()->path) }}" alt="">
-                                    @elseif($product->image)
-                                        <img class="h-10 w-10 rounded-full object-cover"
-                                            src="{{ asset('storage/' . $product->image) }}" alt="">
+                                    @php
+                                        $rawPath = $product->image ?: $product->images->first()->path ?? null;
+                                        $imgPath = $rawPath ? preg_replace('#^(/?storage/)#', '', $rawPath) : null;
+                                        if (
+                                            $imgPath &&
+                                            \Illuminate\Support\Facades\Storage::disk('public')->exists($imgPath)
+                                        ) {
+                                            $thumb = '/storage/' . ltrim($imgPath, '/');
+                                        } elseif ($rawPath && filter_var($rawPath, FILTER_VALIDATE_URL)) {
+                                            $thumb = $rawPath;
+                                        } else {
+                                            $thumb = $imgPath ? asset('storage/' . ltrim($imgPath, '/')) : null;
+                                        }
+                                    @endphp
+
+                                    @if ($thumb)
+                                        <img class="h-10 w-10 rounded-full object-cover" src="{{ $thumb }}"
+                                            alt="">
                                     @else
                                         <div
                                             class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 font-bold">

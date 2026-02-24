@@ -58,16 +58,45 @@
                     <div class="lg:col-span-2 bg-gradient-to-br from-gray-50 to-gray-100 p-8">
                         <div class="w-full max-w-md mx-auto">
                             @if ($product->images->count())
+                                @php
+                                    $rawPath = $product->image ?: $product->images->first()->path ?? null;
+                                    $imgPath = $rawPath ? preg_replace('#^(/?storage/)#', '', $rawPath) : null;
+                                    if (
+                                        $imgPath &&
+                                        \Illuminate\Support\Facades\Storage::disk('public')->exists($imgPath)
+                                    ) {
+                                        $mainUrl = '/storage/' . ltrim($imgPath, '/');
+                                    } elseif ($rawPath && filter_var($rawPath, FILTER_VALIDATE_URL)) {
+                                        $mainUrl = $rawPath;
+                                    } else {
+                                        $mainUrl = $imgPath ? asset('storage/' . ltrim($imgPath, '/')) : null;
+                                    }
+                                @endphp
+
                                 <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
-                                    <img loading="lazy" src="{{ asset('storage/' . $product->images->first()->path) }}"
-                                        alt="{{ $product->name }}" class="w-full h-96 object-contain">
+                                    <img loading="lazy" src="{{ $mainUrl }}" alt="{{ $product->name }}"
+                                        class="w-full h-96 object-contain">
                                 </div>
 
                                 <div class="mt-4 flex items-center space-x-3">
                                     @foreach ($product->images->take(4) as $thumb)
+                                        @php
+                                            $rawThumb = $thumb->path;
+                                            $tPath = $rawThumb ? preg_replace('#^(/?storage/)#', '', $rawThumb) : null;
+                                            if (
+                                                $tPath &&
+                                                \Illuminate\Support\Facades\Storage::disk('public')->exists($tPath)
+                                            ) {
+                                                $thumbUrl = '/storage/' . ltrim($tPath, '/');
+                                            } elseif ($rawThumb && filter_var($rawThumb, FILTER_VALIDATE_URL)) {
+                                                $thumbUrl = $rawThumb;
+                                            } else {
+                                                $thumbUrl = $tPath ? asset('storage/' . ltrim($tPath, '/')) : null;
+                                            }
+                                        @endphp
                                         <button type="button"
                                             class="w-16 h-16 rounded-lg overflow-hidden border-2 border-transparent hover:border-indigo-300 focus:outline-none">
-                                            <img loading="lazy" src="{{ asset('storage/' . $thumb->path) }}" alt="thumb"
+                                            <img loading="lazy" src="{{ $thumbUrl }}" alt="thumb"
                                                 class="w-full h-full object-cover">
                                         </button>
                                     @endforeach

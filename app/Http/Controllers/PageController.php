@@ -15,10 +15,11 @@ class PageController extends Controller
         $services = Service::where('active', true)->take(3)->get();
         $products = Product::where('active', true)
             ->where('stock', '>', 0)
+            ->with('images')
             ->latest()
             ->take(6)
             ->get();
-        
+
         return view('welcome', compact('services', 'products'));
     }
 

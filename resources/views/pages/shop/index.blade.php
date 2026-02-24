@@ -23,13 +23,26 @@
                         @endif
 
                         <div class="bg-gray-50 p-6">
-                            @if ($product->image)
-                                <a href="{{ route('shop.show', $product->slug) }}" class="block">
-                                    <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}"
+                            @php
+                                $rawPath = $product->image ?: $product->images->first()->path ?? null;
+                                $imgPath = $rawPath ? preg_replace('#^(/?storage/)#', '', $rawPath) : null;
+                                if ($imgPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($imgPath)) {
+                                    $imgUrl = '/storage/' . ltrim($imgPath, '/');
+                                } elseif ($rawPath && filter_var($rawPath, FILTER_VALIDATE_URL)) {
+                                    $imgUrl = $rawPath;
+                                } else {
+                                    $imgUrl = $imgPath ? asset('storage/' . ltrim($imgPath, '/')) : null;
+                                }
+                            @endphp
+
+                            <a href="{{ route('shop.show', $product->slug) }}" class="block">
+                                @if (config('app.debug'))
+                                    <!-- IMGURL: {{ $imgUrl ?? 'null' }} -->
+                                @endif
+                                @if ($imgUrl)
+                                    <img loading="lazy" src="{{ $imgUrl }}" alt="{{ $product->name }}"
                                         class="w-full h-48 object-contain group-hover:scale-105 transition-transform duration-300">
-                                </a>
-                            @else
-                                <a href="{{ route('shop.show', $product->slug) }}" class="block">
+                                @else
                                     <div class="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center">
                                         <svg class="h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24"
                                             stroke="currentColor">
@@ -37,8 +50,8 @@
                                                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                     </div>
-                                </a>
-                            @endif
+                                @endif
+                            </a>
                         </div>
                         <div class="p-4">
                             <h3 class="text-sm font-medium text-navy-600 transition-colors duration-200 line-clamp-2">
