@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Category;
+use App\Models\Brand;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use App\Models\Order;
@@ -12,15 +14,40 @@ use Illuminate\Support\Facades\DB;
 
 class ShopController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::where('active', true)->where('stock', '>', 0)->with('images')->paginate(12);
-        return view('pages.shop.index', compact('products'));
+        $query = Product::where('active', true)->where('stock', '>', 0);
+
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+        if ($request->filled('brand_id')) {
+            $query->where('brand_id', $request->brand_id);
+        }
+        if ($request->filled('condition')) {
+            $query->where('condition', $request->condition);
+        }
+        if ($request->filled('blackfriday')) {
+            $query->where('blackfriday', true);
+        }
+
+        $products = $query->with('images', 'category', 'brand')->paginate(12)->withQueryString();
+
+        // filters list
+        $categories = Category::whereHas('products', function ($q) {
+            $q->where('active', true)->where('stock', '>', 0);
+        })->get();
+        $brands = Brand::whereHas('products', function ($q) {
+            $q->where('active', true)->where('stock', '>', 0);
+        })->get();
+        $conditions = Product::where('active', true)->where('stock', '>', 0)->whereNotNull('condition')->distinct()->pluck('condition');
+
+        return view('pages.shop.index', compact('products', 'categories', 'brands', 'conditions'));
     }
 
     public function show($slug)
     {
-        $product = Product::where('slug', $slug)->where('active', true)->with('images')->firstOrFail();
+        $product = Product::where('slug', $slug)->where('active', true)->with('images', 'category', 'brand')->firstOrFail();
         return view('pages.shop.show', compact('product'));
     }
 
@@ -53,10 +80,15 @@ class ShopController extends Controller
             }
             $cart[$id]['quantity'] = $newQuantity;
         } else {
+            // determine effective price (promo or normal)
+            $effectivePrice = $product->promo_price && $product->promo_price > 0 && $product->promo_price < $product->price
+                ? $product->promo_price
+                : $product->price;
+
             $cart[$id] = [
                 "name" => $product->name,
                 "quantity" => $quantity,
-                "price" => $product->price,
+                "price" => $effectivePrice,
                 "image" => $product->image,
                 "slug" => $product->slug
             ];

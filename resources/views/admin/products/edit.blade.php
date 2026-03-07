@@ -41,6 +41,15 @@
                                         </div>
 
                                         <div class="col-span-6 sm:col-span-3">
+                                            <label for="promo_price" class="block text-sm font-medium text-gray-700">Prix
+                                                promo (FCFA)</label>
+                                            <input type="number" name="promo_price" id="promo_price" min="0"
+                                                step="0.01"
+                                                class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                                value="{{ old('promo_price', $product->promo_price) }}">
+                                        </div>
+
+                                        <div class="col-span-6 sm:col-span-3">
                                             <label for="stock"
                                                 class="block text-sm font-medium text-gray-700">Stock</label>
                                             <input type="number" name="stock" id="stock" min="0"
@@ -56,6 +65,58 @@
                                                     class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border border-gray-300 rounded-md"
                                                     required>{{ old('description', $product->description) }}</textarea>
                                             </div>
+                                        </div>
+
+                                        <div class="col-span-6 flex items-center">
+                                            <div class="flex items-center h-5">
+                                                <input id="blackfriday" name="blackfriday" type="checkbox" value="1"
+                                                    class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                                    {{ old('blackfriday', $product->blackfriday) ? 'checked' : '' }}>
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="blackfriday" class="font-medium text-gray-700">Black
+                                                    Friday</label>
+                                                <p class="text-gray-500">Cocher si le produit fait partie des offres Black
+                                                    Friday.</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-span-6 sm:col-span-3">
+                                            <label for="category_id"
+                                                class="block text-sm font-medium text-gray-700">Catégorie</label>
+                                            <select name="category_id" id="category_id"
+                                                class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                                <option value="">-- Sélectionner --</option>
+                                                @foreach ($categories as $category)
+                                                    <option value="{{ $category->id }}"
+                                                        {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }}>
+                                                        {{ $category->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <div class="col-span-6 sm:col-span-3">
+                                            <label for="brand_id"
+                                                class="block text-sm font-medium text-gray-700">Marque</label>
+                                            <select name="brand_id" id="brand_id"
+                                                class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                                <option value="">-- Sélectionner --</option>
+                                                @foreach ($brands as $brand)
+                                                    <option value="{{ $brand->id }}"
+                                                        {{ old('brand_id', $product->brand_id) == $brand->id ? 'selected' : '' }}>
+                                                        {{ $brand->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <div class="col-span-6 sm:col-span-3">
+                                            <label for="condition"
+                                                class="block text-sm font-medium text-gray-700">État</label>
+                                            <input type="text" name="condition" id="condition"
+                                                class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                                value="{{ old('condition', $product->condition) }}">
                                         </div>
 
                                         <div class="col-span-6">

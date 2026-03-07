@@ -10,6 +10,37 @@
                 <p class="mt-4 text-lg text-gray-600">Découvrez notre sélection complète de produits</p>
             </div>
 
+            {{-- filter form --}}
+            <form method="GET" action="{{ route('shop.index') }}" class="mb-8 flex flex-wrap gap-4 justify-center">
+                <select name="category_id" class="border-gray-300 rounded-md">
+                    <option value="">Toutes catégories</option>
+                    @foreach ($categories ?? [] as $cat)
+                        <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>
+                            {{ $cat->name }}</option>
+                    @endforeach
+                </select>
+                <select name="brand_id" class="border-gray-300 rounded-md">
+                    <option value="">Toutes marques</option>
+                    @foreach ($brands ?? [] as $b)
+                        <option value="{{ $b->id }}" {{ request('brand_id') == $b->id ? 'selected' : '' }}>
+                            {{ $b->name }}</option>
+                    @endforeach
+                </select>
+                <select name="condition" class="border-gray-300 rounded-md">
+                    <option value="">Tous états</option>
+                    @foreach ($conditions ?? [] as $c)
+                        <option value="{{ $c }}" {{ request('condition') == $c ? 'selected' : '' }}>
+                            {{ ucfirst($c) }}</option>
+                    @endforeach
+                </select>
+                <label class="flex items-center space-x-2">
+                    <input type="checkbox" name="blackfriday" value="1" {{ request('blackfriday') ? 'checked' : '' }}
+                        class="h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                    <span class="text-sm">Black Friday</span>
+                </label>
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md">Filtrer</button>
+            </form>
+
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 @forelse($products as $product)
                     <div
@@ -19,6 +50,14 @@
                             <span
                                 class="absolute top-3 left-3 z-10 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-md uppercase">
                                 Nouveau
+                            </span>
+                        @endif
+
+                        <!-- Black Friday / promo badge -->
+                        @if ($product->blackfriday)
+                            <span
+                                class="absolute top-3 right-3 z-10 bg-black text-white text-xs font-bold px-2 py-1 rounded-md uppercase">
+                                Black Friday
                             </span>
                         @endif
 
@@ -58,9 +97,34 @@
                                 <a href="{{ route('shop.show', $product->slug) }}"
                                     class="hover:text-gold-500">{{ $product->name }}</a>
                             </h3>
+                            @if ($product->brand || $product->category)
+                                <p class="text-xs text-gray-500 mt-1">
+                                    @if ($product->brand)
+                                        {{ $product->brand->name }}
+                                    @endif
+                                    @if ($product->brand && $product->category)
+                                        &bull;
+                                    @endif
+                                    @if ($product->category)
+                                        {{ $product->category->name }}
+                                    @endif
+                                </p>
+                            @endif
+                            @php
+                                $hasPromo = $product->promo_price && $product->promo_price < $product->price;
+                            @endphp
                             <div class="mt-3 flex items-center justify-between">
                                 <span class="text-2xl font-bold text-gray-900">
-                                    {{ number_format($product->price, 0, ',', ' ') }} <span class="text-sm">FCFA</span>
+                                    @if ($hasPromo)
+                                        <span class="line-through text-gray-500">
+                                            {{ number_format($product->price, 0, ',', ' ') }} FCFA
+                                        </span>
+                                        <span class="ml-1 text-red-600">
+                                            {{ number_format($product->promo_price, 0, ',', ' ') }} FCFA
+                                        </span>
+                                    @else
+                                        {{ number_format($product->price, 0, ',', ' ') }} <span class="text-sm">FCFA</span>
+                                    @endif
                                 </span>
                             </div>
                             @if ($product->stock > 0)

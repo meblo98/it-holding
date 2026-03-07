@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\Category;
+use App\Models\Brand;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -25,7 +27,35 @@ class ProductController extends Controller
      */
     public function create()
     {
-        return view('admin.products.create');
+        $categories = Category::all();
+        $brands = Brand::all();
+        return view('admin.products.create', compact('categories', 'brands'));
+    }
+
+    /**
+     * Generate a unique slug
+     */
+    private function generateUniqueSlug($name, $excludeId = null)
+    {
+        $slug = Str::slug($name);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        while (true) {
+            $query = Product::where('slug', $slug);
+            if ($excludeId) {
+                $query->where('id', '!=', $excludeId);
+            }
+
+            if (!$query->exists()) {
+                break;
+            }
+
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
     }
 
     /**
@@ -37,15 +67,21 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
+            'promo_price' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
+            'blackfriday' => 'boolean',
+            'category_id' => 'nullable|exists:categories,id',
+            'brand_id' => 'nullable|exists:brands,id',
+            'condition' => 'nullable|string|max:255',
             'image' => 'nullable|image|max:2048',
             'images' => 'nullable|array|max:10',
             'images.*' => 'nullable|image|max:2048',
             'active' => 'boolean',
         ]);
 
-        $validated['slug'] = Str::slug($request->name);
+        $validated['slug'] = $this->generateUniqueSlug($request->name);
         $validated['active'] = $request->boolean('active');
+        $validated['blackfriday'] = $request->boolean('blackfriday');
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
@@ -79,7 +115,9 @@ class ProductController extends Controller
     public function edit(string $id)
     {
         $product = Product::findOrFail($id);
-        return view('admin.products.edit', compact('product'));
+        $categories = Category::all();
+        $brands = Brand::all();
+        return view('admin.products.edit', compact('product', 'categories', 'brands'));
     }
 
     /**
@@ -93,15 +131,21 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
+            'promo_price' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
+            'blackfriday' => 'boolean',
+            'category_id' => 'nullable|exists:categories,id',
+            'brand_id' => 'nullable|exists:brands,id',
+            'condition' => 'nullable|string|max:255',
             'image' => 'nullable|image|max:2048',
             'images' => 'nullable|array|max:10',
             'images.*' => 'nullable|image|max:2048',
             'active' => 'boolean',
         ]);
 
-        $validated['slug'] = Str::slug($request->name);
+        $validated['slug'] = $this->generateUniqueSlug($request->name, $product->id);
         $validated['active'] = $request->boolean('active');
+        $validated['blackfriday'] = $request->boolean('blackfriday');
 
 
         if ($request->hasFile('image')) {

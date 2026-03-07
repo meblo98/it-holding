@@ -48,11 +48,22 @@
                         <nav class="text-sm text-gray-500">
                             <a href="{{ route('shop.index') }}" class="hover:underline">Boutique</a>
                             <span class="mx-2">/</span>
-                            <a href="{{ route('shop.index', ['category' => $product->category ?? 'all']) }}"
-                                class="hover:underline">{{ $product->category ?? 'Produits' }}</a>
+                            @if ($product->category)
+                                <a href="{{ route('shop.index', ['category_id' => $product->category->id]) }}"
+                                    class="hover:underline">{{ $product->category->name }}</a>
+                            @else
+                                <span class="text-gray-500">Produits</span>
+                            @endif
                             <span class="mx-2">/</span>
                             <span class="text-gray-700">{{ $product->name }}</span>
                         </nav>
+                        @if ($product->blackfriday)
+                            <div class="mt-2">
+                                <span class="inline-block px-3 py-1 bg-black text-white text-xs font-bold rounded">
+                                    Offre Black Friday
+                                </span>
+                            </div>
+                        @endif
                     </div>
                     <!-- Compact Image Section / Gallery -->
                     <div class="lg:col-span-2 bg-gradient-to-br from-gray-50 to-gray-100 p-8">
@@ -130,6 +141,25 @@
                         <!-- Product Title -->
                         <div class="mb-6">
                             <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">{{ $product->name }}</h1>
+                            @if ($product->brand || $product->category || $product->condition)
+                                <p class="text-sm text-gray-500 mt-1">
+                                    @if ($product->brand)
+                                        {{ $product->brand->name }}
+                                    @endif
+                                    @if ($product->brand && $product->category)
+                                        &bull;
+                                    @endif
+                                    @if ($product->category)
+                                        {{ $product->category->name }}
+                                    @endif
+                                    @if (($product->brand || $product->category) && $product->condition)
+                                        &bull;
+                                    @endif
+                                    @if ($product->condition)
+                                        {{ ucfirst($product->condition) }}
+                                    @endif
+                                </p>
+                            @endif
                             <div class="h-1 w-20 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full"></div>
                         </div>
 
@@ -137,9 +167,22 @@
                         <div class="flex items-center justify-between mb-8 pb-6 border-b border-gray-200">
                             <div>
                                 <p class="text-sm text-gray-500 mb-1">Prix</p>
+                                @php
+                                    $hasPromo = $product->promo_price && $product->promo_price < $product->price;
+                                @endphp
                                 <p
                                     class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                                    {{ number_format($product->price, 0, ',', ' ') }} <span class="text-2xl">FCFA</span>
+                                    @if ($hasPromo)
+                                        <span class="line-through text-gray-300">
+                                            {{ number_format($product->price, 0, ',', ' ') }} FCFA
+                                        </span>
+                                        <span class="ml-1">
+                                            {{ number_format($product->promo_price, 0, ',', ' ') }} FCFA
+                                        </span>
+                                    @else
+                                        {{ number_format($product->price, 0, ',', ' ') }} <span
+                                            class="text-2xl">FCFA</span>
+                                    @endif
                                 </p>
                             </div>
 
