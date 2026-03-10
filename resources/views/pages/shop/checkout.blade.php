@@ -33,11 +33,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
                         <div class="md:col-span-3">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Prénom</label>
-                            <input type="text" name="first_name" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30" placeholder="Votre prénom">
+                            <input type="text" name="first_name" value="{{ old('first_name', Auth::user()->billing_first_name ?? explode(' ', Auth::user()->name)[0] ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30" placeholder="Votre prénom">
                         </div>
                         <div class="md:col-span-3">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Nom</label>
-                            <input type="text" name="last_name" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30" placeholder="Votre nom">
+                            <input type="text" name="last_name" value="{{ old('last_name', Auth::user()->billing_last_name ?? explode(' ', Auth::user()->name)[1] ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30" placeholder="Votre nom">
                         </div>
                         
                         <div class="md:col-span-6">
@@ -47,33 +47,33 @@
                         
                         <div class="md:col-span-6">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Adresse</label>
-                            <input type="text" name="address" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30" placeholder="Adresse complète">
+                            <input type="text" name="address" value="{{ old('address', Auth::user()->billing_address ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30" placeholder="Adresse complète">
                         </div>
                         
                         <div class="md:col-span-2">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Pays</label>
                             <select name="country" class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30">
-                                <option value="Sénégal">Sénégal</option>
-                                <option value="France">France</option>
-                                <option value="USA">USA</option>
+                                <option value="Sénégal" {{ old('country', Auth::user()->country ?? '') == 'SN' || old('country', Auth::user()->country ?? '') == 'Sénégal' ? 'selected' : '' }}>Sénégal</option>
+                                <option value="France" {{ old('country', Auth::user()->country ?? '') == 'FR' || old('country', Auth::user()->country ?? '') == 'France' ? 'selected' : '' }}>France</option>
+                                <option value="USA" {{ old('country', Auth::user()->country ?? '') == 'US' || old('country', Auth::user()->country ?? '') == 'USA' ? 'selected' : '' }}>USA</option>
                             </select>
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ville</label>
-                            <input type="text" name="city" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30">
+                            <input type="text" name="city" value="{{ old('city', Auth::user()->billing_city ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30">
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Code Postal</label>
-                            <input type="text" name="zip" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30">
+                            <input type="text" name="zip" value="{{ old('zip', Auth::user()->billing_zip ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30">
                         </div>
                         
                         <div class="md:col-span-3">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Email</label>
-                            <input type="email" name="email" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30" placeholder="exemple@mail.com">
+                            <input type="email" name="email" value="{{ old('email', Auth::user()->email ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30" placeholder="exemple@mail.com">
                         </div>
                         <div class="md:col-span-3">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Numéro de Téléphone</label>
-                            <input type="tel" name="phone" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30" placeholder="+221 ...">
+                            <input type="tel" name="phone" value="{{ old('phone', Auth::user()->phone ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30" placeholder="+221 ...">
                         </div>
                     </div>
                     

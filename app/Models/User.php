@@ -22,6 +22,22 @@ class User extends Authenticatable
         'email',
         'password',
         'is_admin',
+        'username',
+        'phone',
+        'country',
+        'state',
+        'zip_code',
+        'address',
+        'billing_first_name',
+        'billing_last_name',
+        'billing_address',
+        'billing_city',
+        'billing_zip',
+        'shipping_first_name',
+        'shipping_last_name',
+        'shipping_address',
+        'shipping_city',
+        'shipping_zip',
     ];
 
     /**
@@ -46,5 +62,10 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_admin' => 'boolean',
         ];
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 }

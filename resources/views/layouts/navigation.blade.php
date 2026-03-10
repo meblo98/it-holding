@@ -10,7 +10,7 @@
                 </span>
                 <div class="flex items-center gap-4">
                     <a href="#" class="hover:text-gold-400 transition-colors">Besoin d'aide ?</a>
-                    <a href="#" class="hover:text-gold-400 transition-colors">Suivre ma commande</a>
+                    <a href="{{ route('dashboard.track') }}" class="hover:text-gold-400 transition-colors">Suivre ma commande</a>
                 </div>
             </div>
         </div>
