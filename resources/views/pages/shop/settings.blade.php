@@ -79,14 +79,15 @@
                     <div class="px-8 py-6 border-b border-gray-50">
                         <h3 class="text-xs font-black text-navy-900 uppercase tracking-widest italic">Informations de profil</h3>
                     </div>
-                    <form action="{{ route('dashboard.settings.updateProfile') }}" method="POST" class="p-8">
+                    <form action="{{ route('dashboard.settings.updateProfile') }}" method="POST" class="p-8" enctype="multipart/form-data">
                         @csrf
                         <div class="flex flex-col md:flex-row gap-8 items-start mb-8">
                             <div class="flex-shrink-0 relative group">
-                                <img src="https://i.pravatar.cc/150?u={{ $user->id }}" class="w-24 h-24 rounded-full border-2 border-gold-500 shadow-sm transition-transform group-hover:scale-105">
-                                <button type="button" class="absolute bottom-0 right-0 w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center text-navy-900 shadow-sm hover:bg-gold-500 hover:border-gold-500 transition-colors">
+                                <img id="profile-preview" src="{{ $user->photo_url }}" class="w-24 h-24 rounded-full border-2 border-gold-500 shadow-sm transition-transform group-hover:scale-105 object-cover">
+                                <button type="button" onclick="document.getElementById('photo-input').click()" class="absolute bottom-0 right-0 w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center text-navy-900 shadow-sm hover:bg-gold-500 hover:border-gold-500 transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 </button>
+                                <input type="file" name="photo" id="photo-input" class="hidden" accept="image/*" onchange="previewImage(this)">
                             </div>
                             <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="space-y-1">
@@ -238,3 +239,17 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('profile-preview').src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+@endpush

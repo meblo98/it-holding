@@ -7,6 +7,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 
 class DashboardController extends Controller
@@ -76,15 +77,26 @@ class DashboardController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'nullable|string|max:20',
             'country' => 'nullable|string|max:2',
+            'photo' => 'nullable|image|max:2048',
         ]);
 
-        $user->update([
+        $data = [
             'name' => $request->display_name,
             'username' => $request->username,
             'email' => $request->email,
             'phone' => $request->phone,
             'country' => $request->country,
-        ]);
+        ];
+
+        if ($request->hasFile('photo')) {
+            if ($user->photo) {
+                Storage::disk('public')->delete($user->photo);
+            }
+            $path = $request->file('photo')->store('profiles', 'public');
+            $data['photo'] = $path;
+        }
+
+        $user->update($data);
 
         return back()->with('success', 'Profil mis à jour avec succès.');
     }

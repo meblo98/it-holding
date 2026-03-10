@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'photo',
         'is_admin',
         'username',
         'phone',
@@ -67,5 +68,17 @@ class User extends Authenticatable
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    protected function photoUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: function ($value) {
+                if ($this->photo) {
+                    return asset('storage/' . $this->photo);
+                }
+                return "https://i.pravatar.cc/150?u=" . $this->id;
+            }
+        );
     }
 }
