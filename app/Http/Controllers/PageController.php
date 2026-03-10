@@ -25,6 +25,13 @@ class PageController extends Controller
 
     public function about()
     {
-        return view('pages.about');
+        $products = Product::where('active', true)
+            ->where('stock', '>', 0)
+            ->with('images')
+            ->latest()
+            ->take(12)
+            ->get();
+            
+        return view('pages.about', compact('products'));
     }
 }

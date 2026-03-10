@@ -1,42 +1,86 @@
 @extends('layouts.app')
 
-@section('title', 'Inscription')
+@section('title', 'Inscription - ' . config('app.name'))
 
 @section('content')
-    <div class="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-50">
-        <div class="sm:mx-auto sm:w-full sm:max-w-md">
-            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Créer un nouveau compte
-            </h2>
-            <p class="mt-2 text-center text-sm text-gray-600">
-                Ou
-                <a href="{{ route('login') }}" class="font-medium text-indigo-600 hover:text-indigo-500">
-                    connectez-vous à votre compte existant
+<div class="bg-gray-50 min-h-screen py-20 px-4">
+    <div class="max-w-md mx-auto">
+        <!-- Tabbed Auth Card -->
+        <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100">
+            <!-- Tabs Header -->
+            <div class="flex border-b border-gray-100">
+                <a href="{{ route('login') }}" class="flex-1 py-5 text-center text-sm font-bold uppercase tracking-widest italic text-gray-300 hover:text-navy-900 transition-colors">
+                    Se Connecter
                 </a>
-            </p>
-        </div>
+                <a href="{{ route('register') }}" class="flex-1 py-5 text-center text-sm font-black uppercase tracking-widest italic border-b-2 border-gold-500 text-navy-900">
+                    S'inscrire
+                </a>
+            </div>
 
-        <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-            <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-                <form class="space-y-6" action="{{ route('register') }}" method="POST">
+            <div class="p-8 lg:p-10">
+                <form action="{{ route('register') }}" method="POST" class="space-y-6">
                     @csrf
-
-                    <x-form-input name="name" label="Nom complet" required />
-
-                    <x-form-input name="email" label="Adresse Email" type="email" required />
-
-                    <x-form-input name="password" label="Mot de passe" type="password" required />
-
-                    <x-form-input name="password_confirmation" label="Confirmer le mot de passe" type="password" required />
-
+                    
+                    <!-- Name field -->
                     <div>
-                        <button type="submit"
-                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            S'inscrire
-                        </button>
+                        <label for="name" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Nom Complet</label>
+                        <input type="text" name="name" id="name" value="{{ old('name') }}" required autofocus
+                            class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('name') border-red-500 @enderror">
+                        @error('name')
+                            <p class="mt-1 text-[10px] text-red-500 font-bold uppercase italic">{{ $message }}</p>
+                        @enderror
                     </div>
+
+                    <!-- Email field -->
+                    <div>
+                        <label for="email" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Adresse Email</label>
+                        <input type="email" name="email" id="email" value="{{ old('email') }}" required
+                            class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('email') border-red-500 @enderror">
+                        @error('email')
+                            <p class="mt-1 text-[10px] text-red-500 font-bold uppercase italic">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Password field -->
+                    <div>
+                        <label for="password" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Mot de passe</label>
+                        <input type="password" name="password" id="password" required
+                            class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('password') border-red-500 @enderror">
+                        @error('password')
+                            <p class="mt-1 text-[10px] text-red-500 font-bold uppercase italic">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Password confirmation field -->
+                    <div>
+                        <label for="password_confirmation" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Confirmer le Mot de passe</label>
+                        <input type="password" name="password_confirmation" id="password_confirmation" required
+                            class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30">
+                    </div>
+
+                    <div class="flex items-center">
+                        <input type="checkbox" id="terms" required class="rounded text-gold-500 focus:ring-gold-500 h-4 w-4 border-gray-200">
+                        <label for="terms" class="ml-2 text-[10px] font-bold text-gray-400 uppercase tracking-tight">J'accepte les <a href="#" class="text-gold-600 underline">Conditions d'Utilisation</a></label>
+                    </div>
+
+                    <button type="submit" class="w-full btn-primary-gold py-4 text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-4 group">
+                        CRÉER UN COMPTE
+                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </button>
                 </form>
+
+                <div class="relative my-8">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-100"></div></div>
+                    <div class="relative flex justify-center text-[10px] uppercase font-bold tracking-widest"><span class="px-3 bg-white text-gray-300">Ou</span></div>
+                </div>
+
+                <!-- Social Logins (Google only for register to keep it clean) -->
+                <button class="w-full border border-gray-100 rounded-lg py-3 px-4 flex items-center justify-center gap-3 hover:bg-gray-50 transition-all">
+                    <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" class="w-5 h-5">
+                    <span class="text-xs font-bold text-navy-800 uppercase tracking-tight">S'inscrire avec Google</span>
+                </button>
             </div>
         </div>
     </div>
+</div>
 @endsection

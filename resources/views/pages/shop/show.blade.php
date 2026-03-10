@@ -3,420 +3,225 @@
 @section('title', $product->name . ' - Boutique')
 
 @section('content')
-    <div class="bg-gradient-to-br from-gray-50 to-white min-h-screen">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-
-            @if (session('success'))
-                <div class="mb-8 bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg shadow-sm animate-fade-in">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-green-700 font-medium">{{ session('success') }}</p>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            @if (session('error'))
-                <div class="mb-8 bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg shadow-sm animate-fade-in">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-red-700 font-medium">{{ session('error') }}</p>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            <!-- Modern Product Card -->
-            <div class="bg-white rounded-3xl shadow-xl overflow-hidden">
-                <div class="lg:grid lg:grid-cols-5 lg:gap-8">
-                    <!-- Breadcrumb -->
-                    <div class="col-span-full px-8 pt-6">
-                        <nav class="text-sm text-gray-500">
-                            <a href="{{ route('shop.index') }}" class="hover:underline">Boutique</a>
-                            <span class="mx-2">/</span>
-                            @if ($product->category)
-                                <a href="{{ route('shop.index', ['category_id' => $product->category->id]) }}"
-                                    class="hover:underline">{{ $product->category->name }}</a>
-                            @else
-                                <span class="text-gray-500">Produits</span>
-                            @endif
-                            <span class="mx-2">/</span>
-                            <span class="text-gray-700">{{ $product->name }}</span>
-                        </nav>
-                        @if ($product->blackfriday)
-                            <div class="mt-2">
-                                <span class="inline-block px-3 py-1 bg-black text-white text-xs font-bold rounded">
-                                    Offre Black Friday
-                                </span>
-                            </div>
-                        @endif
-                    </div>
-                    <!-- Compact Image Section / Gallery -->
-                    <div class="lg:col-span-2 bg-gradient-to-br from-gray-50 to-gray-100 p-8">
-                        <div class="w-full max-w-md mx-auto">
-                            @if ($product->images->count())
-                                @php
-                                    $rawPath = $product->image ?: $product->images->first()->path ?? null;
-                                    $imgPath = $rawPath ? preg_replace('#^(/?storage/)#', '', $rawPath) : null;
-                                    if (
-                                        $imgPath &&
-                                        \Illuminate\Support\Facades\Storage::disk('public')->exists($imgPath)
-                                    ) {
-                                        $mainUrl = '/storage/' . ltrim($imgPath, '/');
-                                    } elseif ($rawPath && filter_var($rawPath, FILTER_VALIDATE_URL)) {
-                                        $mainUrl = $rawPath;
-                                    } else {
-                                        $mainUrl = $imgPath ? asset('storage/' . ltrim($imgPath, '/')) : null;
-                                    }
-                                @endphp
-
-                                <!-- Main Image -->
-                                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
-                                    <img id="main-image" loading="lazy" src="{{ $mainUrl }}" alt="{{ $product->name }}"
-                                        class="w-full h-96 object-contain transition-opacity duration-300">
-                                </div>
-
-                                <!-- Thumbnail Gallery -->
-                                @if ($product->images->count() > 1)
-                                    <div class="mt-4 flex items-center gap-2 overflow-x-auto pb-2">
-                                        @foreach ($product->images as $index => $img)
-                                            @php
-                                                $rawThumb = $img->path;
-                                                $tPath = $rawThumb
-                                                    ? preg_replace('#^(/?storage/)#', '', $rawThumb)
-                                                    : null;
-                                                if (
-                                                    $tPath &&
-                                                    \Illuminate\Support\Facades\Storage::disk('public')->exists($tPath)
-                                                ) {
-                                                    $thumbUrl = '/storage/' . ltrim($tPath, '/');
-                                                } elseif ($rawThumb && filter_var($rawThumb, FILTER_VALIDATE_URL)) {
-                                                    $thumbUrl = $rawThumb;
-                                                } else {
-                                                    $thumbUrl = $tPath ? asset('storage/' . ltrim($tPath, '/')) : null;
-                                                }
-                                            @endphp
-                                            <button type="button"
-                                                class="gallery-thumb flex-shrink-0 border-2 rounded-lg {{ $index === 0 ? 'border-indigo-500' : 'border-gray-300' }} hover:border-indigo-400 transition-colors focus:outline-none"
-                                                data-image="{{ $thumbUrl }}" onclick="changeMainImage(this)">
-                                                <img loading="lazy" src="{{ $thumbUrl }}"
-                                                    alt="Image {{ $index + 1 }}"
-                                                    class="w-16 h-16 rounded-lg object-cover">
-                                            </button>
-                                        @endforeach
-                                    </div>
-                                @endif
-                            @else
-                                <div
-                                    class="aspect-square bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl flex items-center justify-center shadow-lg">
-                                    <div class="text-center">
-                                        <svg class="mx-auto h-20 w-20 text-indigo-300" fill="none" viewBox="0 0 24 24"
-                                            stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        <p class="mt-3 text-indigo-400 font-medium text-sm">Image du produit</p>
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-
-                    <!-- Product Info Section -->
-                    <div class="lg:col-span-3 p-8 lg:p-12">
-                        <!-- Product Title -->
-                        <div class="mb-6">
-                            <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">{{ $product->name }}</h1>
-                            @if ($product->brand || $product->category || $product->condition)
-                                <p class="text-sm text-gray-500 mt-1">
-                                    @if ($product->brand)
-                                        {{ $product->brand->name }}
-                                    @endif
-                                    @if ($product->brand && $product->category)
-                                        &bull;
-                                    @endif
-                                    @if ($product->category)
-                                        {{ $product->category->name }}
-                                    @endif
-                                    @if (($product->brand || $product->category) && $product->condition)
-                                        &bull;
-                                    @endif
-                                    @if ($product->condition)
-                                        {{ ucfirst($product->condition) }}
-                                    @endif
-                                </p>
-                            @endif
-                            <div class="h-1 w-20 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full"></div>
-                        </div>
-
-                        <!-- Price and Stock -->
-                        <div class="flex items-center justify-between mb-8 pb-6 border-b border-gray-200">
-                            <div>
-                                <p class="text-sm text-gray-500 mb-1">Prix</p>
-                                @php
-                                    $hasPromo = $product->promo_price && $product->promo_price < $product->price;
-                                @endphp
-                                <p
-                                    class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                                    @if ($hasPromo)
-                                        <span class="line-through text-gray-300">
-                                            {{ number_format($product->price, 0, ',', ' ') }} FCFA
-                                        </span>
-                                        <span class="ml-1">
-                                            {{ number_format($product->promo_price, 0, ',', ' ') }} FCFA
-                                        </span>
-                                    @else
-                                        {{ number_format($product->price, 0, ',', ' ') }} <span
-                                            class="text-2xl">FCFA</span>
-                                    @endif
-                                </p>
-                            </div>
-
-                            @if ($product->stock > 0)
-                                <div class="text-right">
-                                    <span
-                                        class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border border-green-200">
-                                        <svg class="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 8 8">
-                                            <circle cx="4" cy="4" r="3" />
-                                        </svg>
-                                        {{ $product->stock }} en stock
-                                    </span>
-                                </div>
-                            @else
-                                <div class="text-right">
-                                    <span
-                                        class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-red-50 text-red-700 border border-red-200">
-                                        <svg class="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 8 8">
-                                            <circle cx="4" cy="4" r="3" />
-                                        </svg>
-                                        Rupture de stock
-                                    </span>
-                                </div>
-                            @endif
-                        </div>
-
-                        <!-- Description + Specifications tabs -->
-                        <div class="mb-8">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-lg font-semibold text-gray-900 mb-3">Description</h3>
-                                <div class="text-sm text-gray-500">Référence: {{ $product->sku ?? 'N/A' }}</div>
-                            </div>
-
-                            <div class="border-b mb-4">
-                                <nav class="flex -mb-px space-x-6" aria-label="Tabs">
-                                    <button type="button"
-                                        class="tab-btn pb-3 border-b-2 border-indigo-600 text-indigo-600 font-medium"
-                                        data-target="desc">Description</button>
-                                    <button type="button"
-                                        class="tab-btn pb-3 border-b-2 border-transparent text-gray-600 hover:text-gray-800"
-                                        data-target="specs">Spécifications</button>
-                                    <button type="button"
-                                        class="tab-btn pb-3 border-b-2 border-transparent text-gray-600 hover:text-gray-800"
-                                        data-target="reviews">Avis</button>
-                                </nav>
-                            </div>
-
-                            <div id="tab-desc" class="tab-content">
-                                <div class="prose prose-sm text-gray-600 leading-relaxed">
-                                    <p>{{ $product->description }}</p>
-                                </div>
-                            </div>
-
-                            <div id="tab-specs" class="tab-content hidden">
-                                @if (!empty($product->specs))
-                                    <ul class="list-disc pl-5 text-gray-700">
-                                        @foreach ($product->specs as $key => $val)
-                                            <li><strong class="text-gray-900">{{ $key }}:</strong>
-                                                {{ $val }}</li>
-                                        @endforeach
-                                    </ul>
-                                @else
-                                    <p class="text-gray-600">Aucune spécification détaillée disponible.</p>
-                                @endif
-                            </div>
-
-                            <div id="tab-reviews" class="tab-content hidden">
-                                <p class="text-gray-600">Les avis seront disponibles prochainement.</p>
-                            </div>
-                        </div>
-
-                        <form action="{{ route('shop.addToCart', $product->id) }}" method="POST"
-                            class="mt-10 lg:sticky lg:top-28">
-                            @csrf
-
-                            @if ($product->stock > 0)
-                                <div class="flex flex-col sm:flex-row sm:items-end gap-4">
-                                    <div class="flex-shrink-0 w-full sm:w-auto">
-                                        <label for="quantity"
-                                            class="block text-sm font-semibold text-gray-900 mb-3">Quantité</label>
-                                        <div class="flex items-center space-x-3">
-                                            <button type="button" onclick="decrementQuantity()"
-                                                class="inline-flex items-center justify-center w-12 h-12 border-2 border-gray-300 rounded-lg text-gray-600 hover:border-indigo-500 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M20 12H4" />
-                                                </svg>
-                                            </button>
-
-                                            <input type="number" id="quantity" name="quantity" value="1"
-                                                min="1" max="{{ $product->stock }}"
-                                                class="w-20 text-center text-xl font-semibold border-2 border-gray-300 rounded-lg py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200">
-
-                                            <button type="button" onclick="incrementQuantity({{ $product->stock }})"
-                                                class="inline-flex items-center justify-center w-12 h-12 border-2 border-gray-300 rounded-lg text-gray-600 hover:border-indigo-500 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M12 4v16m8-8H4" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex-1">
-                                        <div class="flex items-center space-x-3 mb-3">
-                                            <span class="text-sm text-gray-600">Partager:</span>
-                                            <a href="https://twitter.com/intent/tweet?text={{ urlencode($product->name) }}&url={{ urlencode(request()->fullUrl()) }}"
-                                                target="_blank" class="text-blue-500 hover:underline text-sm">Twitter</a>
-                                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(request()->fullUrl()) }}"
-                                                target="_blank" class="text-blue-700 hover:underline text-sm">Facebook</a>
-                                        </div>
-
-                                        <button type="submit"
-                                            class="w-full sm:flex-1 bg-gradient-to-r from-indigo-600 to-indigo-700 border border-transparent rounded-xl shadow-lg py-3 px-6 flex items-center justify-center text-base font-semibold text-white hover:from-indigo-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform hover:scale-105 transition-all duration-200 h-12">
-                                            <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                                            </svg>
-                                            Ajouter au panier
-                                        </button>
-                                    </div>
-                                </div>
-                            @else
-                                <button type="button" disabled
-                                    class="w-full bg-gray-300 border border-transparent rounded-xl py-4 px-8 flex items-center justify-center text-lg font-semibold text-gray-500 cursor-not-allowed">
-                                    Produit indisponible
-                                </button>
-                            @endif
-                        </form>
-
-                        <!-- Delivery Information Card -->
-                        <div
-                            class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100">
-                            <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center">
-                                <svg class="h-5 w-5 text-indigo-600 mr-2" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Garanties & Livraison
-                            </h3>
-                            <div class="space-y-3">
-                                <div class="flex items-start">
-                                    <svg class="flex-shrink-0 h-5 w-5 text-green-500 mt-0.5" fill="currentColor"
-                                        viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                            clip-rule="evenodd" />
-                                    </svg>
-                                    <p class="ml-3 text-sm text-gray-700 font-medium">Livraison rapide disponible</p>
-                                </div>
-                                <div class="flex items-start">
-                                    <svg class="flex-shrink-0 h-5 w-5 text-green-500 mt-0.5" fill="currentColor"
-                                        viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                            clip-rule="evenodd" />
-                                    </svg>
-                                    <p class="ml-3 text-sm text-gray-700 font-medium">Retour gratuit sous 30 jours</p>
-                                </div>
-                                <div class="flex items-start">
-                                    <svg class="flex-shrink-0 h-5 w-5 text-green-500 mt-0.5" fill="currentColor"
-                                        viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                            clip-rule="evenodd" />
-                                    </svg>
-                                    <p class="ml-3 text-sm text-gray-700 font-medium">Garantie qualité certifiée</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="bg-white min-h-screen">
+    <!-- Breadcrumb -->
+    <div class="bg-gray-50 border-b border-gray-100 py-3">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav class="flex text-xs text-gray-400 gap-2 items-center">
+                <a href="{{ route('home') }}" class="hover:text-navy-900 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
+                    Accueil
+                </a>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                <a href="{{ route('shop.index') }}" class="hover:text-navy-900">Boutique</a>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                @if ($product->category)
+                    <a href="{{ route('shop.index', ['category_id' => $product->category->id]) }}" class="hover:text-navy-900">{{ $product->category->name }}</a>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                @endif
+                <span class="text-gold-600 font-medium truncate">{{ $product->name }}</span>
+            </nav>
         </div>
     </div>
 
-    <script>
-        function incrementQuantity(max) {
-            const input = document.getElementById('quantity');
-            const currentValue = parseInt(input.value);
-            if (currentValue < max) {
-                input.value = currentValue + 1;
-            }
-        }
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        @if (session('success'))
+            <div class="mb-6 bg-green-50 text-green-700 p-4 rounded-lg flex items-center gap-3 border border-green-100">
+                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span class="text-sm font-medium">{{ session('success') }}</span>
+            </div>
+        @endif
 
-        function decrementQuantity() {
-            const input = document.getElementById('quantity');
-            const currentValue = parseInt(input.value);
-            if (currentValue > 1) {
-                input.value = currentValue - 1;
-            }
-        }
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+            <!-- Left: Gallery -->
+            <div x-data="{ mainImage: '{{ $product->image ? (preg_match('#^/?storage/#', $product->image) ? $product->image : '/storage/'.ltrim($product->image, '/')) : asset('logo.jpeg') }}' }" class="space-y-6">
+                <!-- Main Image -->
+                <div class="aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-100 flex items-center justify-center p-8 group relative">
+                    <img :src="mainImage" alt="{{ $product->name }}" class="max-h-full max-w-full object-contain transform group-hover:scale-105 transition-transform duration-500">
+                </div>
 
-        // Gallery image switcher
-        function changeMainImage(button) {
-            const imageUrl = button.getAttribute('data-image');
-            const mainImage = document.getElementById('main-image');
-            if (mainImage && imageUrl) {
-                mainImage.src = imageUrl;
+                <!-- Thumbnails Gallery -->
+                @if($product->images->count() > 0)
+                <div class="relative px-8">
+                    <div class="flex items-center gap-4 overflow-x-auto py-2">
+                        @foreach($product->images as $img)
+                            @php
+                                $tPath = preg_match('#^/?storage/#', $img->path) ? $img->path : '/storage/'.ltrim($img->path, '/');
+                            @endphp
+                            <button @click="mainImage = '{{ $tPath }}'" 
+                                class="flex-shrink-0 w-20 h-20 border-2 rounded-lg p-2 bg-white transition-all overflow-hidden"
+                                :class="mainImage === '{{ $tPath }}' ? 'border-gold-500' : 'border-gray-100 hover:border-gold-200'">
+                                <img src="{{ $tPath }}" class="w-full h-full object-contain">
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+            </div>
 
-                // Update active thumbnail border
-                document.querySelectorAll('.gallery-thumb').forEach(thumb => {
-                    thumb.classList.remove('border-indigo-500');
-                    thumb.classList.add('border-gray-300');
-                });
-                button.classList.remove('border-gray-300');
-                button.classList.add('border-indigo-500');
-            }
-        }
+            <!-- Right: Product Info -->
+            <div class="flex flex-col">
+                <!-- Rating & Feedback -->
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="flex text-gold-500">
+                        @for($i=0; $i<5; $i++)
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        @endfor
+                    </div>
+                    <span class="text-xs font-bold text-navy-900 uppercase tracking-widest">4.7 Star Rating</span>
+                    <span class="text-xs text-gray-400 whitespace-nowrap">(2,350 Retours utilisateurs)</span>
+                </div>
 
-        // Tabs for product details
-        document.addEventListener('DOMContentLoaded', function() {
-            const buttons = document.querySelectorAll('.tab-btn');
-            buttons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    buttons.forEach(b => b.classList.remove('border-indigo-600',
-                        'text-indigo-600'));
-                    buttons.forEach(b => b.classList.add('border-transparent', 'text-gray-600'));
+                <!-- Title -->
+                <h1 class="text-2xl lg:text-3xl font-bold text-navy-900 mb-6 leading-tight">{{ $product->name }}</h1>
 
-                    this.classList.remove('border-transparent');
-                    this.classList.remove('text-gray-600');
-                    this.classList.add('border-indigo-600', 'text-indigo-600');
+                <!-- Meta Details -->
+                <div class="grid grid-cols-2 gap-y-4 mb-8 text-sm">
+                    <div>
+                        <span class="text-gray-400 block mb-1">REF:</span>
+                        <span class="font-bold text-navy-900">{{ $product->sku ?: 'IT-'.str_pad($product->id, 5, '0', STR_PAD_LEFT) }}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 block mb-1">Disponibilité:</span>
+                        <span class="font-bold text-green-600">{{ $product->stock > 0 ? 'En stock' : 'Rupture de stock' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 block mb-1">Marque:</span>
+                        <span class="font-bold text-navy-900">{{ $product->brand->name ?? 'IT-HOLDING' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 block mb-1">Catégorie:</span>
+                        <span class="font-bold text-navy-900">{{ $product->category->name ?? 'Informatique' }}</span>
+                    </div>
+                </div>
 
-                    const target = this.getAttribute('data-target');
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.add(
-                        'hidden'));
-                    const el = document.getElementById('tab-' + target.replace(/s$/, 's'));
-                    if (el) el.classList.remove('hidden');
-                });
-            });
-        });
-    </script>
+                <!-- Price -->
+                <div class="flex items-center gap-4 mb-10">
+                    <span class="text-3xl font-black text-gold-500">{{ number_format($product->promo_price ?: $product->price, 0, ',', ' ') }} <span class="text-sm font-bold">CFA</span></span>
+                    @if($product->promo_price && $product->promo_price < $product->price)
+                        <span class="text-xl text-gray-300 line-through">{{ number_format($product->price, 0, ',', ' ') }} CFA</span>
+                        @php
+                            $discount = round((($product->price - $product->promo_price) / $product->price) * 100);
+                        @endphp
+                        <span class="bg-gold-100 text-gold-600 px-3 py-1 rounded text-xs font-black">{{ $discount }}% OFF</span>
+                    @endif
+                </div>
+
+                <!-- Variants (Mock) -->
+                @if($product->category && in_array(strtolower($product->category->name), ['ordinateur', 'ordinateur portable', 'pc', 'laptop', 'macbook']))
+                <div class="grid grid-cols-2 gap-6 mb-10">
+                    <div class="space-y-3">
+                        <label class="text-sm font-bold text-navy-900 uppercase tracking-tighter italic">Mémoire Vive (RAM)</label>
+                        <select class="w-full border-gray-200 rounded-lg text-sm focus:ring-gold-500 focus:border-gold-500">
+                            <option>8GB unified memory</option>
+                            <option>16GB unified memory</option>
+                            <option>32GB unified memory</option>
+                        </select>
+                    </div>
+                    <div class="space-y-3">
+                        <label class="text-sm font-bold text-navy-900 uppercase tracking-tighter italic">Stockage (SSD)</label>
+                        <select class="w-full border-gray-200 rounded-lg text-sm focus:ring-gold-500 focus:border-gold-500">
+                            <option>256GB SSD Storage</option>
+                            <option>512GB SSD Storage</option>
+                            <option>1TB SSD Storage</option>
+                        </select>
+                    </div>
+                </div>
+                @endif
+
+                <!-- Add to Cart -->
+                <form action="{{ route('shop.addToCart', $product->id) }}" method="POST" class="space-y-6">
+                    @csrf
+                    <div class="flex items-center gap-4">
+                        <div x-data="{ qty: 1 }" class="flex items-center border-2 border-gray-100 rounded-lg p-1 bg-gray-50">
+                            <button type="button" @click="if(qty > 1) qty--" class="w-10 h-10 flex items-center justify-center text-navy-900 hover:bg-white rounded transition-colors">-</button>
+                            <input type="number" name="quantity" x-model="qty" class="w-12 text-center border-none bg-transparent font-bold focus:ring-0 text-navy-900" min="1" max="{{ $product->stock }}">
+                            <button type="button" @click="if(qty < {{ $product->stock }}) qty++" class="w-10 h-10 flex items-center justify-center text-navy-900 hover:bg-white rounded transition-colors">+</button>
+                        </div>
+                        <button type="submit" class="flex-grow btn-primary-gold h-12 uppercase tracking-widest text-xs flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed" {{ $product->stock <= 0 ? 'disabled' : '' }}>
+                            Ajouter au Panier
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        </button>
+                        <button type="button" class="w-12 h-12 border-2 border-gray-100 rounded-lg flex items-center justify-center text-navy-900 hover:border-gold-400 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Features Badges -->
+                <div class="mt-auto pt-8 border-t border-gray-50 flex items-center gap-6">
+                    <span class="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                        <svg class="w-4 h-4 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04c0 4.835 1.355 9.347 3.718 13.191A11.96 11.96 0 0012 21.481c2.901 0 5.537-.94 7.653-2.545a11.959 11.959 0 013.718-13.191z"/></svg>
+                        Paiement Sécurisé
+                    </span>
+                    <span class="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                        <svg class="w-4 h-4 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                        Expédition 24H
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Section -->
+        <div x-data="{ tab: 'description' }" class="border border-gray-100 rounded-2xl overflow-hidden mb-16">
+            <div class="flex bg-gray-50 border-b border-gray-100 overflow-x-auto">
+                <button @click="tab = 'description'" :class="tab === 'description' ? 'bg-white border-b-2 border-gold-500 text-navy-900' : 'text-gray-400 hover:text-navy-900'" class="px-8 py-5 text-xs font-bold uppercase tracking-widest transition-all">Description de l'Article</button>
+                <button @click="tab = 'specs'" :class="tab === 'specs' ? 'bg-white border-b-2 border-gold-500 text-navy-900' : 'text-gray-400 hover:text-navy-900'" class="px-8 py-5 text-xs font-bold uppercase tracking-widest transition-all">Fiche Technique</button>
+                <button @click="tab = 'shipping'" :class="tab === 'shipping' ? 'bg-white border-b-2 border-gold-500 text-navy-900' : 'text-gray-400 hover:text-navy-900'" class="px-8 py-5 text-xs font-bold uppercase tracking-widest transition-all">Livraison & Garanties</button>
+                <button @click="tab = 'reviews'" :class="tab === 'reviews' ? 'bg-white border-b-2 border-gold-500 text-navy-900' : 'text-gray-400 hover:text-navy-900'" class="px-8 py-5 text-xs font-bold uppercase tracking-widest transition-all">Avis Clients</button>
+            </div>
+            <div class="p-8 lg:p-12">
+                <div x-show="tab === 'description'" x-transition class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                    <div class="lg:col-span-2 prose prose-navy max-w-none text-sm leading-8 text-gray-500">
+                        <p>{{ $product->description }}</p>
+                    </div>
+                </div>
+                <div x-show="tab === 'specs'" x-transition class="max-w-3xl">
+                    <table class="w-full text-sm">
+                        <tbody class="divide-y divide-gray-100 italic">
+                            @if(is_array($product->specs) || is_object($product->specs))
+                                @foreach($product->specs as $key => $value)
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="py-4 font-bold text-navy-900 uppercase tracking-tighter w-1/3">{{ $key }}</td>
+                                    <td class="py-4 text-gray-500">{{ $value }}</td>
+                                </tr>
+                                @endforeach
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Products Grid -->
+        <div class="space-y-8">
+            <h3 class="text-xl font-bold text-navy-900 uppercase tracking-tighter italic">Recommandations pour vous</h3>
+            @php
+                $relatedProducts = \App\Models\Product::where('category_id', $product->category_id)->where('id', '!=', $product->id)->take(4)->get();
+            @endphp
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                @foreach($relatedProducts as $rel)
+                <div class="bg-white border border-gray-100 rounded-lg p-4 group hover:shadow-xl hover:border-gold-200 transition-all duration-300">
+                    <a href="{{ route('shop.show', $rel->slug) }}" class="block">
+                        <div class="relative aspect-square mb-4 bg-gray-50 rounded-md overflow-hidden flex items-center justify-center p-4">
+                            @php
+                                $rPath = $rel->image ?: $rel->images->first()->path ?? null;
+                                $rImgUrl = $rPath ? (preg_match('#^/?storage/#', $rPath) ? $rPath : '/storage/'.ltrim($rPath, '/')) : asset('logo.jpeg');
+                            @endphp
+                            <img src="{{ $rImgUrl }}" alt="{{ $rel->name }}" class="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-500">
+                        </div>
+                        <div class="space-y-2">
+                            <h3 class="text-sm font-medium text-navy-900 line-clamp-2 h-10 group-hover:text-gold-600 transition-colors">
+                                {{ $rel->name }}
+                            </h3>
+                            <span class="text-lg font-black text-navy-900">{{ number_format($rel->price, 0, ',', ' ') }} <span class="text-[10px]">CFA</span></span>
+                        </div>
+                    </a>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+</div>
 @endsection

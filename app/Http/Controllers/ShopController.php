@@ -175,11 +175,15 @@ class ShopController extends Controller
         }
 
         $validated = $request->validate([
-            'customer_name' => 'required|string|max:255',
-            'customer_email' => 'required|email|max:255',
-            'customer_phone' => 'nullable|string|max:50',
-            'customer_address' => 'required|string|max:1000',
-            'payment_method' => 'required|in:cod',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'address' => 'required|string|max:1000',
+            'city' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+            'zip' => 'required|string|max:20',
+            'payment_method' => 'required|string', // Allow any for now, but logical check below
         ]);
 
         // calculate total
@@ -191,16 +195,18 @@ class ShopController extends Controller
         // create order within transaction
         DB::beginTransaction();
         try {
+            $fullAddress = $validated['address'] . ', ' . $validated['city'] . ' ' . $validated['zip'] . ', ' . $validated['country'];
+            
             $order = Order::create([
                 'user_id' => Auth::id(),
-                'customer_name' => $validated['customer_name'],
-                'customer_email' => $validated['customer_email'],
-                'customer_phone' => $validated['customer_phone'] ?? null,
-                'customer_address' => $validated['customer_address'],
+                'customer_name' => $validated['first_name'] . ' ' . $validated['last_name'],
+                'customer_email' => $validated['email'],
+                'customer_phone' => $validated['phone'] ?? null,
+                'customer_address' => $fullAddress,
                 'total_amount' => $total,
                 'status' => 'pending',
                 'payment_status' => 'unpaid',
-                'payment_method' => $validated['payment_method'],
+                'payment_method' => $validated['payment_method'], // Store whatever was picked
             ]);
 
             foreach ($cart as $id => $details) {
