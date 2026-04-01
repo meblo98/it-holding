@@ -93,7 +93,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <a href="{{ route('admin.orders.show', $order->id) }}"
-                                            class="text-indigo-600 hover:text-indigo-900 p-2 rounded hover:bg-gray-50"
+                                            class="text-navy-600 hover:text-navy-900 p-2 rounded hover:bg-gray-50"
                                             title="Détails">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24"
                                                 fill="none" stroke="currentColor">

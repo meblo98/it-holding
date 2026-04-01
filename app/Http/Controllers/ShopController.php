@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use App\Models\Order;
@@ -16,13 +17,24 @@ class ShopController extends Controller
 {
     public function index(Request $request)
     {
+        $request->validate([
+            'category_id' => 'nullable|integer|exists:categories,id',
+            'brand_id'    => 'nullable|integer|exists:brands,id',
+            'condition'   => 'nullable|string|max:50',
+            'blackfriday' => 'nullable|boolean',
+        ]);
+
         $query = Product::where('active', true)->where('stock', '>', 0);
 
         if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
+            $category = Category::with('children')->find((int) $request->category_id);
+            if ($category) {
+                $ids = $category->children->pluck('id')->prepend($category->id);
+                $query->whereIn('category_id', $ids);
+            }
         }
         if ($request->filled('brand_id')) {
-            $query->where('brand_id', $request->brand_id);
+            $query->where('brand_id', (int) $request->brand_id);
         }
         if ($request->filled('condition')) {
             $query->where('condition', $request->condition);
@@ -33,10 +45,17 @@ class ShopController extends Controller
 
         $products = $query->with('images', 'category', 'brand')->paginate(12)->withQueryString();
 
-        // filters list
-        $categories = Category::whereHas('products', function ($q) {
-            $q->where('active', true)->where('stock', '>', 0);
-        })->get();
+        // filters list — only root categories with their children
+        $categories = Category::with('children')
+            ->whereNull('parent_id')
+            ->whereHas('products', function ($q) {
+                $q->where('active', true)->where('stock', '>', 0);
+            })
+            ->orWhereHas('children.products', function ($q) {
+                $q->where('active', true)->where('stock', '>', 0);
+            })
+            ->orderBy('name')
+            ->get();
         $brands = Brand::whereHas('products', function ($q) {
             $q->where('active', true)->where('stock', '>', 0);
         })->get();
@@ -234,6 +253,11 @@ class ShopController extends Controller
             return redirect()->route('shop.thanks', $order->id)->with('success', 'Commande passée. Paiement à la livraison.');
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Erreur création commande', [
+                'message' => $e->getMessage(),
+                'user_id' => Auth::id(),
+                'cart'    => $cart,
+            ]);
             return redirect()->back()->with('error', 'Erreur lors de la création de la commande.');
         }
     }

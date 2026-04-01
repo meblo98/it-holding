@@ -35,14 +35,14 @@ Route::get('/remove-from-cart/{id}', [ShopController::class, 'removeFromCart'])-
 
 
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
-Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store')->middleware('throttle:5,1');
 
 Route::middleware('guest')->group(function () {
     Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('login', [LoginController::class, 'login']);
+    Route::post('login', [LoginController::class, 'login'])->middleware('throttle:5,1');
 
     Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-    Route::post('register', [RegisterController::class, 'register']);
+    Route::post('register', [RegisterController::class, 'register'])->middleware('throttle:3,1');
 });
 
 Route::post('logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
@@ -58,7 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/track', [\App\Http\Controllers\DashboardController::class, 'trackOrder'])->name('dashboard.track');
 });
 
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::resource('services', \App\Http\Controllers\Admin\ServiceController::class);
     Route::resource('projects', \App\Http\Controllers\Admin\ProjectController::class);

@@ -14,7 +14,7 @@
         </div>
         <div class="mt-5 md:mt-0 md:col-span-2">
             <a href="{{ route('admin.brands.create') }}"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mb-4">
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-navy-600 hover:bg-navy-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold-500 mb-4">
                 Ajouter une marque
             </a>
 
@@ -41,14 +41,14 @@
                         <li>
                             <div class="px-4 py-4 flex items-center justify-between sm:px-6">
                                 <div>
-                                    <p class="text-sm font-medium text-indigo-600">{{ $brand->name }}</p>
+                                    <p class="text-sm font-medium text-navy-600">{{ $brand->name }}</p>
                                     @if ($brand->description)
                                         <p class="text-sm text-gray-600">{{ Str::limit($brand->description, 80) }}</p>
                                     @endif
                                 </div>
                                 <div class="flex space-x-2">
                                     <a href="{{ route('admin.brands.edit', $brand) }}"
-                                        class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">Éditer</a>
+                                        class="text-navy-600 hover:text-navy-900 text-sm font-medium">Éditer</a>
                                     <form method="POST" action="{{ route('admin.brands.destroy', $brand) }}"
                                         style="display: inline;"
                                         onsubmit="return confirm('Êtes-vous sûr ? Les produits associés gardent leur marque.');">

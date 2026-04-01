@@ -35,11 +35,28 @@
                             </a>
                         </li>
                         @foreach ($categories ?? [] as $cat)
+                            @php $isParentActive = request('category_id') == $cat->id || $cat->children->contains('id', request('category_id')); @endphp
                             <li>
-                                <a href="{{ route('shop.index', ['category_id' => $cat->id]) }}" class="flex items-center gap-3 text-sm {{ request('category_id') == $cat->id ? 'text-gold-600 font-bold' : 'text-gray-500 hover:text-navy-900' }}">
-                                    <div class="w-1.5 h-1.5 rounded-full {{ request('category_id') == $cat->id ? 'bg-gold-500' : 'bg-transparent border border-gray-300' }}"></div>
+                                <a href="{{ route('shop.index', ['category_id' => $cat->id]) }}"
+                                    class="flex items-center gap-3 text-sm {{ $isParentActive ? 'text-gold-600 font-bold' : 'text-gray-500 hover:text-navy-900' }}">
+                                    <div class="w-1.5 h-1.5 rounded-full {{ $isParentActive ? 'bg-gold-500' : 'bg-transparent border border-gray-300' }}"></div>
                                     {{ $cat->name }}
                                 </a>
+
+                                {{-- Sous-catégories --}}
+                                @if ($cat->children->count())
+                                    <ul class="ml-5 mt-1 space-y-1">
+                                        @foreach ($cat->children as $child)
+                                            <li>
+                                                <a href="{{ route('shop.index', ['category_id' => $child->id]) }}"
+                                                    class="flex items-center gap-2 text-xs {{ request('category_id') == $child->id ? 'text-gold-600 font-bold' : 'text-gray-400 hover:text-navy-900' }}">
+                                                    <span class="text-gray-300">└</span>
+                                                    {{ $child->name }}
+                                                </a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @endif
                             </li>
                         @endforeach
                     </ul>

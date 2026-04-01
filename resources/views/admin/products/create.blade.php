@@ -21,14 +21,14 @@
                             <div class="col-span-6 sm:col-span-4">
                                 <label for="name" class="block text-sm font-medium text-gray-700">Nom du produit</label>
                                 <input type="text" name="name" id="name"
-                                    class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                                     required>
                             </div>
 
                             <div class="col-span-6 sm:col-span-3">
                                 <label for="price" class="block text-sm font-medium text-gray-700">Prix (FCFA)</label>
                                 <input type="number" name="price" id="price" min="0" step="0.01"
-                                    class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                                     required>
                             </div>
 
@@ -36,13 +36,13 @@
                                 <label for="promo_price" class="block text-sm font-medium text-gray-700">Prix promo
                                     (FCFA)</label>
                                 <input type="number" name="promo_price" id="promo_price" min="0" step="0.01"
-                                    class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                             </div>
 
                             <div class="col-span-6 sm:col-span-3">
                                 <label for="stock" class="block text-sm font-medium text-gray-700">Stock</label>
                                 <input type="number" name="stock" id="stock" min="0"
-                                    class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                                     required>
                             </div>
 
@@ -50,7 +50,7 @@
                                 <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
                                 <div class="mt-1">
                                     <textarea id="description" name="description" rows="5"
-                                        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border border-gray-300 rounded-md"
+                                        class="shadow-sm focus:ring-gold-500 focus:border-gold-500 block w-full sm:text-sm border border-gray-300 rounded-md"
                                         required></textarea>
                                 </div>
                             </div>
@@ -58,7 +58,7 @@
                             <div class="col-span-6 flex items-center">
                                 <div class="flex items-center h-5">
                                     <input id="blackfriday" name="blackfriday" type="checkbox" value="1"
-                                        class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                        class="focus:ring-gold-500 h-4 w-4 text-navy-600 border-gray-300 rounded">
                                 </div>
                                 <div class="ml-3 text-sm">
                                     <label for="blackfriday" class="font-medium text-gray-700">Black Friday</label>
@@ -69,7 +69,7 @@
                             <div class="col-span-6 sm:col-span-3">
                                 <label for="category_id" class="block text-sm font-medium text-gray-700">Catégorie</label>
                                 <select name="category_id" id="category_id"
-                                    class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                                     <option value="">-- Sélectionner --</option>
                                     @foreach ($categories as $category)
                                         <option value="{{ $category->id }}">{{ $category->name }}</option>
@@ -80,7 +80,7 @@
                             <div class="col-span-6 sm:col-span-3">
                                 <label for="brand_id" class="block text-sm font-medium text-gray-700">Marque</label>
                                 <select name="brand_id" id="brand_id"
-                                    class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                                     <option value="">-- Sélectionner --</option>
                                     @foreach ($brands as $brand)
                                         <option value="{{ $brand->id }}">{{ $brand->name }}</option>
@@ -91,7 +91,7 @@
                             <div class="col-span-6 sm:col-span-3">
                                 <label for="condition" class="block text-sm font-medium text-gray-700">État</label>
                                 <input type="text" name="condition" id="condition"
-                                    class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                             </div>
 
                             <div class="col-span-6">
@@ -107,7 +107,7 @@
                                         </svg>
                                         <div class="flex text-sm text-gray-600">
                                             <label for="images"
-                                                class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                                class="relative cursor-pointer bg-white rounded-md font-medium text-navy-600 hover:text-gold-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-gold-500">
                                                 <span>Télécharger des fichiers</span>
                                                 <input id="images" name="images[]" type="file" class="sr-only"
                                                     accept="image/*" multiple onchange="validateImages(event)">
@@ -125,7 +125,7 @@
                             <div class="col-span-6 flex items-start">
                                 <div class="flex items-center h-5">
                                     <input id="active" name="active" type="checkbox" value="1"
-                                        class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                        class="focus:ring-gold-500 h-4 w-4 text-navy-600 border-gray-300 rounded"
                                         checked>
                                 </div>
                                 <div class="ml-3 text-sm">
@@ -141,7 +141,7 @@
                             Annuler
                         </a>
                         <button type="submit"
-                            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-navy-600 hover:bg-navy-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold-500">
                             Enregistrer
                         </button>
                     </div>

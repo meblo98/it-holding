@@ -6,7 +6,7 @@
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold text-gray-900">Blog</h1>
         <a href="{{ route('admin.posts.create') }}"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-navy-600 hover:bg-navy-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold-500">
             Nouvel Article
         </a>
     </div>
@@ -30,13 +30,13 @@
                                             src="{{ asset('storage/' . $post->image) }}" alt="">
                                     @else
                                         <div
-                                            class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 font-bold">
+                                            class="h-10 w-10 rounded-full bg-gold-100 flex items-center justify-center text-gold-600 font-bold">
                                             {{ substr($post->title, 0, 1) }}
                                         </div>
                                     @endif
                                 </div>
                                 <div class="ml-4">
-                                    <div class="text-sm font-medium text-indigo-600 truncate">
+                                    <div class="text-sm font-medium text-navy-600 truncate">
                                         {{ $post->title }}
                                     </div>
                                     <div class="text-sm text-gray-500">
@@ -57,7 +57,7 @@
                             </div>
                             <div class="flex items-center space-x-2">
                                 <a href="{{ route('admin.posts.edit', $post->id) }}"
-                                    class="text-indigo-600 hover:text-indigo-900 p-2 rounded hover:bg-gray-50"
+                                    class="text-navy-600 hover:text-navy-900 p-2 rounded hover:bg-gray-50"
                                     title="Éditer">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24"
                                         fill="none" stroke="currentColor">

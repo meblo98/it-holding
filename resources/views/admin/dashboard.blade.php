@@ -56,7 +56,7 @@
                     @forelse($latestContacts as $contact)
                         <li class="px-4 py-4 sm:px-6 hover:bg-gray-50">
                             <div class="flex items-center justify-between">
-                                <p class="text-sm font-medium text-indigo-600 truncate">{{ $contact->name }}</p>
+                                <p class="text-sm font-medium text-navy-600 truncate">{{ $contact->name }}</p>
                                 <div class="ml-2 flex-shrink-0 flex">
                                     <p
                                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
@@ -89,7 +89,7 @@
                     @forelse($latestOrders as $order)
                         <li class="px-4 py-4 sm:px-6 hover:bg-gray-50">
                             <div class="flex items-center justify-between">
-                                <p class="text-sm font-medium text-indigo-600 truncate">#{{ $order->id }} -
+                                <p class="text-sm font-medium text-navy-600 truncate">#{{ $order->id }} -
                                     {{ $order->customer_name }}</p>
                                 <div class="ml-2 flex-shrink-0 flex">
                                     <p
@@ -145,7 +145,7 @@
                     <div class="bg-gray-50 px-5 py-3">
                         <div class="text-sm">
                             <a href="{{ route('admin.services.index') }}"
-                                class="font-medium text-indigo-600 hover:text-indigo-500">
+                                class="font-medium text-navy-600 hover:text-gold-600">
                                 Voir tout
                             </a>
                         </div>
@@ -179,7 +179,7 @@
                     <div class="bg-gray-50 px-5 py-3">
                         <div class="text-sm">
                             <a href="{{ route('admin.projects.index') }}"
-                                class="font-medium text-indigo-600 hover:text-indigo-500">
+                                class="font-medium text-navy-600 hover:text-gold-600">
                                 Voir tout
                             </a>
                         </div>
@@ -214,7 +214,7 @@
                     <div class="bg-gray-50 px-5 py-3">
                         <div class="text-sm">
                             <a href="{{ route('admin.posts.index') }}"
-                                class="font-medium text-indigo-600 hover:text-indigo-500">
+                                class="font-medium text-navy-600 hover:text-gold-600">
                                 Voir tout
                             </a>
                         </div>
@@ -249,7 +249,7 @@
                     <div class="bg-gray-50 px-5 py-3">
                         <div class="text-sm">
                             <a href="{{ route('admin.products.index') }}"
-                                class="font-medium text-indigo-600 hover:text-indigo-500">
+                                class="font-medium text-navy-600 hover:text-gold-600">
                                 Voir tout
                             </a>
                         </div>
@@ -284,7 +284,7 @@
                     <div class="bg-gray-50 px-5 py-3">
                         <div class="text-sm">
                             <a href="{{ route('admin.categories.index') }}"
-                                class="font-medium text-indigo-600 hover:text-indigo-500">
+                                class="font-medium text-navy-600 hover:text-gold-600">
                                 Voir tout
                             </a>
                         </div>
@@ -319,7 +319,7 @@
                     <div class="bg-gray-50 px-5 py-3">
                         <div class="text-sm">
                             <a href="{{ route('admin.brands.index') }}"
-                                class="font-medium text-indigo-600 hover:text-indigo-500">
+                                class="font-medium text-navy-600 hover:text-gold-600">
                                 Voir tout
                             </a>
                         </div>
@@ -354,7 +354,7 @@
                     <div class="bg-gray-50 px-5 py-3">
                         <div class="text-sm">
                             <a href="{{ route('admin.orders.index') }}"
-                                class="font-medium text-indigo-600 hover:text-indigo-500">
+                                class="font-medium text-navy-600 hover:text-gold-600">
                                 Voir tout
                             </a>
                         </div>

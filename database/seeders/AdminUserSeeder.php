@@ -14,15 +14,24 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-            'name' => 'Admin IT Holding',
-            'email' => 'admin@itholding.sn',
-            'password' => Hash::make('password'), // Mot de passe par défaut
-            'is_admin' => true,
-        ]);
-        
-        $this->command->info('Utilisateur Admin créé avec succès.');
-        $this->command->info('Email: admin@itholding.sn');
-        $this->command->info('Mot de passe: password');
+        $email    = env('ADMIN_EMAIL', 'admin@itholding.sn');
+        $password = env('ADMIN_PASSWORD');
+
+        if (!$password) {
+            $this->command->error('ADMIN_PASSWORD non défini dans .env — admin non créé.');
+            return;
+        }
+
+        User::updateOrCreate(
+            ['email' => $email],
+            [
+                'name'     => 'Admin IT Holding',
+                'password' => Hash::make($password),
+                'is_admin' => true,
+            ]
+        );
+
+        $this->command->info('Utilisateur Admin créé/mis à jour.');
+        $this->command->info('Email: ' . $email);
     }
 }
