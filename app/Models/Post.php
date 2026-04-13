@@ -17,10 +17,12 @@ class Post extends Model
         'category',
         'published',
         'published_at',
+        'tags',
     ];
 
     protected $casts = [
         'published' => 'boolean',
         'published_at' => 'datetime',
+        'tags' => 'array',
     ];
 }

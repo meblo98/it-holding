@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
-@section('title', $product->name . ' - Boutique')
+@section('title', $product->name . ' - IT-Holding Boutique')
+@section('meta_description', Str::limit(strip_tags($product->description), 160))
+@section('meta_keywords', $product->name . ', ' . ($product->category->name ?? '') . ', hardware Sénégal, prix informatique Dakar')
+
+@section('og_type', 'product')
+@section('og_image', $product->image ? asset('storage/' . $product->image) : asset('logo.jpeg'))
 
 @section('content')
 <div class="bg-white min-h-screen">

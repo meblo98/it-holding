@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@section('title', 'Expertise IT & Solutions Numériques')
+@section('meta_description', 'IT-Holding est le leader des solutions IT au Sénégal. Maintenance informatique, infrastructure réseau, vidéosurveillance et vente de matériel de haute qualité.')
+@section('meta_keywords', 'informatique Sénégal, maintenance ordinateur Dakar, vidéosurveillance IP, réseau entreprise, IT-Holding Sénégal')
+
 @section('content')
     <!-- Clicon Style Hero Section -->
     <section class="bg-gray-100 py-4">

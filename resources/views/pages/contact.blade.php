@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Contact - ' . config('app.name'))
+@section('title', 'Contact - IT-Holding Sénégal')
+@section('meta_description', 'Contactez IT-Holding pour vos projets informatiques au Sénégal. Notre équipe d\'experts est à votre écoute pour vous conseiller et vous accompagner.')
+@section('meta_keywords', 'contact informatique Sénégal, devis informatique Dakar, support technique IT Sénégal, IT-Holding contact')
 
 @section('content')
 <div class="bg-gray-50 min-h-screen py-20 px-4">

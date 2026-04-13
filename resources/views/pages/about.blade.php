@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'À Propos - ' . config('app.name'))
+@section('title', 'À Propos - IT-Holding Sénégal')
+@section('meta_description', 'Découvrez IT-Holding, votre expert en solutions technologiques au Sénégal depuis 2015. Notre mission est d\'accompagner les entreprises dans leur transformation numérique.')
+@section('meta_keywords', 'expertise informatique Sénégal, IT-Holding histoire, solutions technologiques Dakar, entreprise informatique Sénégal')
 
 @section('content')
 <div class="bg-white min-h-screen">

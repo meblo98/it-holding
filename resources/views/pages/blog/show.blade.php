@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
-@section('title', $post->title . ' - ' . config('app.name'))
+@section('title', $post->title . ' - IT-Holding Blog')
+@section('meta_description', Str::limit(strip_tags($post->content), 160))
+@section('meta_keywords', 'IT Blog, ' . ($post->category ?? 'Actualités') . ', Sénégal Tech, ' . implode(', ', explode(' ', $post->title)))
+
+@section('og_type', 'article')
+@section('og_image', $post->image ? asset('storage/' . $post->image) : asset('logo.jpeg'))
 
 @section('content')
 <div class="bg-white min-h-screen">
@@ -59,9 +64,19 @@
                 </div>
 
                 <!-- Article Content -->
-                <div class="prose prose-lg prose-navy max-w-none text-gray-500 italic leading-relaxed mb-20 font-medium">
+                <div class="prose prose-lg prose-navy max-w-none text-gray-500 italic leading-relaxed mb-10 font-medium">
                     {!! nl2br(e($post->content)) !!}
                 </div>
+
+                <!-- Tags Section -->
+                @if($post->tags && count($post->tags) > 0)
+                <div class="flex flex-wrap gap-2 mb-20 border-t border-gray-50 pt-6">
+                    <span class="text-[10px] font-black text-navy-900 uppercase tracking-widest italic mr-2">Tags:</span>
+                    @foreach($post->tags as $tag)
+                        <span class="px-3 py-1 bg-navy-50 text-[10px] font-bold text-navy-800 rounded border border-navy-100 uppercase tracking-tight">{{ $tag }}</span>
+                    @endforeach
+                </div>
+                @endif
 
                 <!-- Quote Mockup style -->
                 <div class="bg-navy-50 border-l-4 border-gold-500 p-8 rounded-r-xl mb-20">
@@ -188,9 +203,15 @@
                 <div>
                     <h3 class="text-xs font-bold text-navy-900 uppercase tracking-widest mb-6 italic border-b border-gray-100 pb-2">Mots-clés</h3>
                     <div class="flex flex-wrap gap-2">
-                        @foreach(['Hardware', 'Service', 'Promo', 'Dakar', 'Support', 'Tech', 'Networking'] as $tag)
-                            <span class="px-3 py-1 bg-gray-50 text-[10px] font-bold text-navy-800 rounded border border-gray-100 hover:border-gold-300 transition-all cursor-pointer uppercase tracking-tight">{{ $tag }}</span>
-                        @endforeach
+                        @if($post->tags && count($post->tags) > 0)
+                            @foreach($post->tags as $tag)
+                                <span class="px-3 py-1 bg-gray-50 text-[10px] font-bold text-navy-800 rounded border border-gray-100 hover:border-gold-300 transition-all cursor-pointer uppercase tracking-tight">{{ $tag }}</span>
+                            @endforeach
+                        @else
+                            @foreach(['Hardware', 'Service', 'IT Sénégal', 'Dakar', 'Support', 'Tech'] as $tag)
+                                <span class="px-3 py-1 bg-gray-50 text-[10px] font-bold text-navy-800 rounded border border-gray-100 hover:border-gold-300 transition-all cursor-pointer uppercase tracking-tight">{{ $tag }}</span>
+                            @endforeach
+                        @endif
                     </div>
                 </div>
             </aside>

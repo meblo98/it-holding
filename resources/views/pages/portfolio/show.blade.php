@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
-@section('title', $project->title . ' - Portfolio')
+@section('title', $project->title . ' - IT-Holding Portfolio')
+@section('meta_description', Str::limit(strip_tags($project->description), 160))
+@section('meta_keywords', 'étude de cas IT, ' . ($project->client ?? 'Portfolio') . ', solutions IT Sénégal, ' . implode(', ', $project->technologies ?? []))
+
+@section('og_type', 'article')
+@section('og_image', $project->image ? asset('storage/' . $project->image) : asset('logo.jpeg'))
 
 @section('content')
 <div class="bg-white min-h-screen">
@@ -63,14 +68,29 @@
                         {{ $project->description }}
                     </p>
 
-                    @if($project->technologies)
-                    <div class="bg-gray-50 rounded-2xl p-8 border border-gray-100 not-prose">
-                        <h3 class="text-xs font-black text-navy-900 uppercase tracking-widest mb-6 border-l-4 border-gold-500 pl-4 text-justify">Technologies utilisées</h3>
-                        <div class="flex flex-wrap gap-3">
-                            @foreach($project->technologies as $tech)
-                                <span class="bg-white px-4 py-2 rounded-lg border border-gray-100 text-[10px] font-black text-navy-900 uppercase tracking-widest shadow-sm hover:border-gold-500 transition-colors">{{ $tech }}</span>
-                            @endforeach
+                    @if($project->technologies || ($project->tags && count($project->tags) > 0))
+                    <div class="bg-gray-50 rounded-2xl p-8 border border-gray-100 not-prose space-y-8">
+                        @if($project->technologies)
+                        <div>
+                            <h3 class="text-xs font-black text-navy-900 uppercase tracking-widest mb-6 border-l-4 border-gold-500 pl-4 text-justify">Technologies utilisées</h3>
+                            <div class="flex flex-wrap gap-3">
+                                @foreach($project->technologies as $tech)
+                                    <span class="bg-white px-4 py-2 rounded-lg border border-gray-100 text-[10px] font-black text-navy-900 uppercase tracking-widest shadow-sm hover:border-gold-500 transition-colors">{{ $tech }}</span>
+                                @endforeach
+                            </div>
                         </div>
+                        @endif
+
+                        @if($project->tags && count($project->tags) > 0)
+                        <div>
+                            <h3 class="text-xs font-black text-navy-900 uppercase tracking-widest mb-6 border-l-4 border-navy-600 pl-4 text-justify">Mots-clés / Tags</h3>
+                            <div class="flex flex-wrap gap-3">
+                                @foreach($project->tags as $tag)
+                                    <span class="bg-white px-4 py-2 rounded-lg border border-gray-100 text-[10px] font-bold text-navy-800 uppercase tracking-widest shadow-sm hover:border-navy-300 transition-colors">{{ $tag }}</span>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
                     </div>
                     @endif
                 </div>

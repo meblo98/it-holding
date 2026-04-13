@@ -19,11 +19,13 @@ class Project extends Model
         'url',
         'image',
         'gallery',
+        'tags',
     ];
 
     protected $casts = [
         'completion_date' => 'date',
         'technologies' => 'array',
         'gallery' => 'array',
+        'tags' => 'array',
     ];
 }

@@ -4,7 +4,64 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', config('app.name'))</title>
+    <title>@yield('title', config('app.name')) | IT-Holding Sénégal</title>
+    
+    <!-- Primary Meta Tags -->
+    <meta name="description" content="@yield('meta_description', 'IT-Holding est votre partenaire de confiance au Sénégal pour toutes vos solutions numériques : maintenance informatique, infrastructure réseau, vidéosurveillance et vente de matériel.')">
+    <meta name="keywords" content="@yield('meta_keywords', 'IT-Holding, maintenance informatique Sénégal, infrastructure réseau Dakar, vidéosurveillance IP, vente matériel informatique, solutions numériques Sénégal')">
+    <meta name="author" content="IT-Holding">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ url()->current() }}">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="@yield('title', config('app.name')) | IT-Holding Sénégal">
+    <meta property="og:description" content="@yield('meta_description', 'IT-Holding est votre partenaire de confiance au Sénégal pour toutes vos solutions numériques.')">
+    <meta property="og:image" content="@yield('og_image', asset('logo.jpeg'))">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ url()->current() }}">
+    <meta property="twitter:title" content="@yield('title', config('app.name')) | IT-Holding Sénégal">
+    <meta property="twitter:description" content="@yield('meta_description', 'IT-Holding est votre partenaire de confiance au Sénégal pour toutes vos solutions numériques.')">
+    <meta property="twitter:image" content="@yield('og_image', asset('logo.jpeg'))">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "Organization",
+        "name": "IT-Holding",
+        "url": "{{ url('/') }}",
+        "logo": "{{ asset('logo.jpeg') }}",
+        "contactPoint": {
+            "@@type": "ContactPoint",
+            "telephone": "+221 XX XXX XX XX",
+            "contactType": "customer service",
+            "areaServed": "SN",
+            "availableLanguage": "French"
+        },
+        "sameAs": [
+            "https://www.facebook.com/itholding",
+            "https://www.linkedin.com/company/itholding",
+            "https://twitter.com/itholding"
+        ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "WebSite",
+        "url": "{{ url('/') }}",
+        "name": "IT-Holding Sénégal",
+        "potentialAction": {
+            "@@type": "SearchAction",
+            "target": "{{ url('/shop?q={search_term_string}') }}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
     <link rel="icon" type="image/jpeg" href="{{ asset('logo.jpeg') }}">
 
     <!-- Fonts -->
