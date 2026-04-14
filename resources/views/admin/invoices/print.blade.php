@@ -103,7 +103,7 @@
         @endif
 
         <div class="text-center text-xs text-gray-400 mt-20 border-t pt-8">
-            <p>IT HOLDING SERVICES - SARL au capital de ... - NINEA ... - RCCM ...</p>
+            <p>IT HOLDING SERVICES - NINEA 012012019 - RCCM SN DKR 2025 C 11513</p>
         </div>
     </div>
 
