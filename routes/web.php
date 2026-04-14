@@ -68,6 +68,21 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
     Route::delete('products/{product}/images/{image}', [\App\Http\Controllers\Admin\ProductController::class, 'destroyImage'])->name('products.images.destroy');
     Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class)->only(['index', 'show', 'update']);
+
+    // Quotes & Invoices
+    Route::get('quotes/{quote}/print', [\App\Http\Controllers\Admin\QuoteController::class, 'print'])->name('quotes.print');
+    Route::post('quotes/{quote}/convert', [\App\Http\Controllers\Admin\QuoteController::class, 'convert'])->name('quotes.convert');
+    Route::get('quotes/{quote}/share', [\App\Http\Controllers\Admin\QuoteController::class, 'share'])->name('quotes.share');
+    Route::resource('quotes', \App\Http\Controllers\Admin\QuoteController::class);
+
+    Route::get('invoices/{invoice}/print', [\App\Http\Controllers\Admin\InvoiceController::class, 'print'])->name('invoices.print');
+    Route::get('invoices/{invoice}/share', [\App\Http\Controllers\Admin\InvoiceController::class, 'share'])->name('invoices.share');
+    Route::resource('invoices', \App\Http\Controllers\Admin\InvoiceController::class);
 });
+
+// Public views for shared docs
+Route::get('view/quote/{token}', [\App\Http\Controllers\Admin\QuoteController::class, 'publicView'])->name('quotes.public_view');
+Route::get('view/invoice/{token}', [\App\Http\Controllers\Admin\InvoiceController::class, 'publicView'])->name('invoices.public_view');
+
 
 

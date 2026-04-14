@@ -9,6 +9,8 @@ use App\Models\Post;
 use App\Models\Product;
 use App\Models\Project;
 use App\Models\Service;
+use App\Models\Quote;
+use App\Models\Invoice;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -22,6 +24,8 @@ class DashboardController extends Controller
             'products' => Product::count(),
             'orders' => Order::count(),
             'contacts' => Contact::count(),
+            'quotes' => Quote::count(),
+            'invoices' => Invoice::count(),
         ];
         
         $latestContacts = Contact::latest()->take(5)->get();

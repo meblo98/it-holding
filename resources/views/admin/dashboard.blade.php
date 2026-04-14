@@ -44,6 +44,18 @@
                     <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ $stats['contacts'] }}</dd>
                 </div>
             </div>
+            <div class="bg-white overflow-hidden shadow rounded-lg border-l-4 border-gold-500">
+                <div class="px-4 py-5 sm:p-6">
+                    <dt class="text-sm font-medium text-gray-500 truncate">Devis</dt>
+                    <dd class="mt-1 text-3xl font-semibold text-navy-600">{{ $stats['quotes'] }}</dd>
+                </div>
+            </div>
+            <div class="bg-white overflow-hidden shadow rounded-lg border-l-4 border-navy-500">
+                <div class="px-4 py-5 sm:p-6">
+                    <dt class="text-sm font-medium text-gray-500 truncate">Factures</dt>
+                    <dd class="mt-1 text-3xl font-semibold text-navy-600">{{ $stats['invoices'] }}</dd>
+                </div>
+            </div>
         </div>
 
         <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
