@@ -23,7 +23,7 @@
                 <h1 class="text-2xl font-bold text-gray-900 uppercase">IT HOLDING SERVICES</h1>
                 <p class="text-sm text-gray-600">Sénégal, Dakar</p>
                 <p class="text-sm text-gray-600">contact@itholding.sn</p>
-                <p class="text-sm text-gray-600">+221 XX XXX XX XX</p>
+                <p class="text-sm text-gray-600">+221 77 351 87 16</p>
             </div>
             <div class="text-right">
                 <h2 class="text-4xl font-black text-gray-300 uppercase mb-2">DEVIS</h2>
@@ -96,7 +96,7 @@
         @endif
 
         <div class="text-center text-xs text-gray-400 mt-20 border-t pt-8">
-            <p>IT HOLDING SERVICES - SARL au capital de ... - NINEA ... - RCCM ...</p>
+            <p>IT HOLDING SERVICES - NINEA 012012019 - RCCM SN DKR 2025 C 11513</p>
         </div>
     </div>
 
