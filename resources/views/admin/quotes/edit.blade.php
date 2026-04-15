@@ -9,9 +9,39 @@
 </div>
 
 <form action="{{ route('admin.quotes.update', $quote->id) }}" method="POST" x-data="{ 
-    items: {{ $quote->items->map(fn($i) => ['description' => $i->description, 'quantity' => $i->quantity, 'unit_price' => $i->unit_price])->toJson() }},
-    addItem() { this.items.push({ description: '', quantity: 1, unit_price: 0 }) },
+    items: {{ $quote->items->map(function($i) use ($catalog) {
+        $exists = collect($catalog)->contains('name', $i->description);
+        return [
+            'description' => $i->description,
+            'quantity' => $i->quantity,
+            'unit_price' => $i->unit_price,
+            'save_to_catalog' => false,
+            'catalog_type' => 'product',
+            'source' => $exists ? 'catalog' : 'manual'
+        ];
+    })->toJson() }},
+    catalog: {{ Js::from($catalog) }},
+    addItem() { this.items.push({ description: '', quantity: 1, unit_price: 0, save_to_catalog: false, catalog_type: 'product', source: 'catalog' }) },
     removeItem(index) { this.items.splice(index, 1) },
+    onSelectChange(index, event) {
+        const value = event.target.value;
+        const item = this.items[index];
+        if (value === 'new') {
+            item.source = 'manual';
+            item.description = '';
+            item.unit_price = 0;
+            item.save_to_catalog = true;
+        } else {
+            const match = this.catalog.find(c => c.name === value);
+            if (match) {
+                item.source = 'catalog';
+                item.description = match.name;
+                item.unit_price = match.price;
+                item.catalog_type = match.type;
+                item.save_to_catalog = false;
+            }
+        }
+    },
     get grandTotal() { return this.items.reduce((sum, item) => sum + (parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0)), 0); }
 }">
     @csrf
@@ -56,28 +86,63 @@
 
                 <div class="space-y-4">
                     <template x-for="(item, index) in items" :key="index">
-                        <div class="flex flex-wrap md:flex-nowrap gap-4 items-end bg-gray-50 p-4 rounded-md relative group">
-                            <div class="flex-1 min-w-[200px]">
-                                <label class="block text-xs font-medium text-gray-500 uppercase">Description</label>
-                                <input type="text" :name="`items[${index}][description]`" x-model="item.description" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
+                        <div class="bg-gray-50 p-4 rounded-md relative group">
+                            <div class="flex flex-wrap md:flex-nowrap gap-4 items-end">
+                                <div class="flex-1 min-w-[200px]">
+                                    <label class="block text-xs font-medium text-gray-500 uppercase">Article / Service</label>
+                                    
+                                    <!-- Selection Dropdown -->
+                                    <div x-show="item.source === 'catalog'" class="mt-1">
+                                        <select @change="onSelectChange(index, $event)" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
+                                            <option value="">-- Sélectionner un article --</option>
+                                            <template x-for="c in catalog" :key="c.name">
+                                                <option :value="c.name" :selected="item.description === c.name" x-text="`${c.name} (${c.type === 'product' ? 'Produit' : 'Service'})`"></option>
+                                            </template>
+                                            <option value="new" class="text-gold-600 font-bold">+ Nouveau / Autre article</option>
+                                        </select>
+                                        <!-- Hidden input to submit description -->
+                                        <input type="hidden" :name="`items[${index}][description]`" x-model="item.description">
+                                    </div>
+
+                                    <!-- Manual Input -->
+                                    <div x-show="item.source === 'manual'" class="mt-1 flex gap-2">
+                                        <input type="text" :name="`items[${index}][description]`" x-model="item.description" placeholder="Description de l'article..." required class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
+                                        <button type="button" @click="item.source = 'catalog'" class="px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded hover:bg-gray-300">Annuler</button>
+                                    </div>
+                                </div>
+                                <div class="w-24">
+                                    <label class="block text-xs font-medium text-gray-500 uppercase">Qté</label>
+                                    <input type="number" :name="`items[${index}][quantity]`" x-model="item.quantity" min="0.01" step="0.01" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm text-center">
+                                </div>
+                                <div class="w-32">
+                                    <label class="block text-xs font-medium text-gray-500 uppercase">Prix Unitaire</label>
+                                    <input type="number" :name="`items[${index}][unit_price]`" x-model="item.unit_price" min="0" step="1" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm text-right">
+                                </div>
+                                <div class="w-32">
+                                    <label class="block text-xs font-medium text-gray-500 uppercase">Total</label>
+                                    <div class="mt-1 p-2 text-right bg-white border border-gray-300 rounded-md shadow-sm sm:text-sm font-bold text-navy-600">
+                                        <span x-text="new Intl.NumberFormat('fr-FR').format(item.quantity * item.unit_price)"></span>
+                                    </div>
+                                </div>
+                                <button type="button" @click="removeItem(index)" x-show="items.length > 1" class="mb-1 p-2 text-red-600 hover:bg-red-50 rounded-md">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
                             </div>
-                            <div class="w-24">
-                                <label class="block text-xs font-medium text-gray-500 uppercase">Qté</label>
-                                <input type="number" :name="`items[${index}][quantity]`" x-model="item.quantity" min="0.01" step="0.01" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm text-center">
-                            </div>
-                            <div class="w-32">
-                                <label class="block text-xs font-medium text-gray-500 uppercase">Prix Unitaire</label>
-                                <input type="number" :name="`items[${index}][unit_price]`" x-model="item.unit_price" min="0" step="1" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm text-right">
-                            </div>
-                            <div class="w-32">
-                                <label class="block text-xs font-medium text-gray-500 uppercase">Total</label>
-                                <div class="mt-1 p-2 text-right bg-white border border-gray-300 rounded-md shadow-sm sm:text-sm font-bold text-navy-600">
-                                    <span x-text="new Intl.NumberFormat('fr-FR').format(item.quantity * item.unit_price)"></span>
+                            
+                            <!-- Save to catalog option -->
+                            <div class="mt-2 flex items-center gap-4 text-xs border-t pt-2" x-show="item.source === 'manual' || !catalog.find(c => c.name === item.description)">
+                                <label class="flex items-center text-gray-600">
+                                    <input type="checkbox" :name="`items[${index}][save_to_catalog]`" x-model="item.save_to_catalog" class="rounded border-gray-300 text-gold-600 focus:ring-gold-500 mr-2">
+                                    Enregistrer dans le catalogue
+                                </label>
+                                <div x-show="item.save_to_catalog" class="flex items-center gap-2">
+                                    <span class="text-gray-400">Type:</span>
+                                    <select :name="`items[${index}][catalog_type]`" x-model="item.catalog_type" class="text-xs border-gray-300 rounded-md focus:ring-gold-500 focus:border-gold-500 py-0 px-2 h-6">
+                                        <option value="product">Produit</option>
+                                        <option value="service">Service</option>
+                                    </select>
                                 </div>
                             </div>
-                            <button type="button" @click="removeItem(index)" x-show="items.length > 1" class="mb-1 p-2 text-red-600 hover:bg-red-50 rounded-md">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
                         </div>
                     </template>
                 </div>

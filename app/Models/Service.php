@@ -16,10 +16,12 @@ class Service extends Model
         'content',
         'icon',
         'image',
+        'price',
         'active',
     ];
 
     protected $casts = [
         'active' => 'boolean',
+        'price' => 'decimal:2',
     ];
 }

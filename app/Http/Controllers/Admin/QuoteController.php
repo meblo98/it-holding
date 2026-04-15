@@ -7,6 +7,8 @@ use App\Models\Quote;
 use App\Models\QuoteItem;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\Product;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -21,7 +23,14 @@ class QuoteController extends Controller
     public function create()
     {
         $nextNumber = 'DEV-' . date('Y') . '-' . str_pad(Quote::count() + 1, 4, '0', STR_PAD_LEFT);
-        return view('admin.quotes.create', compact('nextNumber'));
+        $products = Product::where('active', true)->get(['id', 'name', 'price']);
+        $services = Service::where('active', true)->get(['id', 'title', 'price']);
+        
+        // Combine into a single catalog for easier frontend handling
+        $catalog = $products->map(fn($p) => ['name' => $p->name, 'price' => $p->price, 'type' => 'product'])
+            ->concat($services->map(fn($s) => ['name' => $s->title, 'price' => $s->price, 'type' => 'service']));
+
+        return view('admin.quotes.create', compact('nextNumber', 'catalog'));
     }
 
     public function store(Request $request)
@@ -66,6 +75,22 @@ class QuoteController extends Controller
                 'unit_price' => $item['unit_price'],
                 'total_price' => $item['quantity'] * $item['unit_price'],
             ]);
+
+            // Save to catalog if requested
+            if (!empty($item['save_to_catalog'])) {
+                $type = $item['catalog_type'] ?? 'product';
+                if ($type === 'service') {
+                    Service::firstOrCreate(
+                        ['title' => $item['description']],
+                        ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
+                    );
+                } else {
+                    Product::firstOrCreate(
+                        ['name' => $item['description']],
+                        ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
+                    );
+                }
+            }
         }
 
         return redirect()->route('admin.quotes.show', $quote->id)->with('success', 'Devis créé avec succès.');
@@ -80,7 +105,13 @@ class QuoteController extends Controller
     public function edit(Quote $quote)
     {
         $quote->load('items');
-        return view('admin.quotes.edit', compact('quote'));
+        $products = Product::where('active', true)->get(['id', 'name', 'price']);
+        $services = Service::where('active', true)->get(['id', 'title', 'price']);
+        
+        $catalog = $products->map(fn($p) => ['name' => $p->name, 'price' => $p->price, 'type' => 'product'])
+            ->concat($services->map(fn($s) => ['name' => $s->title, 'price' => $s->price, 'type' => 'service']));
+
+        return view('admin.quotes.edit', compact('quote', 'catalog'));
     }
 
     public function update(Request $request, Quote $quote)
@@ -126,6 +157,22 @@ class QuoteController extends Controller
                 'unit_price' => $item['unit_price'],
                 'total_price' => $item['quantity'] * $item['unit_price'],
             ]);
+
+            // Save to catalog if requested
+            if (!empty($item['save_to_catalog'])) {
+                $type = $item['catalog_type'] ?? 'product';
+                if ($type === 'service') {
+                    Service::firstOrCreate(
+                        ['title' => $item['description']],
+                        ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
+                    );
+                } else {
+                    Product::firstOrCreate(
+                        ['name' => $item['description']],
+                        ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
+                    );
+                }
+            }
         }
 
         return redirect()->route('admin.quotes.show', $quote->id)->with('success', 'Devis mis à jour avec succès.');

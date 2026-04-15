@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\Product;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -19,7 +21,13 @@ class InvoiceController extends Controller
     public function create()
     {
         $nextNumber = 'FAC-' . date('Y') . '-' . str_pad(Invoice::count() + 1, 4, '0', STR_PAD_LEFT);
-        return view('admin.invoices.create', compact('nextNumber'));
+        $products = Product::where('active', true)->get(['id', 'name', 'price']);
+        $services = Service::where('active', true)->get(['id', 'title', 'price']);
+        
+        $catalog = $products->map(fn($p) => ['name' => $p->name, 'price' => $p->price, 'type' => 'product'])
+            ->concat($services->map(fn($s) => ['name' => $s->title, 'price' => $s->price, 'type' => 'service']));
+
+        return view('admin.invoices.create', compact('nextNumber', 'catalog'));
     }
 
     public function store(Request $request)
@@ -64,6 +72,22 @@ class InvoiceController extends Controller
                 'unit_price' => $item['unit_price'],
                 'total_price' => $item['quantity'] * $item['unit_price'],
             ]);
+
+            // Save to catalog if requested
+            if (!empty($item['save_to_catalog'])) {
+                $type = $item['catalog_type'] ?? 'product';
+                if ($type === 'service') {
+                    Service::firstOrCreate(
+                        ['title' => $item['description']],
+                        ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
+                    );
+                } else {
+                    Product::firstOrCreate(
+                        ['name' => $item['description']],
+                        ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
+                    );
+                }
+            }
         }
 
         return redirect()->route('admin.invoices.show', $invoice->id)->with('success', 'Facture créée avec succès.');
@@ -78,7 +102,13 @@ class InvoiceController extends Controller
     public function edit(Invoice $invoice)
     {
         $invoice->load('items');
-        return view('admin.invoices.edit', compact('invoice'));
+        $products = Product::where('active', true)->get(['id', 'name', 'price']);
+        $services = Service::where('active', true)->get(['id', 'title', 'price']);
+        
+        $catalog = $products->map(fn($p) => ['name' => $p->name, 'price' => $p->price, 'type' => 'product'])
+            ->concat($services->map(fn($s) => ['name' => $s->title, 'price' => $s->price, 'type' => 'service']));
+
+        return view('admin.invoices.edit', compact('invoice', 'catalog'));
     }
 
     public function update(Request $request, Invoice $invoice)
@@ -124,6 +154,22 @@ class InvoiceController extends Controller
                 'unit_price' => $item['unit_price'],
                 'total_price' => $item['quantity'] * $item['unit_price'],
             ]);
+
+            // Save to catalog if requested
+            if (!empty($item['save_to_catalog'])) {
+                $type = $item['catalog_type'] ?? 'product';
+                if ($type === 'service') {
+                    Service::firstOrCreate(
+                        ['title' => $item['description']],
+                        ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
+                    );
+                } else {
+                    Product::firstOrCreate(
+                        ['name' => $item['description']],
+                        ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
+                    );
+                }
+            }
         }
 
         return redirect()->route('admin.invoices.show', $invoice->id)->with('success', 'Facture mise à jour avec succès.');
