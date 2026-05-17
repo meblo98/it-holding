@@ -127,15 +127,9 @@
                                                         <div class="relative">
                                                             <img src="{{ asset('storage/' . $img->path) }}" alt=""
                                                                 class="h-24 w-24 object-cover rounded-md">
-                                                            <form method="POST"
-                                                                action="{{ route('admin.products.images.destroy', ['product' => $product->id, 'image' => $img->id]) }}"
-                                                                class="absolute top-0 right-0">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit"
-                                                                    class="bg-white text-red-600 rounded-full p-1 shadow-sm hover:bg-red-50"
-                                                                    onclick="return confirm('Supprimer cette image ?')">×</button>
-                                                            </form>
+                                                            <button type="button"
+                                                                class="absolute top-0 right-0 bg-white text-red-600 rounded-full p-1 shadow-sm hover:bg-red-50"
+                                                                onclick="if(confirm('Supprimer cette image ?')) document.getElementById('delete-image-{{ $img->id }}').submit();">×</button>
                                                         </div>
                                                     @endforeach
                                                 </div>
@@ -199,6 +193,17 @@
             </div>
         </div>
     </div>
+
+    @if ($product->images->count())
+        @foreach ($product->images as $img)
+            <form id="delete-image-{{ $img->id }}" method="POST"
+                action="{{ route('admin.products.images.destroy', ['product' => $product->id, 'image' => $img->id]) }}"
+                class="hidden">
+                @csrf
+                @method('DELETE')
+            </form>
+        @endforeach
+    @endif
 
     <script>
         function validateImages(event) {
