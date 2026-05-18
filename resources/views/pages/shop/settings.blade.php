@@ -81,42 +81,62 @@
                     </div>
                     <form action="{{ route('dashboard.settings.updateProfile') }}" method="POST" class="p-8" enctype="multipart/form-data">
                         @csrf
-                        <div class="flex flex-col md:flex-row gap-8 items-start mb-8">
                             <div class="flex-shrink-0 relative group">
-                                <img id="profile-preview" src="{{ $user->photo_url }}" class="w-24 h-24 rounded-full border-2 border-gold-500 shadow-sm transition-transform group-hover:scale-105 object-cover">
+                                <img id="profile-preview" src="{{ $user->photo_url }}" class="w-24 h-24 rounded-full border-2 @error('photo') border-red-500 @else border-gold-500 @enderror shadow-sm transition-transform group-hover:scale-105 object-cover">
                                 <button type="button" onclick="document.getElementById('photo-input').click()" class="absolute bottom-0 right-0 w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center text-navy-900 shadow-sm hover:bg-gold-500 hover:border-gold-500 transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 </button>
                                 <input type="file" name="photo" id="photo-input" class="hidden" accept="image/*" onchange="previewImage(this)">
+                                @error('photo')
+                                    <p class="text-[9px] text-red-500 font-bold italic mt-2 text-center">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="space-y-1">
                                     <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Nom d'affichage</label>
-                                    <input type="text" name="display_name" value="{{ old('display_name', $user->name) }}" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 focus:border-gold-500 outline-none transition-all italic">
+                                    <input type="text" name="display_name" value="{{ old('display_name', $user->name) }}" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 focus:border-gold-500 outline-none transition-all italic @error('display_name') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror">
+                                    @error('display_name')
+                                        <p class="text-[9px] text-red-500 font-bold italic">{{ $message }}</p>
+                                    @enderror
                                 </div>
                                 <div class="space-y-1">
                                     <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Nom d'utilisateur</label>
-                                    <input type="text" name="username" value="{{ old('username', $user->username) }}" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 focus:border-gold-500 outline-none transition-all italic">
+                                    <input type="text" name="username" value="{{ old('username', $user->username) }}" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 focus:border-gold-500 outline-none transition-all italic @error('username') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror">
+                                    @error('username')
+                                        <p class="text-[9px] text-red-500 font-bold italic">{{ $message }}</p>
+                                    @enderror
                                 </div>
                                 <div class="space-y-1">
                                     <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Nom complet</label>
-                                    <input type="text" name="full_name" value="{{ old('full_name', $user->name) }}" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 focus:border-gold-500 outline-none transition-all italic">
+                                    <input type="text" name="full_name" value="{{ old('full_name', $user->name) }}" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 focus:border-gold-500 outline-none transition-all italic @error('full_name') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror">
+                                    @error('full_name')
+                                        <p class="text-[9px] text-red-500 font-bold italic">{{ $message }}</p>
+                                    @enderror
                                 </div>
                                 <div class="space-y-1">
                                     <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Email</label>
-                                    <input type="email" name="email" value="{{ old('email', $user->email) }}" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 focus:border-gold-500 outline-none transition-all italic">
+                                    <input type="email" name="email" value="{{ old('email', $user->email) }}" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 focus:border-gold-500 outline-none transition-all italic @error('email') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror">
+                                    @error('email')
+                                        <p class="text-[9px] text-red-500 font-bold italic">{{ $message }}</p>
+                                    @enderror
                                 </div>
                                 <div class="space-y-1">
                                     <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Numéro de téléphone</label>
-                                    <input type="text" name="phone" value="{{ old('phone', $user->phone) }}" placeholder="+221 ..." class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 focus:border-gold-500 outline-none transition-all italic">
+                                    <input type="text" name="phone" value="{{ old('phone', $user->phone) }}" placeholder="+221 ..." class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 focus:border-gold-500 outline-none transition-all italic @error('phone') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror">
+                                    @error('phone')
+                                        <p class="text-[9px] text-red-500 font-bold italic">{{ $message }}</p>
+                                    @enderror
                                 </div>
                                 <div class="space-y-1">
                                     <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Pays/Région</label>
-                                    <select name="country" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 focus:border-gold-500 outline-none transition-all italic appearance-none">
+                                    <select name="country" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 focus:border-gold-500 outline-none transition-all italic appearance-none @error('country') border-red-500 focus:ring-red-500 @enderror">
                                         <option value="SN" {{ old('country', $user->country) == 'SN' ? 'selected' : '' }}>Sénégal</option>
                                         <option value="FR" {{ old('country', $user->country) == 'FR' ? 'selected' : '' }}>France</option>
                                         <option value="US" {{ old('country', $user->country) == 'US' ? 'selected' : '' }}>États-Unis</option>
                                     </select>
+                                    @error('country')
+                                        <p class="text-[9px] text-red-500 font-bold italic">{{ $message }}</p>
+                                    @enderror
                                 </div>
                             </div>
                         </div>
@@ -210,24 +230,33 @@
                         @csrf
                         <div class="space-y-1 relative">
                             <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Mot de passe actuel</label>
-                            <input type="password" name="current_password" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 outline-none pr-12">
+                            <input type="password" name="current_password" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 outline-none pr-12 @error('current_password') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror">
                             <button type="button" class="absolute right-4 bottom-3 text-gray-300 hover:text-navy-900" onclick="const p = this.previousElementSibling; p.type = p.type === 'password' ? 'text' : 'password'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                             </button>
+                            @error('current_password')
+                                <p class="text-[9px] text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div class="space-y-1 relative">
                             <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Nouveau mot de passe</label>
-                            <input type="password" name="new_password" placeholder="8+ caractères" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 outline-none pr-12">
+                            <input type="password" name="new_password" placeholder="8+ caractères" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 outline-none pr-12 @error('new_password') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror">
                             <button type="button" class="absolute right-4 bottom-3 text-gray-300 hover:text-navy-900" onclick="const p = this.previousElementSibling; p.type = p.type === 'password' ? 'text' : 'password'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                             </button>
+                            @error('new_password')
+                                <p class="text-[9px] text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div class="space-y-1 relative">
                             <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Confirmer le mot de passe</label>
-                            <input type="password" name="new_password_confirmation" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 outline-none pr-12">
+                            <input type="password" name="new_password_confirmation" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-navy-900 focus:ring-1 focus:ring-gold-500 outline-none pr-12 @error('new_password_confirmation') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror">
                             <button type="button" class="absolute right-4 bottom-3 text-gray-300 hover:text-navy-900" onclick="const p = this.previousElementSibling; p.type = p.type === 'password' ? 'text' : 'password'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                             </button>
+                            @error('new_password_confirmation')
+                                <p class="text-[9px] text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         <button type="submit" class="btn-primary-gold px-10 py-3 text-[10px] font-black uppercase tracking-widest italic transition-all">
                             Changer le mot de passe

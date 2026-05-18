@@ -1,12 +1,9 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Modifier Produit - Admin')
 
 @section('content')
-    <div class="bg-gray-100 min-h-screen">
-        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-            <div class="px-4 py-6 sm:px-0">
-                <div class="md:grid md:grid-cols-3 md:gap-6">
+    <div class="md:grid md:grid-cols-3 md:gap-6">
                     <div class="md:col-span-1">
                         <div class="px-4 sm:px-0">
                             <h3 class="text-lg font-medium leading-6 text-gray-900">Modifier le Produit</h3>
@@ -190,9 +187,6 @@
                         </form>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
     @if ($product->images->count())
         @foreach ($product->images as $img)

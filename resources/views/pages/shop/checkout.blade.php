@@ -26,6 +26,17 @@
             
             <!-- Left Column: Billing & Payment -->
             <div class="lg:col-span-8 space-y-8">
+                @if($errors->any())
+                    <div class="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-xs font-bold uppercase tracking-widest italic space-y-1">
+                        @foreach($errors->all() as $error)
+                            <div class="flex items-center gap-3">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span>{{ $error }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
                 <!-- Billing Information -->
                 <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden p-8">
                     <h2 class="text-xl font-bold text-navy-900 uppercase tracking-tighter italic mb-8 border-b border-gray-50 pb-4">Coordonnées de Facturation</h2>
@@ -33,47 +44,74 @@
                     <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
                         <div class="md:col-span-3">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Prénom</label>
-                            <input type="text" name="first_name" value="{{ old('first_name', Auth::user()?->billing_first_name ?? (Auth::user() ? explode(' ', Auth::user()->name)[0] : '')) }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30" placeholder="Votre prénom">
+                            <input type="text" name="first_name" value="{{ old('first_name', Auth::user()?->billing_first_name ?? (Auth::user() ? explode(' ', Auth::user()->name)[0] : '')) }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('first_name') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror" placeholder="Votre prénom">
+                            @error('first_name')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div class="md:col-span-3">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Nom</label>
-                            <input type="text" name="last_name" value="{{ old('last_name', Auth::user()?->billing_last_name ?? (Auth::user() && count(explode(' ', Auth::user()->name)) > 1 ? explode(' ', Auth::user()->name)[1] : '')) }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30" placeholder="Votre nom">
+                            <input type="text" name="last_name" value="{{ old('last_name', Auth::user()?->billing_last_name ?? (Auth::user() && count(explode(' ', Auth::user()->name)) > 1 ? explode(' ', Auth::user()->name)[1] : '')) }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('last_name') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror" placeholder="Votre nom">
+                            @error('last_name')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         
                         <div class="md:col-span-6">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Entreprise (Optionnel)</label>
-                            <input type="text" name="company" class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30">
+                            <input type="text" name="company" value="{{ old('company') }}" class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('company') border-red-500 @enderror">
+                            @error('company')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         
                         <div class="md:col-span-6">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Adresse</label>
-                            <input type="text" name="address" value="{{ old('address', Auth::user()?->billing_address ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30" placeholder="Adresse complète">
+                            <input type="text" name="address" value="{{ old('address', Auth::user()?->billing_address ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('address') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror" placeholder="Adresse complète">
+                            @error('address')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         
                         <div class="md:col-span-2">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Pays</label>
-                            <select name="country" class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30">
+                            <select name="country" class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('country') border-red-500 @enderror">
                                 <option value="Sénégal" {{ old('country', Auth::user()?->country ?? '') == 'SN' || old('country', Auth::user()?->country ?? '') == 'Sénégal' ? 'selected' : '' }}>Sénégal</option>
                                 <option value="France" {{ old('country', Auth::user()?->country ?? '') == 'FR' || old('country', Auth::user()?->country ?? '') == 'France' ? 'selected' : '' }}>France</option>
                                 <option value="USA" {{ old('country', Auth::user()?->country ?? '') == 'US' || old('country', Auth::user()?->country ?? '') == 'USA' ? 'selected' : '' }}>USA</option>
                             </select>
+                            @error('country')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ville</label>
-                            <input type="text" name="city" value="{{ old('city', Auth::user()?->billing_city ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30">
+                            <input type="text" name="city" value="{{ old('city', Auth::user()?->billing_city ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('city') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror">
+                            @error('city')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Code Postal</label>
-                            <input type="text" name="zip" value="{{ old('zip', Auth::user()?->billing_zip ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30">
+                            <input type="text" name="zip" value="{{ old('zip', Auth::user()?->billing_zip ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('zip') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror">
+                            @error('zip')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         
                         <div class="md:col-span-3">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Email</label>
-                            <input type="email" name="email" value="{{ old('email', Auth::user()?->email ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30" placeholder="exemple@mail.com">
+                            <input type="email" name="email" value="{{ old('email', Auth::user()?->email ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('email') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror" placeholder="exemple@mail.com">
+                            @error('email')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div class="md:col-span-3">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Numéro de Téléphone</label>
-                            <input type="tel" name="phone" value="{{ old('phone', Auth::user()?->phone ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30" placeholder="+221 ...">
+                            <input type="tel" name="phone" value="{{ old('phone', Auth::user()?->phone ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('phone') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror" placeholder="+221 ...">
+                            @error('phone')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
                     

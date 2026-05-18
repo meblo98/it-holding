@@ -21,14 +21,16 @@
                             <div class="col-span-6 sm:col-span-4">
                                 <label for="name" class="block text-sm font-medium text-gray-700">Nom du produit</label>
                                 <input type="text" name="name" id="name"
-                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                    value="{{ old('name') }}"
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('name') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
                                     required>
                             </div>
 
                             <div class="col-span-6 sm:col-span-3">
                                 <label for="price" class="block text-sm font-medium text-gray-700">Prix (FCFA)</label>
                                 <input type="number" name="price" id="price" min="0" step="0.01"
-                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                    value="{{ old('price') }}"
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('price') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
                                     required>
                             </div>
 
@@ -36,13 +38,15 @@
                                 <label for="promo_price" class="block text-sm font-medium text-gray-700">Prix promo
                                     (FCFA)</label>
                                 <input type="number" name="promo_price" id="promo_price" min="0" step="0.01"
-                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    value="{{ old('promo_price') }}"
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('promo_price') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror">
                             </div>
 
                             <div class="col-span-6 sm:col-span-3">
                                 <label for="stock" class="block text-sm font-medium text-gray-700">Stock</label>
                                 <input type="number" name="stock" id="stock" min="0"
-                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                    value="{{ old('stock') }}"
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('stock') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
                                     required>
                             </div>
 
@@ -50,14 +54,15 @@
                                 <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
                                 <div class="mt-1">
                                     <textarea id="description" name="description" rows="5"
-                                        class="shadow-sm focus:ring-gold-500 focus:border-gold-500 block w-full sm:text-sm border border-gray-300 rounded-md"
-                                        required></textarea>
+                                        class="shadow-sm focus:ring-gold-500 focus:border-gold-500 block w-full sm:text-sm border border-gray-300 rounded-md @error('description') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
+                                        required>{{ old('description') }}</textarea>
                                 </div>
                             </div>
 
                             <div class="col-span-6 flex items-center">
                                 <div class="flex items-center h-5">
                                     <input id="blackfriday" name="blackfriday" type="checkbox" value="1"
+                                        {{ old('blackfriday') ? 'checked' : '' }}
                                         class="focus:ring-gold-500 h-4 w-4 text-navy-600 border-gray-300 rounded">
                                 </div>
                                 <div class="ml-3 text-sm">
@@ -69,10 +74,10 @@
                             <div class="col-span-6 sm:col-span-3">
                                 <label for="category_id" class="block text-sm font-medium text-gray-700">Catégorie</label>
                                 <select name="category_id" id="category_id"
-                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('category_id') border-red-500 @enderror">
                                     <option value="">-- Sélectionner --</option>
                                     @foreach ($categories as $category)
-                                        <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                        <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -80,10 +85,10 @@
                             <div class="col-span-6 sm:col-span-3">
                                 <label for="brand_id" class="block text-sm font-medium text-gray-700">Marque</label>
                                 <select name="brand_id" id="brand_id"
-                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('brand_id') border-red-500 @enderror">
                                     <option value="">-- Sélectionner --</option>
                                     @foreach ($brands as $brand)
-                                        <option value="{{ $brand->id }}">{{ $brand->name }}</option>
+                                        <option value="{{ $brand->id }}" {{ old('brand_id') == $brand->id ? 'selected' : '' }}>{{ $brand->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -91,7 +96,8 @@
                             <div class="col-span-6 sm:col-span-3">
                                 <label for="condition" class="block text-sm font-medium text-gray-700">État</label>
                                 <input type="text" name="condition" id="condition"
-                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    value="{{ old('condition') }}"
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('condition') border-red-500 @enderror">
                             </div>
 
                             <div class="col-span-6">
