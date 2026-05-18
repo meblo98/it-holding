@@ -10,7 +10,7 @@ class PortfolioController extends Controller
     public function index()
     {
         $projects = Project::latest()->get();
-        $latestPosts = \App\Models\Post::where('active', true)->latest()->take(3)->get();
+        $latestPosts = \App\Models\Post::where('published', true)->latest()->take(3)->get();
         return view('pages.portfolio.index', compact('projects', 'latestPosts'));
     }
 
@@ -18,7 +18,7 @@ class PortfolioController extends Controller
     {
         $project = Project::where('slug', $slug)->firstOrFail();
         $otherProjects = Project::where('id', '!=', $project->id)->latest()->take(3)->get();
-        $latestPosts = \App\Models\Post::where('active', true)->latest()->take(3)->get();
+        $latestPosts = \App\Models\Post::where('published', true)->latest()->take(3)->get();
         return view('pages.portfolio.show', compact('project', 'otherProjects', 'latestPosts'));
     }
 }
