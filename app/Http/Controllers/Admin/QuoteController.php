@@ -10,6 +10,7 @@ use App\Models\InvoiceItem;
 use App\Models\Product;
 use App\Models\Service;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class QuoteController extends Controller
@@ -50,46 +51,35 @@ class QuoteController extends Controller
         ]);
 
         $subtotal = 0;
-        foreach ($request->items as $item) {
+        foreach ($validated['items'] as $item) {
             $subtotal += $item['quantity'] * $item['unit_price'];
         }
 
         $quote = Quote::create([
-            'number' => $request->number,
-            'client_name' => $request->client_name,
-            'client_email' => $request->client_email,
-            'client_phone' => $request->client_phone,
-            'client_address' => $request->client_address,
-            'valid_until' => $request->valid_until,
-            'notes' => $request->notes,
-            'subtotal' => $subtotal,
-            'tax_amount' => 0,
-            'total_amount' => $subtotal,
-            'share_token' => Str::random(32),
+            'number'        => $validated['number'],
+            'client_name'   => $validated['client_name'],
+            'client_email'  => $validated['client_email'] ?? null,
+            'client_phone'  => $validated['client_phone'] ?? null,
+            'client_address'=> $validated['client_address'] ?? null,
+            'valid_until'   => $validated['valid_until'] ?? null,
+            'notes'         => $validated['notes'] ?? null,
+            'subtotal'      => $subtotal,
+            'tax_amount'    => 0,
+            'total_amount'  => $subtotal,
+            'share_token'   => Str::random(32),
         ]);
 
-        foreach ($request->items as $item) {
+        foreach ($validated['items'] as $item) {
             $quote->items()->create([
                 'description' => $item['description'],
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price'],
+                'quantity'    => $item['quantity'],
+                'unit_price'  => $item['unit_price'],
                 'total_price' => $item['quantity'] * $item['unit_price'],
             ]);
 
             // Save to catalog if requested
             if (!empty($item['save_to_catalog'])) {
-                $type = $item['catalog_type'] ?? 'product';
-                if ($type === 'service') {
-                    Service::firstOrCreate(
-                        ['title' => $item['description']],
-                        ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
-                    );
-                } else {
-                    Product::firstOrCreate(
-                        ['name' => $item['description']],
-                        ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
-                    );
-                }
+                $this->saveToCatalog($item);
             }
         }
 
@@ -132,46 +122,35 @@ class QuoteController extends Controller
         ]);
 
         $subtotal = 0;
-        foreach ($request->items as $item) {
+        foreach ($validated['items'] as $item) {
             $subtotal += $item['quantity'] * $item['unit_price'];
         }
 
         $quote->update([
-            'number' => $request->number,
-            'client_name' => $request->client_name,
-            'client_email' => $request->client_email,
-            'client_phone' => $request->client_phone,
-            'client_address' => $request->client_address,
-            'valid_until' => $request->valid_until,
-            'notes' => $request->notes,
-            'status' => $request->status,
-            'subtotal' => $subtotal,
-            'total_amount' => $subtotal,
+            'number'         => $validated['number'],
+            'client_name'    => $validated['client_name'],
+            'client_email'   => $validated['client_email'] ?? null,
+            'client_phone'   => $validated['client_phone'] ?? null,
+            'client_address' => $validated['client_address'] ?? null,
+            'valid_until'    => $validated['valid_until'] ?? null,
+            'notes'          => $validated['notes'] ?? null,
+            'status'         => $validated['status'],
+            'subtotal'       => $subtotal,
+            'total_amount'   => $subtotal,
         ]);
 
         $quote->items()->delete();
-        foreach ($request->items as $item) {
+        foreach ($validated['items'] as $item) {
             $quote->items()->create([
                 'description' => $item['description'],
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price'],
+                'quantity'    => $item['quantity'],
+                'unit_price'  => $item['unit_price'],
                 'total_price' => $item['quantity'] * $item['unit_price'],
             ]);
 
             // Save to catalog if requested
             if (!empty($item['save_to_catalog'])) {
-                $type = $item['catalog_type'] ?? 'product';
-                if ($type === 'service') {
-                    Service::firstOrCreate(
-                        ['title' => $item['description']],
-                        ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
-                    );
-                } else {
-                    Product::firstOrCreate(
-                        ['name' => $item['description']],
-                        ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
-                    );
-                }
+                $this->saveToCatalog($item);
             }
         }
 
@@ -205,35 +184,40 @@ class QuoteController extends Controller
             return back()->with('error', 'Ce devis a déjà été converti.');
         }
 
-        $nextNumber = 'FAC-' . date('Y') . '-' . str_pad(Invoice::count() + 1, 4, '0', STR_PAD_LEFT);
+        $invoiceId = DB::transaction(function () use ($quote) {
+            $nextNumber = 'FAC-' . date('Y') . '-' . str_pad(Invoice::count() + 1, 4, '0', STR_PAD_LEFT);
 
-        $invoice = Invoice::create([
-            'number' => $nextNumber,
-            'quote_id' => $quote->id,
-            'client_name' => $quote->client_name,
-            'client_email' => $quote->client_email,
-            'client_phone' => $quote->client_phone,
-            'client_address' => $quote->client_address,
-            'subtotal' => $quote->subtotal,
-            'tax_amount' => $quote->tax_amount,
-            'total_amount' => $quote->total_amount,
-            'status' => 'paid', // Or draft
-            'due_date' => now()->addDays(30),
-            'share_token' => Str::random(32),
-        ]);
-
-        foreach ($quote->items as $item) {
-            $invoice->items()->create([
-                'description' => $item->description,
-                'quantity' => $item->quantity,
-                'unit_price' => $item->unit_price,
-                'total_price' => $item->total_price,
+            $invoice = Invoice::create([
+                'number'         => $nextNumber,
+                'quote_id'       => $quote->id,
+                'client_name'    => $quote->client_name,
+                'client_email'   => $quote->client_email,
+                'client_phone'   => $quote->client_phone,
+                'client_address' => $quote->client_address,
+                'subtotal'       => $quote->subtotal,
+                'tax_amount'     => $quote->tax_amount,
+                'total_amount'   => $quote->total_amount,
+                'status'         => 'draft',
+                'due_date'       => now()->addDays(30),
+                'share_token'    => Str::random(32),
             ]);
-        }
 
-        $quote->update(['status' => 'converted']);
+            foreach ($quote->items as $item) {
+                $invoice->items()->create([
+                    'description' => $item->description,
+                    'quantity'    => $item->quantity,
+                    'unit_price'  => $item->unit_price,
+                    'total_price' => $item->total_price,
+                ]);
+            }
 
-        return redirect()->route('admin.invoices.show', $invoice->id)->with('success', 'Devis converti en facture avec succès.');
+            $quote->update(['status' => 'converted']);
+
+            return $invoice->id;
+        });
+
+        return redirect()->route('admin.invoices.show', $invoiceId)
+            ->with('success', 'Devis converti en facture avec succès.');
     }
 
     public function publicView($token)
@@ -241,5 +225,24 @@ class QuoteController extends Controller
         $quote = Quote::where('share_token', $token)->firstOrFail();
         $quote->load('items');
         return view('admin.quotes.print', compact('quote')); // Reuse print view for public view
+    }
+
+    /**
+     * Save an item description to the product or service catalog.
+     */
+    private function saveToCatalog(array $item): void
+    {
+        $type = $item['catalog_type'] ?? 'product';
+        if ($type === 'service') {
+            Service::firstOrCreate(
+                ['title' => $item['description']],
+                ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
+            );
+        } else {
+            Product::firstOrCreate(
+                ['name' => $item['description']],
+                ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
+            );
+        }
     }
 }

@@ -47,46 +47,35 @@ class InvoiceController extends Controller
         ]);
 
         $subtotal = 0;
-        foreach ($request->items as $item) {
+        foreach ($validated['items'] as $item) {
             $subtotal += $item['quantity'] * $item['unit_price'];
         }
 
         $invoice = Invoice::create([
-            'number' => $request->number,
-            'client_name' => $request->client_name,
-            'client_email' => $request->client_email,
-            'client_phone' => $request->client_phone,
-            'client_address' => $request->client_address,
-            'due_date' => $request->due_date,
-            'notes' => $request->notes,
-            'subtotal' => $subtotal,
-            'tax_amount' => 0,
-            'total_amount' => $subtotal,
-            'share_token' => Str::random(32),
+            'number'         => $validated['number'],
+            'client_name'    => $validated['client_name'],
+            'client_email'   => $validated['client_email'] ?? null,
+            'client_phone'   => $validated['client_phone'] ?? null,
+            'client_address' => $validated['client_address'] ?? null,
+            'due_date'       => $validated['due_date'] ?? null,
+            'notes'          => $validated['notes'] ?? null,
+            'subtotal'       => $subtotal,
+            'tax_amount'     => 0,
+            'total_amount'   => $subtotal,
+            'share_token'    => Str::random(32),
         ]);
 
-        foreach ($request->items as $item) {
+        foreach ($validated['items'] as $item) {
             $invoice->items()->create([
                 'description' => $item['description'],
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price'],
+                'quantity'    => $item['quantity'],
+                'unit_price'  => $item['unit_price'],
                 'total_price' => $item['quantity'] * $item['unit_price'],
             ]);
 
             // Save to catalog if requested
             if (!empty($item['save_to_catalog'])) {
-                $type = $item['catalog_type'] ?? 'product';
-                if ($type === 'service') {
-                    Service::firstOrCreate(
-                        ['title' => $item['description']],
-                        ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
-                    );
-                } else {
-                    Product::firstOrCreate(
-                        ['name' => $item['description']],
-                        ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
-                    );
-                }
+                $this->saveToCatalog($item);
             }
         }
 
@@ -129,46 +118,35 @@ class InvoiceController extends Controller
         ]);
 
         $subtotal = 0;
-        foreach ($request->items as $item) {
+        foreach ($validated['items'] as $item) {
             $subtotal += $item['quantity'] * $item['unit_price'];
         }
 
         $invoice->update([
-            'number' => $request->number,
-            'client_name' => $request->client_name,
-            'client_email' => $request->client_email,
-            'client_phone' => $request->client_phone,
-            'client_address' => $request->client_address,
-            'due_date' => $request->due_date,
-            'notes' => $request->notes,
-            'status' => $request->status,
-            'subtotal' => $subtotal,
-            'total_amount' => $subtotal,
+            'number'         => $validated['number'],
+            'client_name'    => $validated['client_name'],
+            'client_email'   => $validated['client_email'] ?? null,
+            'client_phone'   => $validated['client_phone'] ?? null,
+            'client_address' => $validated['client_address'] ?? null,
+            'due_date'       => $validated['due_date'] ?? null,
+            'notes'          => $validated['notes'] ?? null,
+            'status'         => $validated['status'],
+            'subtotal'       => $subtotal,
+            'total_amount'   => $subtotal,
         ]);
 
         $invoice->items()->delete();
-        foreach ($request->items as $item) {
+        foreach ($validated['items'] as $item) {
             $invoice->items()->create([
                 'description' => $item['description'],
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price'],
+                'quantity'    => $item['quantity'],
+                'unit_price'  => $item['unit_price'],
                 'total_price' => $item['quantity'] * $item['unit_price'],
             ]);
 
             // Save to catalog if requested
             if (!empty($item['save_to_catalog'])) {
-                $type = $item['catalog_type'] ?? 'product';
-                if ($type === 'service') {
-                    Service::firstOrCreate(
-                        ['title' => $item['description']],
-                        ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
-                    );
-                } else {
-                    Product::firstOrCreate(
-                        ['name' => $item['description']],
-                        ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
-                    );
-                }
+                $this->saveToCatalog($item);
             }
         }
 
@@ -201,5 +179,24 @@ class InvoiceController extends Controller
         $invoice = Invoice::where('share_token', $token)->firstOrFail();
         $invoice->load('items');
         return view('admin.invoices.print', compact('invoice'));
+    }
+
+    /**
+     * Save an item description to the product or service catalog.
+     */
+    private function saveToCatalog(array $item): void
+    {
+        $type = $item['catalog_type'] ?? 'product';
+        if ($type === 'service') {
+            Service::firstOrCreate(
+                ['title' => $item['description']],
+                ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
+            );
+        } else {
+            Product::firstOrCreate(
+                ['name' => $item['description']],
+                ['slug' => Str::slug($item['description']), 'price' => $item['unit_price'], 'active' => true]
+            );
+        }
     }
 }

@@ -143,7 +143,10 @@ class ProductController extends Controller
             'active' => 'boolean',
         ]);
 
-        $validated['slug'] = $this->generateUniqueSlug($request->name, $product->id);
+        // Only regenerate slug if the name has changed, to preserve existing URLs (SEO)
+        if ($request->name !== $product->name) {
+            $validated['slug'] = $this->generateUniqueSlug($request->name, $product->id);
+        }
         $validated['active'] = $request->boolean('active');
         $validated['blackfriday'] = $request->boolean('blackfriday');
 

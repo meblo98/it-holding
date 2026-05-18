@@ -159,7 +159,7 @@ class ShopController extends Controller
 
     public function removeFromCart($id)
     {
-        $cart = Session::get('cart');
+        $cart = Session::get('cart', []);
         if (isset($cart[$id])) {
             unset($cart[$id]);
             Session::put('cart', $cart);
@@ -265,9 +265,9 @@ class ShopController extends Controller
     /**
      * Thank you / order confirmation
      */
-    public function thanks($orderId)
+    public function thanks(Order $order)
     {
-        $order = Order::with('items.product')->findOrFail($orderId);
+        $order->load('items.product');
         return view('pages.shop.thanks', compact('order'));
     }
 }

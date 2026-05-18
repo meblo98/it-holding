@@ -17,7 +17,7 @@ class DashboardController extends Controller
         $user = Auth::user();
         
         $totalOrders = $user->orders()->count();
-        $pendingOrders = $user->orders()->whereIn('status', ['pending', 'processing', 'in_progress', 'processing'])->count();
+        $pendingOrders = $user->orders()->whereIn('status', ['pending', 'processing', 'in_progress'])->count();
         $completedOrders = $user->orders()->whereIn('status', ['completed', 'delivered'])->count();
         
         $recentOrders = $user->orders()->latest()->take(7)->get();
@@ -72,12 +72,11 @@ class DashboardController extends Controller
         
         $request->validate([
             'display_name' => 'required|string|max:255',
-            'username' => 'nullable|string|max:255|unique:users,username,' . $user->id,
-            'full_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'phone' => 'nullable|string|max:20',
-            'country' => 'nullable|string|max:2',
-            'photo' => 'nullable|image|max:2048',
+            'username'     => 'nullable|string|max:255|unique:users,username,' . $user->id,
+            'email'        => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'phone'        => 'nullable|string|max:20',
+            'country'      => 'nullable|string|max:2',
+            'photo'        => 'nullable|image|max:2048',
         ]);
 
         $data = [
