@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('care_subscriptions')) {
+            return;
+        }
+
         Schema::create('care_subscriptions', function (Blueprint $table) {
             $table->id();
             $table->string('number')->unique(); // CARE-2026-0001

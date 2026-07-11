@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('warranties')) {
+            return;
+        }
+
         Schema::create('warranties', function (Blueprint $table) {
             $table->id();
             $table->string('number')->unique(); // GAR-2026-0001
