@@ -21,11 +21,22 @@ class InvoiceController extends Controller
     public function create()
     {
         $nextNumber = 'FAC-' . date('Y') . '-' . str_pad(Invoice::count() + 1, 4, '0', STR_PAD_LEFT);
-        $products = Product::where('active', true)->get(['id', 'name', 'price']);
+        $products = Product::where('active', true)->get(['id', 'name', 'price', 'purchase_price']);
         $services = Service::where('active', true)->get(['id', 'title', 'price']);
         
-        $catalog = $products->map(fn($p) => ['name' => $p->name, 'price' => $p->price, 'type' => 'product'])
-            ->concat($services->map(fn($s) => ['name' => $s->title, 'price' => $s->price, 'type' => 'service']));
+        $catalog = $products->map(fn($p) => [
+            'id' => $p->id,
+            'name' => $p->name,
+            'price' => $p->price,
+            'purchase_price' => $p->purchase_price,
+            'type' => 'product'
+        ])->concat($services->map(fn($s) => [
+            'id' => $s->id,
+            'name' => $s->title,
+            'price' => $s->price,
+            'purchase_price' => 0.00,
+            'type' => 'service'
+        ]));
 
         return view('admin.invoices.create', compact('nextNumber', 'catalog'));
     }
@@ -40,10 +51,13 @@ class InvoiceController extends Controller
             'client_address' => 'nullable',
             'due_date' => 'nullable|date',
             'notes' => 'nullable',
+            'payment_method' => 'nullable|string|max:100',
             'items' => 'required|array|min:1',
+            'items.*.product_id' => 'nullable|exists:products,id',
             'items.*.description' => 'required',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.purchase_price' => 'nullable|numeric|min:0',
         ]);
 
         $subtotal = 0;
@@ -59,6 +73,7 @@ class InvoiceController extends Controller
             'client_address' => $validated['client_address'] ?? null,
             'due_date'       => $validated['due_date'] ?? null,
             'notes'          => $validated['notes'] ?? null,
+            'payment_method' => $validated['payment_method'] ?? null,
             'subtotal'       => $subtotal,
             'tax_amount'     => 0,
             'total_amount'   => $subtotal,
@@ -66,11 +81,31 @@ class InvoiceController extends Controller
         ]);
 
         foreach ($validated['items'] as $item) {
+            $purchasePrice = 0;
+            $productId = $item['product_id'] ?? null;
+            
+            if ($productId) {
+                $product = Product::find($productId);
+                if ($product) {
+                    $purchasePrice = $product->purchase_price;
+                }
+            } elseif (!empty($item['purchase_price'])) {
+                $purchasePrice = $item['purchase_price'];
+            } else {
+                $product = Product::where('name', $item['description'])->first();
+                if ($product) {
+                    $productId = $product->id;
+                    $purchasePrice = $product->purchase_price;
+                }
+            }
+
             $invoice->items()->create([
-                'description' => $item['description'],
-                'quantity'    => $item['quantity'],
-                'unit_price'  => $item['unit_price'],
-                'total_price' => $item['quantity'] * $item['unit_price'],
+                'product_id'     => $productId,
+                'description'    => $item['description'],
+                'quantity'       => $item['quantity'],
+                'unit_price'     => $item['unit_price'],
+                'purchase_price' => $purchasePrice,
+                'total_price'    => $item['quantity'] * $item['unit_price'],
             ]);
 
             // Save to catalog if requested
@@ -91,11 +126,22 @@ class InvoiceController extends Controller
     public function edit(Invoice $invoice)
     {
         $invoice->load('items');
-        $products = Product::where('active', true)->get(['id', 'name', 'price']);
+        $products = Product::where('active', true)->get(['id', 'name', 'price', 'purchase_price']);
         $services = Service::where('active', true)->get(['id', 'title', 'price']);
         
-        $catalog = $products->map(fn($p) => ['name' => $p->name, 'price' => $p->price, 'type' => 'product'])
-            ->concat($services->map(fn($s) => ['name' => $s->title, 'price' => $s->price, 'type' => 'service']));
+        $catalog = $products->map(fn($p) => [
+            'id' => $p->id,
+            'name' => $p->name,
+            'price' => $p->price,
+            'purchase_price' => $p->purchase_price,
+            'type' => 'product'
+        ])->concat($services->map(fn($s) => [
+            'id' => $s->id,
+            'name' => $s->title,
+            'price' => $s->price,
+            'purchase_price' => 0.00,
+            'type' => 'service'
+        ]));
 
         return view('admin.invoices.edit', compact('invoice', 'catalog'));
     }
@@ -111,10 +157,13 @@ class InvoiceController extends Controller
             'due_date' => 'nullable|date',
             'notes' => 'nullable',
             'status' => 'required|in:draft,sent,paid,overdue,cancelled',
+            'payment_method' => 'nullable|string|max:100',
             'items' => 'required|array|min:1',
+            'items.*.product_id' => 'nullable|exists:products,id',
             'items.*.description' => 'required',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.purchase_price' => 'nullable|numeric|min:0',
         ]);
 
         $subtotal = 0;
@@ -131,17 +180,38 @@ class InvoiceController extends Controller
             'due_date'       => $validated['due_date'] ?? null,
             'notes'          => $validated['notes'] ?? null,
             'status'         => $validated['status'],
+            'payment_method' => $validated['payment_method'] ?? null,
             'subtotal'       => $subtotal,
             'total_amount'   => $subtotal,
         ]);
 
         $invoice->items()->delete();
         foreach ($validated['items'] as $item) {
+            $purchasePrice = 0;
+            $productId = $item['product_id'] ?? null;
+            
+            if ($productId) {
+                $product = Product::find($productId);
+                if ($product) {
+                    $purchasePrice = $product->purchase_price;
+                }
+            } elseif (!empty($item['purchase_price'])) {
+                $purchasePrice = $item['purchase_price'];
+            } else {
+                $product = Product::where('name', $item['description'])->first();
+                if ($product) {
+                    $productId = $product->id;
+                    $purchasePrice = $product->purchase_price;
+                }
+            }
+
             $invoice->items()->create([
-                'description' => $item['description'],
-                'quantity'    => $item['quantity'],
-                'unit_price'  => $item['unit_price'],
-                'total_price' => $item['quantity'] * $item['unit_price'],
+                'product_id'     => $productId,
+                'description'    => $item['description'],
+                'quantity'       => $item['quantity'],
+                'unit_price'     => $item['unit_price'],
+                'purchase_price' => $purchasePrice,
+                'total_price'    => $item['quantity'] * $item['unit_price'],
             ]);
 
             // Save to catalog if requested

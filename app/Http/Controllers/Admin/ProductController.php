@@ -77,6 +77,9 @@ class ProductController extends Controller
             'images' => 'nullable|array|max:10',
             'images.*' => 'nullable|image|max:2048',
             'active' => 'boolean',
+            'wholesale_qty' => 'nullable|integer|min:2',
+            'wholesale_discount_rate' => 'nullable|numeric|min:0|max:100',
+            'wholesale_discount_limit' => 'nullable|numeric|min:0',
         ]);
 
         $validated['slug'] = $this->generateUniqueSlug($request->name);
@@ -141,6 +144,9 @@ class ProductController extends Controller
             'images' => 'nullable|array|max:10',
             'images.*' => 'nullable|image|max:2048',
             'active' => 'boolean',
+            'wholesale_qty' => 'nullable|integer|min:2',
+            'wholesale_discount_rate' => 'nullable|numeric|min:0|max:100',
+            'wholesale_discount_limit' => 'nullable|numeric|min:0',
         ]);
 
         // Only regenerate slug if the name has changed, to preserve existing URLs (SEO)

@@ -90,6 +90,34 @@
         <!-- Payment Info -->
         <div class="mt-10 p-6 bg-gray-50 border rounded-lg text-sm">
             <h3 class="font-bold mb-2 uppercase text-xs text-gray-400 tracking-widest">Informations de paiement</h3>
+            @if($invoice->payment_method)
+            <p class="mb-2 text-gray-700 font-medium">Mode de paiement: 
+                <span class="text-navy-600 font-bold bg-navy-50 px-2 py-1 rounded">
+                    @switch($invoice->payment_method)
+                        @case('espece')
+                            Espèces (Cash)
+                            @break
+                        @case('cheque')
+                            Chèque
+                            @break
+                        @case('bank_transfer')
+                            Virement Bancaire
+                            @break
+                        @case('orange_money')
+                            Orange Money
+                            @break
+                        @case('wave')
+                            Wave
+                            @break
+                        @case('free_money')
+                            Free Money
+                            @break
+                        @default
+                            {{ $invoice->payment_method }}
+                    @endswitch
+                </span>
+            </p>
+            @endif
             <p class="mb-1 text-gray-700 font-medium">Bénéficiaire: <span class="text-navy-600">IT HOLDING SERVICES</span></p>
             <p class="text-gray-700 font-medium">RIB: <span class="bg-gray-200 px-2 py-0.5 rounded font-mono">SNXXX XXXX XXXXXXX XXXX XX</span></p>
         </div>

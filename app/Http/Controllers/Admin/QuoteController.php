@@ -203,11 +203,23 @@ class QuoteController extends Controller
             ]);
 
             foreach ($quote->items as $item) {
+                $productId = null;
+                $purchasePrice = 0.00;
+                
+                // Try to find matching product by description
+                $product = Product::where('name', $item->description)->first();
+                if ($product) {
+                    $productId = $product->id;
+                    $purchasePrice = $product->purchase_price;
+                }
+
                 $invoice->items()->create([
-                    'description' => $item->description,
-                    'quantity'    => $item->quantity,
-                    'unit_price'  => $item->unit_price,
-                    'total_price' => $item->total_price,
+                    'product_id'     => $productId,
+                    'description'    => $item->description,
+                    'quantity'       => $item->quantity,
+                    'unit_price'     => $item->unit_price,
+                    'purchase_price' => $purchasePrice,
+                    'total_price'    => $item->total_price,
                 ]);
             }
 

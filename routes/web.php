@@ -78,6 +78,32 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('invoices/{invoice}/print', [\App\Http\Controllers\Admin\InvoiceController::class, 'print'])->name('invoices.print');
     Route::get('invoices/{invoice}/share', [\App\Http\Controllers\Admin\InvoiceController::class, 'share'])->name('invoices.share');
     Route::resource('invoices', \App\Http\Controllers\Admin\InvoiceController::class);
+
+    Route::get('delivery-notes/{delivery_note}/print', [\App\Http\Controllers\Admin\DeliveryNoteController::class, 'print'])->name('delivery-notes.print');
+    Route::resource('delivery-notes', \App\Http\Controllers\Admin\DeliveryNoteController::class);
+    Route::resource('suppliers', \App\Http\Controllers\Admin\SupplierController::class);
+
+    // Stock Management
+    Route::get('stock', [\App\Http\Controllers\Admin\StockController::class, 'index'])->name('stock.index');
+    Route::post('stock/{product}/adjust', [\App\Http\Controllers\Admin\StockController::class, 'adjust'])->name('stock.adjust');
+
+    // Users (internal staff) — admin only
+    Route::resource('users', \App\Http\Controllers\Admin\UserController::class)->except(['show']);
+
+    // Clients CRM
+    Route::resource('clients', \App\Http\Controllers\Admin\ClientController::class);
+
+    // Warranties
+    Route::resource('warranties', \App\Http\Controllers\Admin\WarrantyController::class);
+
+    // SAV / Tickets
+    Route::resource('tickets', \App\Http\Controllers\Admin\TicketController::class);
+
+    // Contrats de Maintenance
+    Route::resource('contracts', \App\Http\Controllers\Admin\MaintenanceContractController::class);
+
+    // IT HOLDING CARE+
+    Route::resource('care', \App\Http\Controllers\Admin\CareSubscriptionController::class);
 });
 
 // Public views for shared docs

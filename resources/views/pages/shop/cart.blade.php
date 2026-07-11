@@ -46,6 +46,10 @@
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 @forelse($cart as $id => $details)
+                                    @php
+                                        $product = \App\Models\Product::find($id);
+                                        $isWholesale = $product && $details['quantity'] >= ($product->wholesale_qty ?? 5) && ($product->wholesale_discount_rate > 0);
+                                    @endphp
                                     <tr class="group hover:bg-gray-50/50 transition-all duration-200">
                                         <td class="px-6 py-8">
                                             <div class="flex items-center gap-6">
@@ -63,12 +67,29 @@
                                                     <div>
                                                         <a href="{{ route('shop.show', $details['slug'] ?? '#') }}" class="text-sm font-bold text-navy-900 hover:text-gold-500 transition-colors line-clamp-2">{{ $details['name'] }}</a>
                                                         <span class="text-[10px] text-gray-400 uppercase tracking-widest block mt-1">Ref: #IT-{{ str_pad($id, 5, '0', STR_PAD_LEFT) }}</span>
+                                                        
+                                                        @if($isWholesale)
+                                                            <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[9px] font-black bg-gold-100 text-gold-700 uppercase tracking-widest animate-pulse border border-gold-200">
+                                                                <svg class="w-3 h-3 text-gold-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                                                </svg>
+                                                                Tarif de gros (-{{ number_format($product->wholesale_discount_rate, 0) }}%)
+                                                            </div>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-8 text-center">
-                                            <span class="text-sm font-bold text-navy-800">{{ number_format($details['price'], 0, ',', ' ') }} <span class="text-[10px]">CFA</span></span>
+                                            <div class="flex flex-col items-center gap-0.5">
+                                                @if($isWholesale)
+                                                    @php
+                                                        $originalPrice = $product->promo_price && $product->promo_price > 0 && $product->promo_price < $product->price ? $product->promo_price : $product->price;
+                                                    @endphp
+                                                    <span class="text-xs text-gray-300 line-through font-medium">{{ number_format($originalPrice, 0, ',', ' ') }} CFA</span>
+                                                @endif
+                                                <span class="text-sm font-bold text-navy-800">{{ number_format($details['price'], 0, ',', ' ') }} <span class="text-[10px]">CFA</span></span>
+                                            </div>
                                         </td>
                                         <td class="px-6 py-8 text-center">
                                             <div class="inline-flex items-center border border-gray-200 rounded-lg p-1 bg-white mx-auto">

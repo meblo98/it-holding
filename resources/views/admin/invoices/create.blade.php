@@ -9,9 +9,9 @@
 </div>
 
 <form action="{{ route('admin.invoices.store') }}" method="POST" x-data="{ 
-    items: [{ description: '', quantity: 1, unit_price: 0, save_to_catalog: false, catalog_type: 'product', source: 'catalog' }],
+    items: [{ product_id: null, description: '', quantity: 1, unit_price: 0, save_to_catalog: false, catalog_type: 'product', source: 'catalog' }],
     catalog: {{ Js::from($catalog) }},
-    addItem() { this.items.push({ description: '', quantity: 1, unit_price: 0, save_to_catalog: false, catalog_type: 'product', source: 'catalog' }) },
+    addItem() { this.items.push({ product_id: null, description: '', quantity: 1, unit_price: 0, save_to_catalog: false, catalog_type: 'product', source: 'catalog' }) },
     removeItem(index) { this.items.splice(index, 1) },
     onSelectChange(index, event) {
         const value = event.target.value;
@@ -19,6 +19,7 @@
         if (value === 'new') {
             item.source = 'manual';
             item.description = '';
+            item.product_id = null;
             item.unit_price = 0;
             item.save_to_catalog = true;
         } else {
@@ -26,6 +27,7 @@
             if (match) {
                 item.source = 'catalog';
                 item.description = match.name;
+                item.product_id = match.type === 'product' ? match.id : null;
                 item.unit_price = match.price;
                 item.catalog_type = match.type;
                 item.save_to_catalog = false;
@@ -89,13 +91,15 @@
                                             </template>
                                             <option value="new" class="text-gold-600 font-bold">+ Nouveau / Autre article</option>
                                         </select>
-                                        <!-- Hidden input to submit description -->
+                                        <!-- Hidden input to submit description and product_id -->
                                         <input type="hidden" :name="`items[${index}][description]`" x-model="item.description">
+                                        <input type="hidden" :name="`items[${index}][product_id]`" x-model="item.product_id">
                                     </div>
 
                                     <!-- Manual Input -->
                                     <div x-show="item.source === 'manual'" class="mt-1 flex gap-2">
                                         <input type="text" :name="`items[${index}][description]`" x-model="item.description" placeholder="Description de l'article..." required class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
+                                        <input type="hidden" :name="`items[${index}][product_id]`" x-model="item.product_id">
                                         <button type="button" @click="item.source = 'catalog'" class="px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded hover:bg-gray-300">Annuler</button>
                                     </div>
                                 </div>
@@ -146,6 +150,18 @@
                     <div>
                         <label for="number" class="block text-sm font-medium text-gray-700">Numéro de Facture</label>
                         <input type="text" name="number" id="number" value="{{ old('number', $nextNumber) }}" readonly class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm font-bold text-navy-600">
+                    </div>
+                    <div>
+                        <label for="payment_method" class="block text-sm font-medium text-gray-700">Mode de Paiement</label>
+                        <select name="payment_method" id="payment_method" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
+                            <option value="">-- Non spécifié --</option>
+                            <option value="espece" {{ old('payment_method') == 'espece' ? 'selected' : '' }}>Espèces (Cash)</option>
+                            <option value="cheque" {{ old('payment_method') == 'cheque' ? 'selected' : '' }}>Chèque</option>
+                            <option value="bank_transfer" {{ old('payment_method') == 'bank_transfer' ? 'selected' : '' }}>Virement Bancaire</option>
+                            <option value="orange_money" {{ old('payment_method') == 'orange_money' ? 'selected' : '' }}>Orange Money</option>
+                            <option value="wave" {{ old('payment_method') == 'wave' ? 'selected' : '' }}>Wave</option>
+                            <option value="free_money" {{ old('payment_method') == 'free_money' ? 'selected' : '' }}>Free Money</option>
+                        </select>
                     </div>
                     <div class="border-t pt-3">
                         <div class="flex justify-between items-center text-lg">

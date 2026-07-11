@@ -134,6 +134,28 @@
                 </div>
                 @endif
 
+                <!-- Wholesale Pricing Offer Card -->
+                @if($product->wholesale_qty && $product->wholesale_qty >= 2 && $product->wholesale_discount_rate > 0)
+                <div class="mb-8 p-4 rounded-xl border border-gold-200 bg-gold-50/30 flex items-start gap-3">
+                    <div class="p-2 rounded-lg bg-gold-100 text-gold-600 flex-shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="space-y-1">
+                        <span class="text-xs font-bold text-gold-600 uppercase tracking-widest block">Offre de Gros</span>
+                        <p class="text-xs text-navy-950 font-medium">
+                            Commandez au moins <span class="font-black text-navy-900">{{ $product->wholesale_qty }} unités</span> et bénéficiez de <span class="font-black text-gold-600">-{{ number_format($product->wholesale_discount_rate, 0) }}%</span> de réduction unitaire !
+                        </p>
+                        @if($product->wholesale_discount_limit && $product->wholesale_discount_limit > 0)
+                            <span class="text-[10px] text-gray-500 block italic">
+                                * Réduction plafonnée à {{ number_format($product->wholesale_discount_limit, 0, ',', ' ') }} FCFA par article.
+                            </span>
+                        @endif
+                    </div>
+                </div>
+                @endif
+
                 <!-- Add to Cart -->
                 <form action="{{ route('shop.addToCart', $product->id) }}" method="POST" class="space-y-6">
                     @csrf

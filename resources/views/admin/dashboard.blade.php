@@ -58,6 +58,111 @@
             </div>
         </div>
 
+        <!-- Section Rentabilité et Bénéfices -->
+        <div class="mt-8 bg-white overflow-hidden shadow sm:rounded-lg border-t-4 border-gold-500">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-50 gap-2">
+                <div>
+                    <h3 class="text-lg leading-6 font-bold text-navy-900 uppercase tracking-tight flex items-center gap-2">
+                        <svg class="h-6 w-6 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Analyse de Rentabilité & Bénéfices
+                    </h3>
+                    <p class="text-xs text-gray-500 mt-1">Données calculées en temps réel à partir des commandes validées et des factures payées/envoyées.</p>
+                </div>
+                <span class="px-3 py-1 bg-navy-600 text-white rounded-full text-xs font-bold">Marge Globale : {{ number_format($financials['margin'], 1) }} %</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+                <!-- Chiffre d'Affaires -->
+                <div class="p-6">
+                    <dt class="text-xs font-bold text-gray-400 uppercase tracking-widest">Chiffre d'Affaires (C.A.)</dt>
+                    <dd class="mt-2 text-3xl font-black text-navy-900">{{ number_format($financials['revenue'], 0, ',', ' ') }} <span class="text-sm font-semibold">FCFA</span></dd>
+                    <div class="mt-4 flex flex-col gap-1 text-xs text-gray-500">
+                        <div class="flex justify-between">
+                            <span>Boutique :</span>
+                            <span class="font-bold text-gray-700">{{ number_format($financials['orders']['revenue'], 0, ',', ' ') }} FCFA</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Factures :</span>
+                            <span class="font-bold text-gray-700">{{ number_format($financials['invoices']['revenue'], 0, ',', ' ') }} FCFA</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coût d'Achat -->
+                <div class="p-6">
+                    <dt class="text-xs font-bold text-gray-400 uppercase tracking-widest font-semibold">Coût d'Achat Total</dt>
+                    <dd class="mt-2 text-3xl font-black text-slate-500">{{ number_format($financials['cost'], 0, ',', ' ') }} <span class="text-sm font-semibold">FCFA</span></dd>
+                    <div class="mt-4 flex flex-col gap-1 text-xs text-gray-500">
+                        <div class="flex justify-between">
+                            <span>Boutique :</span>
+                            <span class="font-bold text-gray-700">{{ number_format($financials['orders']['cost'], 0, ',', ' ') }} FCFA</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Factures :</span>
+                            <span class="font-bold text-gray-700">{{ number_format($financials['invoices']['cost'], 0, ',', ' ') }} FCFA</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bénéfice Net -->
+                <div class="p-6 bg-amber-50/20">
+                    <dt class="text-xs font-bold text-amber-600 uppercase tracking-widest">Bénéfice Net (Profit)</dt>
+                    <dd class="mt-2 text-3xl font-black text-gold-600">{{ number_format($financials['profit'], 0, ',', ' ') }} <span class="text-sm font-semibold">FCFA</span></dd>
+                    <div class="mt-4 flex flex-col gap-1 text-xs text-gray-500">
+                        <div class="flex justify-between">
+                            <span>Boutique :</span>
+                            <span class="font-bold text-gold-600">{{ number_format($financials['orders']['profit'], 0, ',', ' ') }} FCFA</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Factures :</span>
+                            <span class="font-bold text-gold-600">{{ number_format($financials['invoices']['profit'], 0, ',', ' ') }} FCFA</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Marge Moyenne -->
+                <div class="p-6">
+                    <dt class="text-xs font-bold text-gray-400 uppercase tracking-widest">Marge Commerciale</dt>
+                    <dd class="mt-2 text-3xl font-black text-green-600">{{ number_format($financials['margin'], 1) }} %</dd>
+                    <p class="text-xs text-gray-400 mt-4 leading-relaxed">
+                        Chaque vente génère en moyenne un bénéfice net de <span class="font-bold text-navy-600">{{ number_format($financials['margin'], 1) }} %</span> après déduction du coût d'achat fournisseur.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Graphiques Financiers -->
+        <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Graphique Évolution Mensuelle (Line Chart) -->
+            <div class="bg-white overflow-hidden shadow sm:rounded-lg border border-gray-100 p-6 lg:col-span-2">
+                <h3 class="text-lg leading-6 font-bold text-navy-900 uppercase tracking-tight mb-4 flex items-center gap-2">
+                    <svg class="h-5 w-5 text-navy-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Évolution Mensuelle du C.A. & des Bénéfices
+                </h3>
+                <div class="relative" style="height: 300px;">
+                    <canvas id="monthlyFinancialsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Graphique Répartition (Doughnut Chart) -->
+            <div class="bg-white overflow-hidden shadow sm:rounded-lg border border-gray-100 p-6 lg:col-span-1">
+                <h3 class="text-lg leading-6 font-bold text-navy-900 uppercase tracking-tight mb-4 flex items-center gap-2">
+                    <svg class="h-5 w-5 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                    </svg>
+                    Origine des Ventes
+                </h3>
+                <div class="relative flex items-center justify-center" style="height: 300px;">
+                    <canvas id="salesDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
         <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
             <!-- Latest Contacts -->
             <div class="bg-white shadow overflow-hidden sm:rounded-lg">
@@ -374,6 +479,166 @@
                 </div>
             </div>
         </div>
-    </div>
-    </div>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Line Chart: Monthly Revenue & Profit
+            const ctxMonthly = document.getElementById('monthlyFinancialsChart').getContext('2d');
+            
+            // Create nice gradients for the charts
+            const revGradient = ctxMonthly.createLinearGradient(0, 0, 0, 300);
+            revGradient.addColorStop(0, 'rgba(22, 38, 70, 0.2)');
+            revGradient.addColorStop(1, 'rgba(22, 38, 70, 0.0)');
+            
+            const prfGradient = ctxMonthly.createLinearGradient(0, 0, 0, 300);
+            prfGradient.addColorStop(0, 'rgba(202, 138, 4, 0.2)');
+            prfGradient.addColorStop(1, 'rgba(202, 138, 4, 0.0)');
+
+            const monthlyChart = new Chart(ctxMonthly, {
+                type: 'line',
+                data: {
+                    labels: {!! json_encode($chartData['labels']) !!},
+                    datasets: [
+                        {
+                            label: "Chiffre d'Affaires",
+                            data: {!! json_encode($chartData['revenue']) !!},
+                            borderColor: 'rgba(22, 38, 70, 1)',
+                            backgroundColor: revGradient,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: 'rgba(22, 38, 70, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverRadius: 6,
+                            pointHoverBackgroundColor: 'rgba(22, 38, 70, 1)',
+                            pointHoverBorderColor: '#fff',
+                        },
+                        {
+                            label: 'Bénéfice Net',
+                            data: {!! json_encode($chartData['profit']) !!},
+                            borderColor: 'rgba(202, 138, 4, 1)',
+                            backgroundColor: prfGradient,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: 'rgba(202, 138, 4, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverRadius: 6,
+                            pointHoverBackgroundColor: 'rgba(202, 138, 4, 1)',
+                            pointHoverBorderColor: '#fff',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    weight: 'bold',
+                                    family: 'sans-serif'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('fr-FR').format(context.parsed.y) + ' FCFA';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return new Intl.NumberFormat('fr-FR').format(value) + ' F';
+                                },
+                                font: {
+                                    family: 'sans-serif'
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'sans-serif'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 2. Doughnut Chart: Origin of Sales
+            const ctxDistribution = document.getElementById('salesDistributionChart').getContext('2d');
+            const distributionChart = new Chart(ctxDistribution, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Boutique en ligne', 'Factures directes'],
+                    datasets: [{
+                        data: [
+                            {{ $financials['orders']['revenue'] }},
+                            {{ $financials['invoices']['revenue'] }}
+                        ],
+                        backgroundColor: [
+                            'rgba(22, 38, 70, 0.85)', // navy
+                            'rgba(202, 138, 4, 0.85)'   // gold
+                        ],
+                        borderColor: '#fff',
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    weight: 'bold',
+                                    family: 'sans-serif'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                    label += new Intl.NumberFormat('fr-FR').format(value) + ' FCFA (' + percentage + '%)';
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        });
+    </script>
 @endsection

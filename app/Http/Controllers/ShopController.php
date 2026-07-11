@@ -75,8 +75,14 @@ class ShopController extends Controller
         $cart = Session::get('cart', []);
         $total = 0;
         foreach ($cart as $id => $details) {
-            $total += $details['price'] * $details['quantity'];
+            $product = Product::find($id);
+            if ($product) {
+                $effectivePrice = Product::calculateWholesalePrice($product, $details['quantity']);
+                $cart[$id]['price'] = $effectivePrice;
+            }
+            $total += $cart[$id]['price'] * $cart[$id]['quantity'];
         }
+        Session::put('cart', $cart);
         return view('pages.shop.cart', compact('cart', 'total'));
     }
 
@@ -98,11 +104,12 @@ class ShopController extends Controller
                 return redirect()->back()->with('error', 'Stock insuffisant. Seulement ' . $product->stock . ' disponible(s).');
             }
             $cart[$id]['quantity'] = $newQuantity;
+            
+            // Recalculate price dynamically based on new quantity
+            $cart[$id]['price'] = Product::calculateWholesalePrice($product, $newQuantity);
         } else {
-            // determine effective price (promo or normal)
-            $effectivePrice = $product->promo_price && $product->promo_price > 0 && $product->promo_price < $product->price
-                ? $product->promo_price
-                : $product->price;
+            // determine effective price dynamically based on initial quantity
+            $effectivePrice = Product::calculateWholesalePrice($product, $quantity);
 
             $cart[$id] = [
                 "name" => $product->name,
@@ -137,6 +144,8 @@ class ShopController extends Controller
                 unset($cart[$id]);
             } else {
                 $cart[$id]['quantity'] = $quantity;
+                // Recalculate price dynamically based on new quantity
+                $cart[$id]['price'] = Product::calculateWholesalePrice($product, $quantity);
             }
 
             Session::put('cart', $cart);
@@ -177,9 +186,14 @@ class ShopController extends Controller
             return redirect()->route('shop.index')->with('error', 'Votre panier est vide.');
         }
         $total = 0;
-        foreach ($cart as $details) {
-            $total += $details['price'] * $details['quantity'];
+        foreach ($cart as $id => $details) {
+            $product = Product::find($id);
+            if ($product) {
+                $cart[$id]['price'] = Product::calculateWholesalePrice($product, $details['quantity']);
+            }
+            $total += $cart[$id]['price'] * $cart[$id]['quantity'];
         }
+        Session::put('cart', $cart);
         return view('pages.shop.checkout', compact('cart', 'total'));
     }
 
@@ -202,13 +216,17 @@ class ShopController extends Controller
             'city' => 'required|string|max:255',
             'country' => 'required|string|max:255',
             'zip' => 'required|string|max:20',
-            'payment_method' => 'required|string', // Allow any for now, but logical check below
+            'payment_method' => 'required|string',
         ]);
 
-        // calculate total
+        // calculate total with dynamic wholesale pricing recalculation
         $total = 0;
         foreach ($cart as $id => $details) {
-            $total += $details['price'] * $details['quantity'];
+            $product = Product::find($id);
+            if ($product) {
+                $cart[$id]['price'] = Product::calculateWholesalePrice($product, $details['quantity']);
+            }
+            $total += $cart[$id]['price'] * $cart[$id]['quantity'];
         }
 
         // create order within transaction
@@ -225,7 +243,7 @@ class ShopController extends Controller
                 'total_amount' => $total,
                 'status' => 'pending',
                 'payment_status' => 'unpaid',
-                'payment_method' => $validated['payment_method'], // Store whatever was picked
+                'payment_method' => $validated['payment_method'],
             ]);
 
             foreach ($cart as $id => $details) {
@@ -234,15 +252,28 @@ class ShopController extends Controller
                 // prevent ordering more than stock
                 $quantity = min($details['quantity'], $product->stock);
 
+                // Calculate final dynamic unit price to save
+                $finalItemPrice = Product::calculateWholesalePrice($product, $quantity);
+
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $id,
                     'quantity' => $quantity,
-                    'price' => $details['price'],
+                    'price' => $finalItemPrice,
+                    'purchase_price' => $product->purchase_price ?? 0.00,
                 ]);
 
                 // reduce stock
                 $product->decrement('stock', $quantity);
+
+                // Log stock movement
+                \App\Models\StockMovement::create([
+                    'product_id' => $product->id,
+                    'quantity'   => -$quantity,
+                    'type'       => 'out',
+                    'source'     => "Commande #" . $order->id . " (Client: {$order->customer_name})",
+                    'notes'      => "Achat en ligne",
+                ]);
             }
 
             DB::commit();

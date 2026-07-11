@@ -123,6 +123,35 @@
                     <span class="text-sm text-gray-500">Date d'échéance:</span>
                     <span class="text-sm font-medium text-gray-900">{{ $invoice->due_date ? $invoice->due_date->format('d/m/Y') : 'N/A' }}</span>
                 </div>
+                @if($invoice->payment_method)
+                <div class="flex justify-between border-t pt-2">
+                    <span class="text-sm text-gray-500">Mode de paiement:</span>
+                    <span class="text-sm font-bold text-navy-800">
+                        @switch($invoice->payment_method)
+                            @case('espece')
+                                Espèces (Cash)
+                                @break
+                            @case('cheque')
+                                Chèque
+                                @break
+                            @case('bank_transfer')
+                                Virement Bancaire
+                                @break
+                            @case('orange_money')
+                                Orange Money
+                                @break
+                            @case('wave')
+                                Wave
+                                @break
+                            @case('free_money')
+                                Free Money
+                                @break
+                            @default
+                                {{ $invoice->payment_method }}
+                        @endswitch
+                    </span>
+                </div>
+                @endif
                 @if($invoice->quote)
                 <div class="border-t pt-3 flex justify-between items-center">
                     <span class="text-sm text-gray-500">Devis lié:</span>
@@ -133,4 +162,21 @@
         </div>
     </div>
 </div>
+
+                    {{-- GENERATE DELIVERY NOTE --}}
+                    <div class="bg-white shadow-sm rounded-lg overflow-hidden border-l-4 border-blue-400">
+                        <div class="px-4 py-4 border-b border-gray-100">
+                            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                                Bon de Livraison (Envoi)
+                            </h3>
+                        </div>
+                        <div class="px-4 py-4">
+                            <p class="text-xs text-gray-500 mb-3">Générez un bon de livraison pré-rempli avec les articles de cette facture.</p>
+                            <a href="{{ route('admin.delivery-notes.create', ['invoice_id' => $invoice->id]) }}" class="w-full inline-flex justify-center items-center gap-2 py-2.5 px-4 border border-transparent shadow-sm text-sm font-bold rounded-md text-white bg-blue-600 hover:bg-blue-700 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                                Générer un BL d'Envoi
+                            </a>
+                        </div>
+                    </div>
 @endsection

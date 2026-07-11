@@ -134,4 +134,23 @@
                         </div>
                     </div>
                 </div>
+
+                    {{-- GENERATE DELIVERY NOTE --}}
+                    <div class="bg-white shadow overflow-hidden sm:rounded-lg border-l-4 border-blue-400">
+                        <div class="px-4 py-4 sm:px-5 border-b border-gray-100">
+                            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                                Bon de Livraison (Envoi)
+                            </h3>
+                        </div>
+                        <div class="px-4 py-4 sm:p-5">
+                            <p class="text-xs text-gray-500 mb-3">Créez un bon de livraison pré-rempli avec les articles de cette commande.</p>
+                            <a href="{{ route('admin.delivery-notes.create', ['order_id' => $order->id]) }}" class="w-full inline-flex justify-center items-center gap-2 py-2.5 px-4 border border-transparent shadow-sm text-sm font-bold rounded-md text-white bg-blue-600 hover:bg-blue-700 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                                Générer un BL d'Envoi
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
 @endsection

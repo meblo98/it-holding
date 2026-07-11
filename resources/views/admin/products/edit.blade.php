@@ -116,6 +116,36 @@
                                                 value="{{ old('condition', $product->condition) }}">
                                         </div>
 
+                                        <!-- Section Achat en Gros -->
+                                        <div class="col-span-6 border-t border-gray-200 pt-5">
+                                            <h4 class="text-md font-semibold text-navy-900 uppercase tracking-wider mb-1">Achat en Gros (Volume Discount)</h4>
+                                            <p class="text-xs text-gray-500">Configurez les avantages tarifaires d'achat en volume pour ce produit.</p>
+                                        </div>
+
+                                        <div class="col-span-6 sm:col-span-2">
+                                            <label for="wholesale_qty" class="block text-sm font-medium text-gray-700">Qté minimale de gros</label>
+                                            <input type="number" name="wholesale_qty" id="wholesale_qty" min="2"
+                                                value="{{ old('wholesale_qty', $product->wholesale_qty ?? 5) }}"
+                                                class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                                required>
+                                        </div>
+
+                                        <div class="col-span-6 sm:col-span-2">
+                                            <label for="wholesale_discount_rate" class="block text-sm font-medium text-gray-700">Taux de réduction (%)</label>
+                                            <input type="number" name="wholesale_discount_rate" id="wholesale_discount_rate" min="0" max="100" step="0.01"
+                                                value="{{ old('wholesale_discount_rate', $product->wholesale_discount_rate ?? 10.00) }}"
+                                                class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                                required>
+                                        </div>
+
+                                        <div class="col-span-6 sm:col-span-2">
+                                            <label for="wholesale_discount_limit" class="block text-sm font-medium text-gray-700">Plafond de réduction (FCFA/unité)</label>
+                                            <input type="number" name="wholesale_discount_limit" id="wholesale_discount_limit" min="0" step="0.01"
+                                                value="{{ old('wholesale_discount_limit', $product->wholesale_discount_limit) }}"
+                                                placeholder="Aucune limite"
+                                                class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                        </div>
+
                                         <div class="col-span-6">
                                             <label class="block text-sm font-medium text-gray-700">Images du produit</label>
                                             @if ($product->images->count())

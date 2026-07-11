@@ -24,6 +24,7 @@ class Invoice extends Model
         'due_date',
         'notes',
         'share_token',
+        'payment_method',
     ];
 
     protected $casts = [
