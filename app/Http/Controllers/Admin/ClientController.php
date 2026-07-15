@@ -79,8 +79,8 @@ class ClientController extends Controller
 
     public function show(Client $client)
     {
-        $client->load(['warranties', 'orders', 'invoices', 'quotes']);
-
+        $client->load(['warranties', 'orders', 'invoices', 'quotes', 'walletTransactions']);
+ 
         $stats = [
             'total_orders'    => $client->orders->count(),
             'total_invoices'  => $client->invoices->count(),
@@ -89,8 +89,64 @@ class ClientController extends Controller
             'balance'         => $client->current_balance,
             'wallet'          => $client->wallet_balance,
         ];
+ 
+        $bankAccounts = \App\Models\BankAccount::orderBy('name')->get();
 
-        return view('admin.clients.show', compact('client', 'stats'));
+        return view('admin.clients.show', compact('client', 'stats', 'bankAccounts'));
+    }
+
+    public function deposit(Request $request, Client $client)
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:1',
+            'description' => 'nullable|string|max:255',
+        ]);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($client, $validated) {
+            $client->increment('wallet_balance', $validated['amount']);
+            
+            $client->walletTransactions()->create([
+                'type' => 'deposit',
+                'amount' => $validated['amount'],
+                'description' => $validated['description'] ?? 'Dépôt sur portefeuille',
+                'transaction_date' => now(),
+            ]);
+        });
+
+        return redirect()->route('admin.clients.show', $client->id)
+            ->with('success', 'Dépôt effectué avec succès sur le portefeuille.');
+    }
+
+    public function payDebt(Request $request, Client $client)
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:1',
+            'description' => 'nullable|string|max:255',
+            'bank_account_id' => 'nullable|exists:bank_accounts,id',
+        ]);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($client, $validated) {
+            $client->decrement('current_balance', $validated['amount']);
+
+            if (!empty($validated['bank_account_id'])) {
+                $bankAccount = \App\Models\BankAccount::findOrFail($validated['bank_account_id']);
+                $bankAccount->increment('current_balance', $validated['amount']);
+
+                \App\Models\BankTransaction::create([
+                    'bank_account_id' => $bankAccount->id,
+                    'type' => 'credit',
+                    'amount' => $validated['amount'],
+                    'reference' => 'REGLEMENT-CREANCE',
+                    'description' => $validated['description'] ?? "Règlement créance client {$client->display_name}",
+                    'transaction_date' => now(),
+                    'client_id' => $client->id,
+                    'is_reconciled' => true,
+                ]);
+            }
+        });
+
+        return redirect()->route('admin.clients.show', $client->id)
+            ->with('success', 'Règlement de la créance enregistré avec succès.');
     }
 
     public function edit(Client $client)

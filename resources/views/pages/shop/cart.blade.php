@@ -47,13 +47,14 @@
                             <tbody class="divide-y divide-gray-100">
                                 @forelse($cart as $id => $details)
                                     @php
-                                        $product = \App\Models\Product::find($id);
+                                        $productId = $details['product_id'] ?? $id;
+                                        $product = \App\Models\Product::find($productId);
                                         $isWholesale = $product && $details['quantity'] >= ($product->wholesale_qty ?? 5) && ($product->wholesale_discount_rate > 0);
                                     @endphp
                                     <tr class="group hover:bg-gray-50/50 transition-all duration-200">
                                         <td class="px-6 py-8">
                                             <div class="flex items-center gap-6">
-                                                <button type="button" onclick="removeFromCart({{ $id }})" class="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all">
+                                                <button type="button" onclick="removeFromCart('{{ $id }}')" class="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                                 </button>
                                                 <div class="flex items-center gap-4">
@@ -66,7 +67,16 @@
                                                     </div>
                                                     <div>
                                                         <a href="{{ route('shop.show', $details['slug'] ?? '#') }}" class="text-sm font-bold text-navy-900 hover:text-gold-500 transition-colors line-clamp-2">{{ $details['name'] }}</a>
-                                                        <span class="text-[10px] text-gray-400 uppercase tracking-widest block mt-1">Ref: #IT-{{ str_pad($id, 5, '0', STR_PAD_LEFT) }}</span>
+                                                        
+                                                        @if(!empty($details['options']))
+                                                            <div class="mt-1 text-xs text-gray-500 font-medium space-y-0.5">
+                                                                @foreach($details['options'] as $opt)
+                                                                    <span class="block text-navy-950">• {{ $opt['name'] }} : {{ $opt['value'] }} (+{{ number_format($opt['price'], 0, ',', ' ') }} F)</span>
+                                                                @endforeach
+                                                            </div>
+                                                        @endif
+
+                                                        <span class="text-[10px] text-gray-400 uppercase tracking-widest block mt-1">Ref: #IT-{{ str_pad($productId, 5, '0', STR_PAD_LEFT) }}</span>
                                                         
                                                         @if($isWholesale)
                                                             <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[9px] font-black bg-gold-100 text-gold-700 uppercase tracking-widest animate-pulse border border-gold-200">
@@ -93,9 +103,9 @@
                                         </td>
                                         <td class="px-6 py-8 text-center">
                                             <div class="inline-flex items-center border border-gray-200 rounded-lg p-1 bg-white mx-auto">
-                                                <button type="button" onclick="updateQuantity({{ $id }}, -1)" class="w-8 h-8 flex items-center justify-center text-navy-900 hover:bg-gray-50 rounded transition-colors">-</button>
+                                                <button type="button" onclick="updateQuantity('{{ $id }}', -1)" class="w-8 h-8 flex items-center justify-center text-navy-900 hover:bg-gray-50 rounded transition-colors">-</button>
                                                 <input type="number" id="quantity-{{ $id }}" value="{{ $details['quantity'] }}" readonly class="w-10 text-center border-none bg-transparent font-bold focus:ring-0 text-sm text-navy-900">
-                                                <button type="button" onclick="updateQuantity({{ $id }}, 1)" class="w-8 h-8 flex items-center justify-center text-navy-900 hover:bg-gray-50 rounded transition-colors">+</button>
+                                                <button type="button" onclick="updateQuantity('{{ $id }}', 1)" class="w-8 h-8 flex items-center justify-center text-navy-900 hover:bg-gray-50 rounded transition-colors">+</button>
                                             </div>
                                         </td>
                                         <td class="px-6 py-8 text-right">

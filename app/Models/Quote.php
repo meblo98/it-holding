@@ -12,6 +12,7 @@ class Quote extends Model
     protected $fillable = [
         'number',
         'user_id',
+        'client_id',
         'client_name',
         'client_email',
         'client_phone',
@@ -30,6 +31,7 @@ class Quote extends Model
         'subtotal' => 'decimal:2',
         'tax_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
+        'client_id' => 'integer',
     ];
 
     public function items()
@@ -40,6 +42,11 @@ class Quote extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
     }
 
     public function invoice()

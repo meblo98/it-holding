@@ -142,7 +142,11 @@
                                 {{ $note->supplier_name ?? '—' }}
                             @endif
                         @else
-                            <div>{{ $note->customer_name ?? '—' }}</div>
+                            @if($note->client)
+                                <a href="{{ route('admin.clients.show', $note->client_id) }}" class="text-navy-600 hover:underline">{{ $note->customer_name }}</a>
+                            @else
+                                <div>{{ $note->customer_name ?? '—' }}</div>
+                            @endif
                             @if($note->customer_phone)
                                 <div class="text-xs text-gray-400">{{ $note->customer_phone }}</div>
                             @endif

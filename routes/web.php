@@ -32,6 +32,7 @@ Route::get('/thanks/{order}', [ShopController::class, 'thanks'])->name('shop.tha
 Route::post('/cart/add/{id}', [ShopController::class, 'addToCart'])->name('shop.addToCart');
 Route::post('/cart/update', [ShopController::class, 'updateCart'])->name('shop.updateCart');
 Route::get('/remove-from-cart/{id}', [ShopController::class, 'removeFromCart'])->name('shop.removeFromCart');
+Route::post('/shop/quote-request', [ShopController::class, 'requestQuote'])->name('shop.requestQuote')->middleware('auth');
 
 
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
@@ -104,6 +105,29 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // IT HOLDING CARE+
     Route::resource('care', \App\Http\Controllers\Admin\CareSubscriptionController::class);
+
+    // Finance & Bank
+    Route::get('finance', [\App\Http\Controllers\Admin\FinanceController::class, 'index'])->name('finance.index');
+    Route::post('finance/bank-accounts', [\App\Http\Controllers\Admin\FinanceController::class, 'storeAccount'])->name('finance.bank-accounts.store');
+    Route::post('finance/transactions', [\App\Http\Controllers\Admin\FinanceController::class, 'storeTransaction'])->name('finance.transactions.store');
+    Route::post('finance/reconcile/{transaction}', [\App\Http\Controllers\Admin\FinanceController::class, 'reconcile'])->name('finance.reconcile');
+
+    // Client Wallet & Finance Actions
+    Route::post('clients/{client}/deposit', [\App\Http\Controllers\Admin\ClientController::class, 'deposit'])->name('clients.deposit');
+    Route::post('clients/{client}/pay-debt', [\App\Http\Controllers\Admin\ClientController::class, 'payDebt'])->name('clients.pay-debt');
+
+    // Invoices extra actions (Avoir & Receipt)
+    Route::post('invoices/{invoice}/credit-note', [\App\Http\Controllers\Admin\InvoiceController::class, 'createCreditNote'])->name('invoices.credit-note');
+    Route::get('invoices/{invoice}/receipt', [\App\Http\Controllers\Admin\InvoiceController::class, 'printReceipt'])->name('invoices.receipt');
+
+    // Administrative Reports
+    Route::get('reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/sales', [\App\Http\Controllers\Admin\ReportController::class, 'sales'])->name('reports.sales');
+    Route::get('reports/stocks', [\App\Http\Controllers\Admin\ReportController::class, 'stocks'])->name('reports.stocks');
+    Route::get('reports/profits', [\App\Http\Controllers\Admin\ReportController::class, 'profits'])->name('reports.profits');
+    Route::get('reports/suppliers', [\App\Http\Controllers\Admin\ReportController::class, 'suppliers'])->name('reports.suppliers');
+    Route::get('reports/sav', [\App\Http\Controllers\Admin\ReportController::class, 'sav'])->name('reports.sav');
+    Route::get('reports/export', [\App\Http\Controllers\Admin\ReportController::class, 'export'])->name('reports.export');
 });
 
 // Public views for shared docs

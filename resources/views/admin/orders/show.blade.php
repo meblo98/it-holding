@@ -73,6 +73,16 @@
                         </div>
                         <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
                             <dl class="sm:divide-y sm:divide-gray-200">
+                                @if($order->client)
+                                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 bg-gold-50">
+                                    <dt class="text-sm font-bold text-gold-800">Profil Client Associé</dt>
+                                    <dd class="mt-1 text-sm text-gold-900 sm:mt-0 sm:col-span-2 font-bold">
+                                        <a href="{{ route('admin.clients.show', $order->client_id) }}" class="underline hover:text-gold-700">
+                                            {{ $order->client->display_name }} ({{ $order->client->company_name ?? 'Individuel' }})
+                                        </a>
+                                    </dd>
+                                </div>
+                                @endif
                                 <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                                     <dt class="text-sm font-medium text-gray-500">Nom complet</dt>
                                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ $order->customer_name }}</dd>

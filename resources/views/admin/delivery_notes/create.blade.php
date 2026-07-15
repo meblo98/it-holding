@@ -40,6 +40,17 @@
             const p = this.getProduct(this.items[i].product_id);
             if (p) this.items[i].purchase_price = p.purchase_price ?? 0;
         },
+        onClientChange(event) {
+            const opt = event.target.options[event.target.selectedIndex];
+            if (opt.value) {
+                document.getElementById('client_id').value = opt.value;
+                document.getElementById('customer_name').value = opt.dataset.name || '';
+                document.getElementById('customer_phone').value = opt.dataset.phone || '';
+                document.getElementById('customer_address').value = opt.dataset.address || '';
+            } else {
+                document.getElementById('client_id').value = '';
+            }
+        },
         totalAmount() {
             return this.items.reduce((sum, item) => sum + (parseFloat(item.quantity)||0) * (parseFloat(item.purchase_price)||0), 0);
         }
@@ -137,25 +148,39 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                     Destinataire (Client)
                 </h2>
+                
+                <input type="hidden" name="client_id" id="client_id" value="{{ old('client_id', $prefilled['client_id'] ?? '') }}">
+                
                 @if($prefilled)
                     <input type="hidden" name="order_id" value="{{ $prefilled['order_id'] }}">
                     <input type="hidden" name="invoice_id" value="{{ $prefilled['invoice_id'] }}">
                 @endif
+
+                <div>
+                    <label for="select_client" class="admin-label">Sélectionner un Client Existant</label>
+                    <select id="select_client" @change="onClientChange($event)" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
+                        <option value="">-- Saisie manuelle / Autre --</option>
+                        @foreach($clients as $c)
+                            <option value="{{ $c->id }}" {{ (old('client_id', $prefilled['client_id'] ?? '') == $c->id) ? 'selected' : '' }} data-name="{{ $c->display_name }}" data-phone="{{ $c->phone }}" data-address="{{ $c->address }}">{{ $c->display_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="admin-label">Nom du client <span class="text-red-500">*</span></label>
-                        <input type="text" name="customer_name" value="{{ old('customer_name', $prefilled['customer_name'] ?? '') }}" required
+                        <input type="text" name="customer_name" id="customer_name" value="{{ old('customer_name', $prefilled['customer_name'] ?? '') }}" required
                                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
                     </div>
                     <div>
                         <label class="admin-label">Téléphone</label>
-                        <input type="text" name="customer_phone" value="{{ old('customer_phone', $prefilled['customer_phone'] ?? '') }}"
+                        <input type="text" name="customer_phone" id="customer_phone" value="{{ old('customer_phone', $prefilled['customer_phone'] ?? '') }}"
                                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
                     </div>
                 </div>
                 <div>
                     <label class="admin-label">Adresse de livraison</label>
-                    <input type="text" name="customer_address" value="{{ old('customer_address', $prefilled['customer_address'] ?? '') }}"
+                    <input type="text" name="customer_address" id="customer_address" value="{{ old('customer_address', $prefilled['customer_address'] ?? '') }}"
                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
                 </div>
             </div>

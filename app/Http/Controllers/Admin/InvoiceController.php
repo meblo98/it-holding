@@ -38,13 +38,16 @@ class InvoiceController extends Controller
             'type' => 'service'
         ]));
 
-        return view('admin.invoices.create', compact('nextNumber', 'catalog'));
+        $clients = \App\Models\Client::orderBy('company_name')->orderBy('last_name')->get();
+
+        return view('admin.invoices.create', compact('nextNumber', 'catalog', 'clients'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'number' => 'required|unique:invoices',
+            'client_id' => 'nullable|exists:clients,id',
             'client_name' => 'required',
             'client_email' => 'nullable|email',
             'client_phone' => 'nullable',
@@ -67,6 +70,7 @@ class InvoiceController extends Controller
 
         $invoice = Invoice::create([
             'number'         => $validated['number'],
+            'client_id'      => $validated['client_id'] ?? null,
             'client_name'    => $validated['client_name'],
             'client_email'   => $validated['client_email'] ?? null,
             'client_phone'   => $validated['client_phone'] ?? null,
@@ -143,13 +147,16 @@ class InvoiceController extends Controller
             'type' => 'service'
         ]));
 
-        return view('admin.invoices.edit', compact('invoice', 'catalog'));
+        $clients = \App\Models\Client::orderBy('company_name')->orderBy('last_name')->get();
+
+        return view('admin.invoices.edit', compact('invoice', 'catalog', 'clients'));
     }
 
     public function update(Request $request, Invoice $invoice)
     {
         $validated = $request->validate([
             'number' => 'required|unique:invoices,number,' . $invoice->id,
+            'client_id' => 'nullable|exists:clients,id',
             'client_name' => 'required',
             'client_email' => 'nullable|email',
             'client_phone' => 'nullable',
@@ -173,6 +180,7 @@ class InvoiceController extends Controller
 
         $invoice->update([
             'number'         => $validated['number'],
+            'client_id'      => $validated['client_id'] ?? null,
             'client_name'    => $validated['client_name'],
             'client_email'   => $validated['client_email'] ?? null,
             'client_phone'   => $validated['client_phone'] ?? null,
@@ -249,6 +257,69 @@ class InvoiceController extends Controller
         $invoice = Invoice::where('share_token', $token)->firstOrFail();
         $invoice->load('items');
         return view('admin.invoices.print', compact('invoice'));
+    }
+
+    public function printReceipt(Invoice $invoice)
+    {
+        $invoice->load('items');
+        return view('admin.invoices.receipt', compact('invoice'));
+    }
+
+    public function createCreditNote(Invoice $invoice)
+    {
+        if ($invoice->type === 'credit_note') {
+            return back()->with('error', 'Impossible de créer un avoir pour un avoir.');
+        }
+
+        if ($invoice->status === 'cancelled') {
+            return back()->with('error', 'Cette facture est déjà annulée.');
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($invoice) {
+            // Create Credit Note Invoice
+            $creditNoteNumber = 'AVO-' . date('Y') . '-' . str_pad(Invoice::where('type', 'credit_note')->count() + 1, 4, '0', STR_PAD_LEFT);
+            
+            $creditNote = Invoice::create([
+                'number' => $creditNoteNumber,
+                'type' => 'credit_note',
+                'parent_invoice_id' => $invoice->id,
+                'client_id' => $invoice->client_id,
+                'user_id' => auth()->id(),
+                'client_name' => $invoice->client_name,
+                'client_email' => $invoice->client_email,
+                'client_phone' => $invoice->client_phone,
+                'client_address' => $invoice->client_address,
+                'subtotal' => $invoice->subtotal,
+                'tax_amount' => $invoice->tax_amount,
+                'total_amount' => $invoice->total_amount,
+                'status' => 'paid',
+                'due_date' => now(),
+                'notes' => "Avoir généré pour la facture #" . $invoice->number,
+                'share_token' => Str::random(32),
+            ]);
+
+            // Copy items
+            foreach ($invoice->items as $item) {
+                $creditNote->items()->create([
+                    'product_id' => $item->product_id,
+                    'description' => $item->description,
+                    'quantity' => $item->quantity,
+                    'unit_price' => $item->unit_price,
+                    'total_price' => $item->total_price,
+                    'purchase_price' => $item->purchase_price ?? 0,
+                ]);
+            }
+
+            // Update original invoice status to cancelled
+            $invoice->update(['status' => 'cancelled']);
+
+            // Deduct from client's current balance if they have a balance
+            if ($invoice->client) {
+                $invoice->client->decrement('current_balance', $invoice->total_amount);
+            }
+        });
+
+        return redirect()->route('admin.invoices.show', $invoice->id)->with('success', 'Avoir créé avec succès. La facture originale a été annulée et le solde du client a été ajusté.');
     }
 
     /**

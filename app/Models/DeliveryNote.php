@@ -23,6 +23,7 @@ class DeliveryNote extends Model
         'customer_address',
         'order_id',
         'invoice_id',
+        'client_id',
     ];
 
     protected $casts = [
@@ -31,6 +32,7 @@ class DeliveryNote extends Model
         'supplier_id' => 'integer',
         'order_id' => 'integer',
         'invoice_id' => 'integer',
+        'client_id' => 'integer',
     ];
 
     public function items()
@@ -51,5 +53,10 @@ class DeliveryNote extends Model
     public function invoice()
     {
         return $this->belongsTo(Invoice::class);
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
     }
 }

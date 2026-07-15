@@ -31,13 +31,16 @@ class QuoteController extends Controller
         $catalog = $products->map(fn($p) => ['name' => $p->name, 'price' => $p->price, 'type' => 'product'])
             ->concat($services->map(fn($s) => ['name' => $s->title, 'price' => $s->price, 'type' => 'service']));
 
-        return view('admin.quotes.create', compact('nextNumber', 'catalog'));
+        $clients = \App\Models\Client::orderBy('company_name')->orderBy('last_name')->get();
+
+        return view('admin.quotes.create', compact('nextNumber', 'catalog', 'clients'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'number' => 'required|unique:quotes',
+            'client_id' => 'nullable|exists:clients,id',
             'client_name' => 'required',
             'client_email' => 'nullable|email',
             'client_phone' => 'nullable',
@@ -57,6 +60,7 @@ class QuoteController extends Controller
 
         $quote = Quote::create([
             'number'        => $validated['number'],
+            'client_id'     => $validated['client_id'] ?? null,
             'client_name'   => $validated['client_name'],
             'client_email'  => $validated['client_email'] ?? null,
             'client_phone'  => $validated['client_phone'] ?? null,
@@ -101,13 +105,16 @@ class QuoteController extends Controller
         $catalog = $products->map(fn($p) => ['name' => $p->name, 'price' => $p->price, 'type' => 'product'])
             ->concat($services->map(fn($s) => ['name' => $s->title, 'price' => $s->price, 'type' => 'service']));
 
-        return view('admin.quotes.edit', compact('quote', 'catalog'));
+        $clients = \App\Models\Client::orderBy('company_name')->orderBy('last_name')->get();
+
+        return view('admin.quotes.edit', compact('quote', 'catalog', 'clients'));
     }
 
     public function update(Request $request, Quote $quote)
     {
         $validated = $request->validate([
             'number' => 'required|unique:quotes,number,' . $quote->id,
+            'client_id' => 'nullable|exists:clients,id',
             'client_name' => 'required',
             'client_email' => 'nullable|email',
             'client_phone' => 'nullable',
@@ -128,6 +135,7 @@ class QuoteController extends Controller
 
         $quote->update([
             'number'         => $validated['number'],
+            'client_id'      => $validated['client_id'] ?? null,
             'client_name'    => $validated['client_name'],
             'client_email'   => $validated['client_email'] ?? null,
             'client_phone'   => $validated['client_phone'] ?? null,
@@ -190,6 +198,7 @@ class QuoteController extends Controller
             $invoice = Invoice::create([
                 'number'         => $nextNumber,
                 'quote_id'       => $quote->id,
+                'client_id'      => $quote->client_id,
                 'client_name'    => $quote->client_name,
                 'client_email'   => $quote->client_email,
                 'client_phone'   => $quote->client_phone,

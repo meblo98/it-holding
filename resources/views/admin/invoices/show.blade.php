@@ -20,6 +20,19 @@
         <a href="{{ route('admin.invoices.edit', $invoice->id) }}" class="inline-flex items-center px-4 py-2 bg-gold-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gold-700 active:bg-gold-900 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 transition ease-in-out duration-150">
             Modifier
         </a>
+        <a href="{{ route('admin.invoices.receipt', $invoice->id) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-slate-700 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-slate-800 transition">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            Ticket
+        </a>
+        @if($invoice->type !== 'credit_note' && $invoice->status !== 'cancelled')
+        <form action="{{ route('admin.invoices.credit-note', $invoice->id) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir générer un avoir pour cette facture et ajuster le solde client ?')" class="inline">
+            @csrf
+            <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 transition">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Créer Avoir
+            </button>
+        </form>
+        @endif
     </div>
 </div>
 

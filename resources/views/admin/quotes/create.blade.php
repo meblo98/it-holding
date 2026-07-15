@@ -32,26 +32,50 @@
             }
         }
     },
+    onClientChange(event) {
+        const opt = event.target.options[event.target.selectedIndex];
+        if (opt.value) {
+            this.$refs.clientId.value = opt.value;
+            this.$refs.clientName.value = opt.dataset.name || '';
+            this.$refs.clientEmail.value = opt.dataset.email || '';
+            this.$refs.clientPhone.value = opt.dataset.phone || '';
+            this.$refs.clientAddress.value = opt.dataset.address || '';
+        } else {
+            this.$refs.clientId.value = '';
+        }
+    },
     get grandTotal() { return this.items.reduce((sum, item) => sum + (parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0)), 0); }
 }">
     @csrf
+    <input type="hidden" name="client_id" x-ref="clientId" value="{{ old('client_id') }}">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Main Form -->
         <div class="lg:col-span-2 space-y-6">
             <div class="bg-white shadow-sm rounded-lg p-6">
                 <h2 class="text-xl font-bold mb-4 text-navy-600 border-b pb-2">Informations Client</h2>
+                
+                <div class="mb-4">
+                    <label for="select_client" class="block text-sm font-medium text-gray-700">Sélectionner un Client Existant</label>
+                    <select id="select_client" @change="onClientChange($event)" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
+                        <option value="">-- Saisie manuelle --</option>
+                        @foreach($clients as $c)
+                            <option value="{{ $c->id }}" data-name="{{ $c->display_name }}" data-email="{{ $c->email }}" data-phone="{{ $c->phone }}" data-address="{{ $c->address }}">{{ $c->display_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="client_name" class="block text-sm font-medium text-gray-700">Nom du Client / Entreprise *</label>
-                        <input type="text" name="client_name" id="client_name" required value="{{ old('client_name') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
+                        <input type="text" name="client_name" id="client_name" x-ref="clientName" required value="{{ old('client_name') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
                     </div>
                     <div>
                         <label for="client_email" class="block text-sm font-medium text-gray-700">Email</label>
-                        <input type="email" name="client_email" id="client_email" value="{{ old('client_email') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
+                        <input type="email" name="client_email" id="client_email" x-ref="clientEmail" value="{{ old('client_email') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
                     </div>
                     <div>
                         <label for="client_phone" class="block text-sm font-medium text-gray-700">Téléphone</label>
-                        <input type="text" name="client_phone" id="client_phone" value="{{ old('client_phone') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
+                        <input type="text" name="client_phone" id="client_phone" x-ref="clientPhone" value="{{ old('client_phone') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
                     </div>
                     <div>
                         <label for="valid_until" class="block text-sm font-medium text-gray-700">Valide jusqu'au</label>
@@ -59,7 +83,7 @@
                     </div>
                     <div class="md:col-span-2">
                         <label for="client_address" class="block text-sm font-medium text-gray-700">Adresse</label>
-                        <textarea name="client_address" id="client_address" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">{{ old('client_address') }}</textarea>
+                        <textarea name="client_address" id="client_address" x-ref="clientAddress" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">{{ old('client_address') }}</textarea>
                     </div>
                 </div>
             </div>

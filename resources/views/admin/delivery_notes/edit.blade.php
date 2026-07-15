@@ -37,6 +37,17 @@
             const p = this.products.find(p => p.id == this.items[i].product_id);
             if (p) this.items[i].purchase_price = p.purchase_price ?? 0;
         },
+        onClientChange(event) {
+            const opt = event.target.options[event.target.selectedIndex];
+            if (opt.value) {
+                document.getElementById('client_id').value = opt.value;
+                document.getElementById('customer_name').value = opt.dataset.name || '';
+                document.getElementById('customer_phone').value = opt.dataset.phone || '';
+                document.getElementById('customer_address').value = opt.dataset.address || '';
+            } else {
+                document.getElementById('client_id').value = '';
+            }
+        },
         totalAmount() {
             return this.items.reduce((sum, item) => sum + (parseFloat(item.quantity)||0) * (parseFloat(item.purchase_price)||0), 0);
         }
@@ -114,21 +125,34 @@
             @if($deliveryNote->type === 'envoi')
             <div class="bg-white rounded-lg shadow-sm border border-blue-100 p-6 space-y-4">
                 <h2 class="text-sm font-bold text-blue-700 uppercase tracking-wider">Destinataire (Client)</h2>
+                
+                <input type="hidden" name="client_id" id="client_id" value="{{ old('client_id', $deliveryNote->client_id) }}">
+
+                <div>
+                    <label for="select_client" class="admin-label">Sélectionner un Client Existant</label>
+                    <select id="select_client" @change="onClientChange($event)" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
+                        <option value="">-- Conserver tel quel / Saisie manuelle --</option>
+                        @foreach($clients as $c)
+                            <option value="{{ $c->id }}" {{ old('client_id', $deliveryNote->client_id) == $c->id ? 'selected' : '' }} data-name="{{ $c->display_name }}" data-phone="{{ $c->phone }}" data-address="{{ $c->address }}">{{ $c->display_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="admin-label">Nom du client</label>
-                        <input type="text" name="customer_name" value="{{ old('customer_name', $deliveryNote->customer_name) }}"
+                        <input type="text" name="customer_name" id="customer_name" value="{{ old('customer_name', $deliveryNote->customer_name) }}"
                                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
                     </div>
                     <div>
                         <label class="admin-label">Téléphone</label>
-                        <input type="text" name="customer_phone" value="{{ old('customer_phone', $deliveryNote->customer_phone) }}"
+                        <input type="text" name="customer_phone" id="customer_phone" value="{{ old('customer_phone', $deliveryNote->customer_phone) }}"
                                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
                     </div>
                 </div>
                 <div>
                     <label class="admin-label">Adresse</label>
-                    <input type="text" name="customer_address" value="{{ old('customer_address', $deliveryNote->customer_address) }}"
+                    <input type="text" name="customer_address" id="customer_address" value="{{ old('customer_address', $deliveryNote->customer_address) }}"
                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
                 </div>
             </div>

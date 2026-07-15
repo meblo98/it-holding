@@ -19,7 +19,7 @@ class DeliveryNoteController extends Controller
         $type = $request->input('type', 'all'); // 'all', 'envoi', 'reception'
         $status = $request->input('status');
 
-        $deliveryNotes = DeliveryNote::with(['supplier', 'order', 'invoice'])
+        $deliveryNotes = DeliveryNote::with(['supplier', 'order', 'invoice', 'client'])
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('number', 'like', "%{$search}%")
@@ -44,6 +44,7 @@ class DeliveryNoteController extends Controller
         $nextNumber = 'BL-' . date('Y') . '-' . str_pad(DeliveryNote::count() + 1, 4, '0', STR_PAD_LEFT);
         $products = Product::where('active', true)->get(['id', 'name', 'price', 'purchase_price']);
         $suppliers = \App\Models\Supplier::orderBy('name')->get();
+        $clients = \App\Models\Client::orderBy('company_name')->orderBy('last_name')->get();
 
         $prefilled = null;
 
@@ -52,6 +53,7 @@ class DeliveryNoteController extends Controller
             if ($order) {
                 $prefilled = [
                     'type' => 'envoi',
+                    'client_id' => $order->client_id,
                     'customer_name' => $order->customer_name,
                     'customer_phone' => $order->customer_phone,
                     'customer_address' => $order->customer_address,
@@ -71,9 +73,10 @@ class DeliveryNoteController extends Controller
             if ($invoice) {
                 $prefilled = [
                     'type' => 'envoi',
-                    'customer_name' => $invoice->customer_name,
-                    'customer_phone' => $invoice->customer_phone,
-                    'customer_address' => $invoice->customer_address,
+                    'client_id' => $invoice->client_id,
+                    'customer_name' => $invoice->client_name,
+                    'customer_phone' => $invoice->client_phone,
+                    'customer_address' => $invoice->client_address,
                     'order_id' => null,
                     'invoice_id' => $invoice->id,
                     'items' => $invoice->items->map(function ($item) {
@@ -87,7 +90,7 @@ class DeliveryNoteController extends Controller
             }
         }
 
-        return view('admin.delivery_notes.create', compact('nextNumber', 'products', 'suppliers', 'prefilled'));
+        return view('admin.delivery_notes.create', compact('nextNumber', 'products', 'suppliers', 'clients', 'prefilled'));
     }
 
     public function store(Request $request)
@@ -104,6 +107,7 @@ class DeliveryNoteController extends Controller
             'supplier_name'     => 'nullable|string|max:255',
             
             // Conditional Customer validation
+            'client_id'         => 'nullable|exists:clients,id',
             'customer_name'     => 'required_if:type,envoi|nullable|string|max:255',
             'customer_phone'    => 'nullable|string|max:50',
             'customer_address'  => 'nullable|string|max:1000',
@@ -140,6 +144,7 @@ class DeliveryNoteController extends Controller
                 'notes'             => $validated['notes'] ?? null,
                 'supplier_id'       => $supplierId,
                 'supplier_name'     => $supplierName,
+                'client_id'         => $validated['client_id'] ?? null,
                 'customer_name'     => $validated['customer_name'] ?? null,
                 'customer_phone'    => $validated['customer_phone'] ?? null,
                 'customer_address'  => $validated['customer_address'] ?? null,
@@ -198,8 +203,9 @@ class DeliveryNoteController extends Controller
         $deliveryNote->load('items.product');
         $products = Product::where('active', true)->get(['id', 'name', 'price', 'purchase_price']);
         $suppliers = \App\Models\Supplier::orderBy('name')->get();
+        $clients = \App\Models\Client::orderBy('company_name')->orderBy('last_name')->get();
 
-        return view('admin.delivery_notes.edit', compact('deliveryNote', 'products', 'suppliers'));
+        return view('admin.delivery_notes.edit', compact('deliveryNote', 'products', 'suppliers', 'clients'));
     }
 
     public function update(Request $request, DeliveryNote $deliveryNote)
@@ -214,6 +220,7 @@ class DeliveryNoteController extends Controller
             'supplier_name'     => 'nullable|string|max:255',
             
             // Conditional Customer validation
+            'client_id'         => 'nullable|exists:clients,id',
             'customer_name'     => 'required_if:type,envoi|nullable|string|max:255',
             'customer_phone'    => 'nullable|string|max:50',
             'customer_address'  => 'nullable|string|max:1000',
@@ -248,6 +255,7 @@ class DeliveryNoteController extends Controller
                 'notes'             => $validated['notes'] ?? null,
                 'supplier_id'       => $supplierId,
                 'supplier_name'     => $supplierName,
+                'client_id'         => $validated['client_id'] ?? null,
                 'customer_name'     => $validated['customer_name'] ?? null,
                 'customer_phone'    => $validated['customer_phone'] ?? null,
                 'customer_address'  => $validated['customer_address'] ?? null,

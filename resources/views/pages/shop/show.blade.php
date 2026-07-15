@@ -100,9 +100,26 @@
                     </div>
                 </div>
 
+            <!-- Bespoke Configurator Wrapper -->
+            <div x-data="{ 
+                basePrice: {{ $product->promo_price ?: $product->price }},
+                optionsPrices: {},
+                get totalPrice() {
+                    let sum = this.basePrice;
+                    for (let key in this.optionsPrices) {
+                        sum += parseFloat(this.optionsPrices[key] || 0);
+                    }
+                    return sum;
+                },
+                updateOption(name, price) {
+                    this.optionsPrices[name] = price;
+                }
+            }">
                 <!-- Price -->
                 <div class="flex items-center gap-4 mb-10">
-                    <span class="text-3xl font-black text-gold-500">{{ number_format($product->promo_price ?: $product->price, 0, ',', ' ') }} <span class="text-sm font-bold">CFA</span></span>
+                    <span class="text-3xl font-black text-gold-500">
+                        <span x-text="totalPrice.toLocaleString('fr-FR')"></span> <span class="text-sm font-bold">CFA</span>
+                    </span>
                     @if($product->promo_price && $product->promo_price < $product->price)
                         <span class="text-xl text-gray-300 line-through">{{ number_format($product->price, 0, ',', ' ') }} CFA</span>
                         @php
@@ -112,68 +129,80 @@
                     @endif
                 </div>
 
-                <!-- Variants (Mock) -->
-                @if($product->category && in_array(strtolower($product->category->name), ['ordinateur', 'ordinateur portable', 'pc', 'laptop', 'macbook']))
-                <div class="grid grid-cols-2 gap-6 mb-10">
-                    <div class="space-y-3">
-                        <label class="text-sm font-bold text-navy-900 uppercase tracking-tighter italic">Mémoire Vive (RAM)</label>
-                        <select class="w-full border-gray-200 rounded-lg text-sm focus:ring-gold-500 focus:border-gold-500">
-                            <option>8GB unified memory</option>
-                            <option>16GB unified memory</option>
-                            <option>32GB unified memory</option>
-                        </select>
-                    </div>
-                    <div class="space-y-3">
-                        <label class="text-sm font-bold text-navy-900 uppercase tracking-tighter italic">Stockage (SSD)</label>
-                        <select class="w-full border-gray-200 rounded-lg text-sm focus:ring-gold-500 focus:border-gold-500">
-                            <option>256GB SSD Storage</option>
-                            <option>512GB SSD Storage</option>
-                            <option>1TB SSD Storage</option>
-                        </select>
-                    </div>
-                </div>
-                @endif
-
-                <!-- Wholesale Pricing Offer Card -->
-                @if($product->wholesale_qty && $product->wholesale_qty >= 2 && $product->wholesale_discount_rate > 0)
-                <div class="mb-8 p-4 rounded-xl border border-gold-200 bg-gold-50/30 flex items-start gap-3">
-                    <div class="p-2 rounded-lg bg-gold-100 text-gold-600 flex-shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <div class="space-y-1">
-                        <span class="text-xs font-bold text-gold-600 uppercase tracking-widest block">Offre de Gros</span>
-                        <p class="text-xs text-navy-950 font-medium">
-                            Commandez au moins <span class="font-black text-navy-900">{{ $product->wholesale_qty }} unités</span> et bénéficiez de <span class="font-black text-gold-600">-{{ number_format($product->wholesale_discount_rate, 0) }}%</span> de réduction unitaire !
-                        </p>
-                        @if($product->wholesale_discount_limit && $product->wholesale_discount_limit > 0)
-                            <span class="text-[10px] text-gray-500 block italic">
-                                * Réduction plafonnée à {{ number_format($product->wholesale_discount_limit, 0, ',', ' ') }} FCFA par article.
-                            </span>
-                        @endif
-                    </div>
-                </div>
-                @endif
-
-                <!-- Add to Cart -->
+                <!-- Actions Form (Add to Cart / Devis) -->
                 <form action="{{ route('shop.addToCart', $product->id) }}" method="POST" class="space-y-6">
                     @csrf
-                    <div class="flex items-center gap-4">
-                        <div x-data="{ qty: 1 }" class="flex items-center border-2 border-gray-100 rounded-lg p-1 bg-gray-50">
-                            <button type="button" @click="if(qty > 1) qty--" class="w-10 h-10 flex items-center justify-center text-navy-900 hover:bg-white rounded transition-colors">-</button>
-                            <input type="number" name="quantity" x-model="qty" class="w-12 text-center border-none bg-transparent font-bold focus:ring-0 text-navy-900" min="1" max="{{ $product->stock }}">
-                            <button type="button" @click="if(qty < {{ $product->stock }}) qty++" class="w-10 h-10 flex items-center justify-center text-navy-900 hover:bg-white rounded transition-colors">+</button>
+
+                    <!-- Real Product Options -->
+                    @if($product->options->count() > 0)
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
+                        @foreach($product->options->groupBy('name') as $optName => $opts)
+                        <div class="space-y-3">
+                            <label class="text-sm font-bold text-navy-900 uppercase tracking-tighter italic">{{ $optName }}</label>
+                            <select name="options[{{ $optName }}]" 
+                                @change="updateOption('{{ $optName }}', parseFloat($event.target.options[$event.target.selectedIndex].dataset.price || 0))"
+                                class="w-full border-gray-200 rounded-lg text-sm focus:ring-gold-500 focus:border-gold-500">
+                                <option value="" data-price="0">-- Choisir --</option>
+                                @foreach($opts as $opt)
+                                <option value="{{ $opt->id }}" data-price="{{ $opt->price }}">{{ $opt->value }} (+{{ number_format($opt->price, 0, ',', ' ') }} F)</option>
+                                @endforeach
+                            </select>
                         </div>
-                        <button type="submit" class="flex-grow btn-primary-gold h-12 uppercase tracking-widest text-xs flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed" {{ $product->stock <= 0 ? 'disabled' : '' }}>
-                            Ajouter au Panier
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        @endforeach
+                    </div>
+                    @endif
+
+                    <!-- Wholesale Pricing Offer Card -->
+                    @if($product->wholesale_qty && $product->wholesale_qty >= 2 && $product->wholesale_discount_rate > 0)
+                    <div class="mb-8 p-4 rounded-xl border border-gold-200 bg-gold-50/30 flex items-start gap-3">
+                        <div class="p-2 rounded-lg bg-gold-100 text-gold-600 flex-shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-xs font-bold text-gold-600 uppercase tracking-widest block">Offre de Gros</span>
+                            <p class="text-xs text-navy-950 font-medium">
+                                Commandez au moins <span class="font-black text-navy-900">{{ $product->wholesale_qty }} unités</span> et bénéficiez de <span class="font-black text-gold-600">-{{ number_format($product->wholesale_discount_rate, 0) }}%</span> de réduction unitaire !
+                            </p>
+                            @if($product->wholesale_discount_limit && $product->wholesale_discount_limit > 0)
+                                <span class="text-[10px] text-gray-500 block italic">
+                                    * Réduction plafonnée à {{ number_format($product->wholesale_discount_limit, 0, ',', ' ') }} FCFA par article.
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+
+                    <div class="flex flex-col gap-4">
+                        <div class="flex items-center gap-4">
+                            <div x-data="{ qty: 1 }" class="flex items-center border-2 border-gray-100 rounded-lg p-1 bg-gray-50">
+                                <button type="button" @click="if(qty > 1) qty--" class="w-10 h-10 flex items-center justify-center text-navy-900 hover:bg-white rounded transition-colors">-</button>
+                                <input type="number" name="quantity" x-model="qty" class="w-12 text-center border-none bg-transparent font-bold focus:ring-0 text-navy-900" min="1" max="{{ $product->stock }}">
+                                <button type="button" @click="if(qty < {{ $product->stock }}) qty++" class="w-10 h-10 flex items-center justify-center text-navy-900 hover:bg-white rounded transition-colors">+</button>
+                            </div>
+                            <button type="submit" class="flex-grow btn-primary-gold h-12 uppercase tracking-widest text-xs flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed" {{ $product->stock <= 0 ? 'disabled' : '' }}>
+                                Ajouter au Panier
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- hidden product_id for quote request -->
+                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                        
+                        @auth
+                        <button type="submit" formaction="{{ route('shop.requestQuote') }}" class="w-full border-2 border-navy-900 text-navy-900 hover:bg-navy-900 hover:text-white h-12 uppercase tracking-widest text-xs font-bold transition-all rounded-lg flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            Demander un Devis Personnalisé
                         </button>
-                        <button type="button" class="w-12 h-12 border-2 border-gray-100 rounded-lg flex items-center justify-center text-navy-900 hover:border-gold-400 transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                        </button>
+                        @else
+                        <a href="{{ route('login') }}" class="w-full border-2 border-dashed border-gray-300 text-gray-500 hover:border-navy-900 hover:text-navy-900 h-12 uppercase tracking-widest text-xs font-bold transition-all rounded-lg flex items-center justify-center gap-2">
+                            Se connecter pour Devis Personnalisé
+                        </a>
+                        @endauth
                     </div>
                 </form>
+            </div>
 
                 <!-- Features Badges -->
                 <div class="mt-auto pt-8 border-t border-gray-50 flex items-center gap-6">

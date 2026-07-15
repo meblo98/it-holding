@@ -129,7 +129,16 @@
                 {{ $deliveryNote->type === 'envoi' ? 'Destinataire (Client)' : 'Fournisseur' }}
             </p>
             @if($deliveryNote->type === 'envoi')
-                <p class="font-bold text-gray-900">{{ $deliveryNote->customer_name ?? '—' }}</p>
+                @if($deliveryNote->client)
+                    <p class="font-bold text-navy-700 hover:underline no-print">
+                        <a href="{{ route('admin.clients.show', $deliveryNote->client_id) }}">
+                            {{ $deliveryNote->customer_name }}
+                        </a>
+                    </p>
+                    <p class="font-bold text-gray-900 hidden print:block">{{ $deliveryNote->customer_name }}</p>
+                @else
+                    <p class="font-bold text-gray-900">{{ $deliveryNote->customer_name ?? '—' }}</p>
+                @endif
                 @if($deliveryNote->customer_phone)
                     <p class="text-sm text-gray-500">{{ $deliveryNote->customer_phone }}</p>
                 @endif

@@ -10,8 +10,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\ProductOption;
+use App\Models\Quote;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ShopController extends Controller
 {
@@ -75,10 +78,16 @@ class ShopController extends Controller
         $cart = Session::get('cart', []);
         $total = 0;
         foreach ($cart as $id => $details) {
-            $product = Product::find($id);
+            $productId = $details['product_id'] ?? $id;
+            $product = Product::find($productId);
             if ($product) {
-                $effectivePrice = Product::calculateWholesalePrice($product, $details['quantity']);
-                $cart[$id]['price'] = $effectivePrice;
+                $optionSum = 0;
+                if (!empty($details['options'])) {
+                    foreach ($details['options'] as $opt) {
+                        $optionSum += $opt['price'];
+                    }
+                }
+                $cart[$id]['price'] = Product::calculateWholesalePrice($product, $details['quantity']) + $optionSum;
             }
             $total += $cart[$id]['price'] * $cart[$id]['quantity'];
         }
@@ -98,25 +107,51 @@ class ShopController extends Controller
 
         $cart = Session::get('cart', []);
 
-        if (isset($cart[$id])) {
-            $newQuantity = $cart[$id]['quantity'] + $quantity;
+        $selectedOptions = $request->input('options', []);
+        $selectedOptions = array_filter($selectedOptions);
+
+        $optionsDetails = [];
+        $optionSum = 0;
+        $optionIds = [];
+        if (!empty($selectedOptions)) {
+            foreach ($selectedOptions as $optId) {
+                $opt = ProductOption::find($optId);
+                if ($opt && $opt->product_id == $product->id) {
+                    $optionsDetails[] = [
+                        'id' => $opt->id,
+                        'name' => $opt->name,
+                        'value' => $opt->value,
+                        'price' => (float)$opt->price
+                    ];
+                    $optionSum += (float)$opt->price;
+                    $optionIds[] = $opt->id;
+                }
+            }
+        }
+        sort($optionIds);
+        $cartKey = empty($optionIds) ? (string)$id : $id . '-' . implode('-', $optionIds);
+
+        if (isset($cart[$cartKey])) {
+            $newQuantity = $cart[$cartKey]['quantity'] + $quantity;
             if ($newQuantity > $product->stock) {
                 return redirect()->back()->with('error', 'Stock insuffisant. Seulement ' . $product->stock . ' disponible(s).');
             }
-            $cart[$id]['quantity'] = $newQuantity;
+            $cart[$cartKey]['quantity'] = $newQuantity;
             
             // Recalculate price dynamically based on new quantity
-            $cart[$id]['price'] = Product::calculateWholesalePrice($product, $newQuantity);
+            $cart[$cartKey]['price'] = Product::calculateWholesalePrice($product, $newQuantity) + $optionSum;
         } else {
             // determine effective price dynamically based on initial quantity
-            $effectivePrice = Product::calculateWholesalePrice($product, $quantity);
+            $effectivePrice = Product::calculateWholesalePrice($product, $quantity) + $optionSum;
 
-            $cart[$id] = [
+            $cart[$cartKey] = [
+                "product_id" => $product->id,
                 "name" => $product->name,
                 "quantity" => $quantity,
                 "price" => $effectivePrice,
                 "image" => $product->image,
-                "slug" => $product->slug
+                "slug" => $product->slug,
+                "options" => $optionsDetails
             ];
         }
 
@@ -131,7 +166,8 @@ class ShopController extends Controller
         $quantity = $request->input('quantity', 1);
 
         if (isset($cart[$id])) {
-            $product = Product::findOrFail($id);
+            $productId = $cart[$id]['product_id'] ?? $id;
+            $product = Product::findOrFail($productId);
 
             if ($quantity > $product->stock) {
                 return response()->json([
@@ -144,8 +180,14 @@ class ShopController extends Controller
                 unset($cart[$id]);
             } else {
                 $cart[$id]['quantity'] = $quantity;
-                // Recalculate price dynamically based on new quantity
-                $cart[$id]['price'] = Product::calculateWholesalePrice($product, $quantity);
+                
+                $optionSum = 0;
+                if (!empty($cart[$id]['options'])) {
+                    foreach ($cart[$id]['options'] as $opt) {
+                        $optionSum += (float)$opt['price'];
+                    }
+                }
+                $cart[$id]['price'] = Product::calculateWholesalePrice($product, $quantity) + $optionSum;
             }
 
             Session::put('cart', $cart);
@@ -187,14 +229,22 @@ class ShopController extends Controller
         }
         $total = 0;
         foreach ($cart as $id => $details) {
-            $product = Product::find($id);
+            $productId = $details['product_id'] ?? $id;
+            $product = Product::find($productId);
             if ($product) {
-                $cart[$id]['price'] = Product::calculateWholesalePrice($product, $details['quantity']);
+                $optionSum = 0;
+                if (!empty($details['options'])) {
+                    foreach ($details['options'] as $opt) {
+                        $optionSum += $opt['price'];
+                    }
+                }
+                $cart[$id]['price'] = Product::calculateWholesalePrice($product, $details['quantity']) + $optionSum;
             }
             $total += $cart[$id]['price'] * $cart[$id]['quantity'];
         }
+        $client = Auth::check() ? \App\Models\Client::where('user_id', Auth::id())->first() : null;
         Session::put('cart', $cart);
-        return view('pages.shop.checkout', compact('cart', 'total'));
+        return view('pages.shop.checkout', compact('cart', 'total', 'client'));
     }
 
     /**
@@ -222,11 +272,40 @@ class ShopController extends Controller
         // calculate total with dynamic wholesale pricing recalculation
         $total = 0;
         foreach ($cart as $id => $details) {
-            $product = Product::find($id);
+            $productId = $details['product_id'] ?? $id;
+            $product = Product::find($productId);
             if ($product) {
-                $cart[$id]['price'] = Product::calculateWholesalePrice($product, $details['quantity']);
+                $optionSum = 0;
+                if (!empty($details['options'])) {
+                    foreach ($details['options'] as $opt) {
+                        $optionSum += $opt['price'];
+                    }
+                }
+                $cart[$id]['price'] = Product::calculateWholesalePrice($product, $details['quantity']) + $optionSum;
             }
             $total += $cart[$id]['price'] * $cart[$id]['quantity'];
+        }
+
+        $client = Auth::check() ? \App\Models\Client::where('user_id', Auth::id())->first() : null;
+
+        // Check wallet balance if wallet payment chosen
+        if ($validated['payment_method'] === 'wallet') {
+            if (!$client) {
+                return redirect()->back()->with('error', 'Vous devez être enregistré comme client pour payer avec le portefeuille.');
+            }
+            if ($client->wallet_balance < $total) {
+                return redirect()->back()->with('error', 'Solde du portefeuille insuffisant. Solde : ' . number_format($client->wallet_balance, 0) . ' FCFA.');
+            }
+        }
+
+        // Check credit limit if credit payment chosen
+        if ($validated['payment_method'] === 'credit') {
+            if (!$client || !$client->is_professional) {
+                return redirect()->back()->with('error', 'Seuls les clients professionnels enregistrés peuvent commander à crédit.');
+            }
+            if (($client->current_balance + $total) > $client->credit_limit) {
+                return redirect()->back()->with('error', 'Plafond de crédit dépassé. Solde dû + Commande : ' . number_format($client->current_balance + $total, 0) . ' / ' . number_format($client->credit_limit, 0) . ' FCFA.');
+            }
         }
 
         // create order within transaction
@@ -234,33 +313,61 @@ class ShopController extends Controller
         try {
             $fullAddress = $validated['address'] . ', ' . $validated['city'] . ' ' . $validated['zip'] . ', ' . $validated['country'];
             
+            $paymentStatus = 'unpaid';
+            if ($validated['payment_method'] === 'wallet') {
+                $paymentStatus = 'paid';
+                $client->decrement('wallet_balance', $total);
+            } elseif ($validated['payment_method'] === 'credit') {
+                $client->increment('current_balance', $total);
+            }
+
             $order = Order::create([
                 'user_id' => Auth::id(),
+                'client_id' => $client ? $client->id : null,
                 'customer_name' => $validated['first_name'] . ' ' . $validated['last_name'],
                 'customer_email' => $validated['email'],
                 'customer_phone' => $validated['phone'] ?? null,
                 'customer_address' => $fullAddress,
                 'total_amount' => $total,
                 'status' => 'pending',
-                'payment_status' => 'unpaid',
+                'payment_status' => $paymentStatus,
                 'payment_method' => $validated['payment_method'],
             ]);
 
+            if ($validated['payment_method'] === 'wallet') {
+                \App\Models\WalletTransaction::create([
+                    'client_id' => $client->id,
+                    'type' => 'payment',
+                    'amount' => $total,
+                    'description' => "Paiement de la commande #" . $order->id,
+                    'transaction_date' => now(),
+                    'order_id' => $order->id,
+                ]);
+            }
+
             foreach ($cart as $id => $details) {
-                $product = Product::findOrFail($id);
+                $productId = $details['product_id'] ?? $id;
+                $product = Product::findOrFail($productId);
 
                 // prevent ordering more than stock
                 $quantity = min($details['quantity'], $product->stock);
 
                 // Calculate final dynamic unit price to save
-                $finalItemPrice = Product::calculateWholesalePrice($product, $quantity);
+                $optionSum = 0;
+                if (!empty($details['options'])) {
+                    foreach ($details['options'] as $opt) {
+                        $optionSum += $opt['price'];
+                    }
+                }
+                $finalItemPrice = Product::calculateWholesalePrice($product, $quantity) + $optionSum;
 
                 OrderItem::create([
                     'order_id' => $order->id,
-                    'product_id' => $id,
+                    'product_id' => $productId,
                     'quantity' => $quantity,
                     'price' => $finalItemPrice,
                     'purchase_price' => $product->purchase_price ?? 0.00,
+                    'options' => !empty($details['options']) ? $details['options'] : null,
                 ]);
 
                 // reduce stock
@@ -281,10 +388,19 @@ class ShopController extends Controller
             // clear cart
             Session::forget('cart');
 
-            return redirect()->route('shop.thanks', $order->id)->with('success', 'Commande passée. Paiement à la livraison.');
+            $successMsg = 'Commande passée.';
+            if ($validated['payment_method'] === 'wallet') {
+                $successMsg .= ' Payée via votre portefeuille.';
+            } elseif ($validated['payment_method'] === 'credit') {
+                $successMsg .= ' Facturée à terme sur votre crédit professionnel.';
+            } else {
+                $successMsg .= ' Paiement à la livraison.';
+            }
+
+            return redirect()->route('shop.thanks', $order->id)->with('success', $successMsg);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur création commande', [
+            Log::error('Erreur création commande', [
                 'message' => $e->getMessage(),
                 'user_id' => Auth::id(),
                 'cart'    => $cart,
@@ -300,5 +416,104 @@ class ShopController extends Controller
     {
         $order->load('items.product');
         return view('pages.shop.thanks', compact('order'));
+    }
+
+    public function requestQuote(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+            'options' => 'nullable|array',
+        ]);
+
+        $product = Product::findOrFail($validated['product_id']);
+        $quantity = $validated['quantity'];
+
+        $selectedOptions = $request->input('options', []);
+        $selectedOptions = array_filter($selectedOptions);
+
+        $optionSum = 0;
+        $optStrings = [];
+        $optionsDetails = [];
+        if (!empty($selectedOptions)) {
+            foreach ($selectedOptions as $optId) {
+                $opt = ProductOption::find($optId);
+                if ($opt && $opt->product_id == $product->id) {
+                    $optionSum += (float)$opt->price;
+                    $optStrings[] = $opt->name . ': ' . $opt->value;
+                    $optionsDetails[] = [
+                        'id' => $opt->id,
+                        'name' => $opt->name,
+                        'value' => $opt->value,
+                        'price' => (float)$opt->price
+                    ];
+                }
+            }
+        }
+
+        $unitPrice = Product::calculateWholesalePrice($product, $quantity) + $optionSum;
+        $totalPrice = $unitPrice * $quantity;
+
+        // Get or create client profile
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Veuillez vous connecter pour demander un devis.');
+        }
+
+        $client = \App\Models\Client::where('user_id', $user->id)->first();
+        if (!$client) {
+            $names = explode(' ', $user->name, 2);
+            $client = \App\Models\Client::create([
+                'user_id' => $user->id,
+                'first_name' => $names[0] ?? 'Client',
+                'last_name' => $names[1] ?? 'Client',
+                'email' => $user->email,
+                'phone' => $user->phone ?? '770000000',
+                'wallet_balance' => 0,
+                'current_balance' => 0,
+            ]);
+        }
+
+        // Create Quote
+        $nextNumber = 'DEV-' . date('Y') . '-' . str_pad(\App\Models\Quote::count() + 1, 4, '0', STR_PAD_LEFT);
+        
+        $description = $product->name;
+        if (!empty($optStrings)) {
+            $description .= ' (' . implode(', ', $optStrings) . ')';
+        }
+
+        DB::beginTransaction();
+        try {
+            $quote = \App\Models\Quote::create([
+                'number' => $nextNumber,
+                'client_id' => $client->id,
+                'client_name' => $client->first_name . ' ' . $client->last_name,
+                'client_email' => $client->email,
+                'client_phone' => $client->phone,
+                'client_address' => $user->address ?? 'Dakar, Sénégal',
+                'valid_until' => now()->addDays(30),
+                'notes' => "Demande de devis en ligne pour produit sur mesure.",
+                'subtotal' => $totalPrice,
+                'tax_amount' => 0,
+                'total_amount' => $totalPrice,
+                'status' => 'draft',
+                'share_token' => Str::random(32),
+            ]);
+
+            $quote->items()->create([
+                'description' => $description,
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
+                'total_price' => $totalPrice,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('dashboard.orders')->with('success', 'Votre demande de devis personnalisé (' . $quote->number . ') a été soumise avec succès !');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erreur demande devis personnalisé', ['message' => $e->getMessage()]);
+            return redirect()->back()->with('error', 'Erreur lors de la création de la demande de devis.');
+        }
     }
 }

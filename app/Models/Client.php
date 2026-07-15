@@ -61,4 +61,14 @@ class Client extends Model
     {
         return $this->hasMany(Quote::class);
     }
+
+    public function deliveryNotes()
+    {
+        return $this->hasMany(DeliveryNote::class);
+    }
+
+    public function walletTransactions()
+    {
+        return $this->hasMany(WalletTransaction::class)->orderBy('transaction_date', 'desc');
+    }
 }
