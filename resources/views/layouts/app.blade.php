@@ -164,6 +164,45 @@
         svg {
             color: inherit;
         }
+
+        /* ── Custom Red Style overrides for client-side forms and selects ── */
+        select, 
+        textarea,
+        input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]) {
+            border: 1.5px solid #fca5a5 !important; /* solid 1.5px red-300 default border */
+            transition: all 0.2s ease-in-out !important;
+        }
+
+        /* Border hover states: red-500 */
+        select:hover:not(:focus),
+        textarea:hover:not(:focus),
+        input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):hover:not(:focus) {
+            border-color: #ef4444 !important; /* red-500 */
+        }
+
+        /* Focus states: premium crimson red border and glowing focus ring */
+        select:focus,
+        textarea:focus,
+        input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):focus {
+            border-color: #dc2626 !important; /* red-600 */
+            --tw-ring-color: #ef4444 !important; /* red-500 */
+            --tw-ring-opacity: 0.35 !important;
+            --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color) !important;
+            --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important;
+            box-shadow: var(--tw-ring-offset-shadow) var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000) !important;
+            outline: none !important;
+        }
+
+        /* Checkbox & Radio inputs: red tint & accent-color */
+        input[type="checkbox"],
+        input[type="radio"] {
+            accent-color: #dc2626 !important;
+        }
+        input[type="checkbox"]:focus,
+        input[type="radio"]:focus {
+            --tw-ring-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
+        }
     </style>
     @stack('styles')
 </head>

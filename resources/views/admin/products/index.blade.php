@@ -55,8 +55,7 @@
                                         {{ $product->name }}
                                     </div>
                                     <div class="text-sm text-gray-500">
-                                        {{ number_format($product->price, 0, ',', ' ') }} FCFA | Stock:
-                                        {{ $product->stock }}
+                                        Achat: {{ number_format($product->purchase_price, 0, ',', ' ') }} FCFA | Vente: {{ number_format($product->price, 0, ',', ' ') }} FCFA | Stock: {{ $product->stock }}
                                     </div>
                                 </div>
                             </div>

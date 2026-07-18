@@ -38,7 +38,7 @@
         getProduct(id) { return this.products.find(p => p.id == id) },
         onProductChange(i) {
             const p = this.getProduct(this.items[i].product_id);
-            if (p) this.items[i].purchase_price = p.purchase_price ?? 0;
+            if (p) this.items[i].purchase_price = (this.blType === 'reception') ? (p.purchase_price ?? 0) : (p.price ?? 0);
         },
         onClientChange(event) {
             const opt = event.target.options[event.target.selectedIndex];
@@ -54,7 +54,15 @@
         totalAmount() {
             return this.items.reduce((sum, item) => sum + (parseFloat(item.quantity)||0) * (parseFloat(item.purchase_price)||0), 0);
         }
-      }">
+      }"
+      x-init="$watch('blType', value => {
+          items.forEach((item, i) => {
+              const p = getProduct(item.product_id);
+              if (p) {
+                  item.purchase_price = (value === 'reception') ? (p.purchase_price ?? 0) : (p.price ?? 0);
+              }
+          });
+      })">
     @csrf
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -217,7 +225,7 @@
                             </div>
                             {{-- Price --}}
                             <div class="col-span-4">
-                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Prix unitaire (FCFA)</label>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1" x-text="blType === 'reception' ? 'P.U. Achat (FCFA)' : 'P.U. Vente (FCFA)'"></label>
                                 <input type="number" :name="`items[${i}][purchase_price]`" x-model="item.purchase_price" min="0" step="1" required
                                        class="block w-full border-gray-300 rounded-md shadow-sm text-xs text-right font-bold">
                             </div>

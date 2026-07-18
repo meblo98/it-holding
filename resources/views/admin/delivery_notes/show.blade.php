@@ -169,7 +169,7 @@
                 <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider rounded-tl">#</th>
                 <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider">Désignation</th>
                 <th class="text-center px-4 py-3 text-xs font-bold uppercase tracking-wider">Qté</th>
-                <th class="text-right px-4 py-3 text-xs font-bold uppercase tracking-wider">P.U.</th>
+                <th class="text-right px-4 py-3 text-xs font-bold uppercase tracking-wider">{{ $deliveryNote->type === 'reception' ? 'P.U. Achat' : 'P.U. Vente' }}</th>
                 <th class="text-right px-4 py-3 text-xs font-bold uppercase tracking-wider rounded-tr">Total H.T.</th>
             </tr>
         </thead>
@@ -202,15 +202,34 @@
 
     {{-- SIGNATURES --}}
     <div class="grid grid-cols-2 gap-8 mt-8 pt-6 border-t border-dashed border-gray-200">
-        <div class="text-center">
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-8">Émetteur</p>
-            <div class="border-t border-gray-400 pt-2 text-sm text-gray-500">Signature & Cachet</div>
+        <div class="text-center flex flex-col items-center">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Émetteur</p>
+            <div class="h-24 flex items-center justify-center mb-2">
+                @if(file_exists(public_path('signature_cachet.png')))
+                    <img src="{{ asset('signature_cachet.png') }}" alt="Signature & Cachet" class="max-h-24 object-contain">
+                @elseif(file_exists(public_path('signature.png')) || file_exists(public_path('cachet.png')))
+                    <div class="flex justify-center gap-2">
+                        @if(file_exists(public_path('signature.png')))
+                            <img src="{{ asset('signature.png') }}" alt="Signature" class="max-h-24 object-contain">
+                        @endif
+                        @if(file_exists(public_path('cachet.png')))
+                            <img src="{{ asset('cachet.png') }}" alt="Cachet" class="max-h-24 object-contain">
+                        @endif
+                    </div>
+                @else
+                    <span class="text-gray-300 text-xs italic">Placez signature.png et/ou cachet.png dans public/</span>
+                @endif
+            </div>
+            <div class="w-full border-t border-gray-400 pt-2 text-sm text-gray-500">Signature & Cachet IT-HOLDING</div>
         </div>
-        <div class="text-center">
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-8">
+        <div class="text-center flex flex-col items-center">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
                 {{ $deliveryNote->type === 'envoi' ? 'Destinataire' : 'Réceptionné par' }}
             </p>
-            <div class="border-t border-gray-400 pt-2 text-sm text-gray-500">Signature & Date</div>
+            <div class="h-24 flex items-center justify-center text-gray-400 text-xs italic mb-2">
+                Nom, signature et date
+            </div>
+            <div class="w-full border-t border-gray-400 pt-2 text-sm text-gray-500">Signature & Date Client</div>
         </div>
     </div>
 </div>

@@ -63,7 +63,7 @@ class DeliveryNoteController extends Controller
                         return [
                             'product_id' => $item->product_id,
                             'quantity' => $item->quantity,
-                            'purchase_price' => $item->product->purchase_price ?? 0.00,
+                            'purchase_price' => $item->price ?? 0.00,
                         ];
                     })->toArray()
                 ];
@@ -83,7 +83,7 @@ class DeliveryNoteController extends Controller
                         return [
                             'product_id' => $item->product_id,
                             'quantity' => $item->quantity,
-                            'purchase_price' => $item->product->purchase_price ?? 0.00,
+                            'purchase_price' => $item->unit_price ?? 0.00,
                         ];
                     })->toArray()
                 ];

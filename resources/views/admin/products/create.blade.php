@@ -26,17 +26,24 @@
                                     required>
                             </div>
 
-                            <div class="col-span-6 sm:col-span-3">
-                                <label for="price" class="block text-sm font-medium text-gray-700">Prix (FCFA)</label>
+                            <div class="col-span-6 sm:col-span-2">
+                                <label for="purchase_price" class="block text-sm font-medium text-gray-700">Prix d'achat Fournisseur (FCFA)</label>
+                                <input type="number" name="purchase_price" id="purchase_price" min="0" step="0.01"
+                                    value="{{ old('purchase_price') }}"
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('purchase_price') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
+                                    required>
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-2">
+                                <label for="price" class="block text-sm font-medium text-gray-700">Prix de vente (FCFA)</label>
                                 <input type="number" name="price" id="price" min="0" step="0.01"
                                     value="{{ old('price') }}"
                                     class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('price') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
                                     required>
                             </div>
 
-                            <div class="col-span-6 sm:col-span-3">
-                                <label for="promo_price" class="block text-sm font-medium text-gray-700">Prix promo
-                                    (FCFA)</label>
+                            <div class="col-span-6 sm:col-span-2">
+                                <label for="promo_price" class="block text-sm font-medium text-gray-700">Prix promo (FCFA)</label>
                                 <input type="number" name="promo_price" id="promo_price" min="0" step="0.01"
                                     value="{{ old('promo_price') }}"
                                     class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('promo_price') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror">

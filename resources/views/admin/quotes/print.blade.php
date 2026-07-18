@@ -95,6 +95,37 @@
         </div>
         @endif
 
+        <!-- Signatures -->
+        <div class="grid grid-cols-2 gap-8 mt-12 pt-8 border-t border-dashed border-gray-200">
+            <div class="text-center flex flex-col items-center">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Pour le Client</p>
+                <div class="h-24 flex items-center justify-center text-gray-400 text-xs italic mb-2">
+                    Bon pour accord, date et signature
+                </div>
+                <div class="w-full border-t border-gray-200 pt-2 text-xs text-gray-400">Signature & Date Client</div>
+            </div>
+            <div class="text-center flex flex-col items-center">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Pour IT HOLDING SERVICES</p>
+                <div class="h-24 flex items-center justify-center mb-2">
+                    @if(file_exists(public_path('signature_cachet.png')))
+                        <img src="{{ asset('signature_cachet.png') }}" alt="Signature & Cachet" class="max-h-24 object-contain">
+                    @elseif(file_exists(public_path('signature.png')) || file_exists(public_path('cachet.png')))
+                        <div class="flex justify-center gap-2">
+                            @if(file_exists(public_path('signature.png')))
+                                <img src="{{ asset('signature.png') }}" alt="Signature" class="max-h-24 object-contain">
+                            @endif
+                            @if(file_exists(public_path('cachet.png')))
+                                <img src="{{ asset('cachet.png') }}" alt="Cachet" class="max-h-24 object-contain">
+                            @endif
+                        </div>
+                    @else
+                        <span class="text-gray-300 text-xs italic">Placez signature.png et/ou cachet.png dans public/</span>
+                    @endif
+                </div>
+                <div class="w-full border-t border-gray-200 pt-2 text-xs text-gray-400">Signature & Cachet Entreprise</div>
+            </div>
+        </div>
+
         <div class="text-center text-xs text-gray-400 mt-20 border-t pt-8">
             <p>IT HOLDING SERVICES - NINEA 012012019 - RCCM SN DKR 2025 C 11513</p>
         </div>
