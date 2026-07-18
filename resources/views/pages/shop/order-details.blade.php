@@ -172,7 +172,16 @@
                                     <td class="px-8 py-5">
                                         <div class="flex items-center gap-4">
                                             <div class="w-12 h-12 bg-gray-50 rounded p-1 flex-shrink-0">
-                                                <img src="{{ $item->product->image ?: ($item->product->images->first()->path ?? asset('logo.jpeg')) }}" class="w-full h-full object-contain">
+                                                @php
+                                                    $itemProduct = $item->product;
+                                                    $itemRawPath = $itemProduct->image ?: ($itemProduct->images->first()?->path ?? null);
+                                                    $itemImgUrl = $itemRawPath 
+                                                        ? (filter_var($itemRawPath, FILTER_VALIDATE_URL) 
+                                                            ? $itemRawPath 
+                                                            : (preg_match('#^/?storage/#', $itemRawPath) ? $itemRawPath : '/storage/' . ltrim($itemRawPath, '/'))) 
+                                                        : asset('logo.jpeg');
+                                                @endphp
+                                                <img src="{{ $itemImgUrl }}" class="w-full h-full object-contain">
                                             </div>
                                             <div>
                                                 <p class="text-[11px] font-black text-navy-900 line-clamp-1 italic">{{ $item->product->name }}</p>

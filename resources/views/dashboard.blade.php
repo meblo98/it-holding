@@ -196,9 +196,17 @@
                     <h2 class="text-xl font-black text-navy-900 uppercase tracking-tighter italic mb-8">Historique de Navigation</h2>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                         @foreach($browsingHistory as $prod)
+                        @php
+                            $prodRawPath = $prod->image ?: ($prod->images->first()?->path ?? null);
+                            $prodImgUrl = $prodRawPath 
+                                ? (filter_var($prodRawPath, FILTER_VALIDATE_URL) 
+                                    ? $prodRawPath 
+                                    : (preg_match('#^/?storage/#', $prodRawPath) ? $prodRawPath : '/storage/' . ltrim($prodRawPath, '/'))) 
+                                : asset('logo.jpeg');
+                        @endphp
                         <div class="bg-white border border-gray-100 rounded-lg p-4 group cursor-pointer shadow-sm hover:shadow-md transition-shadow">
                             <div class="aspect-square bg-gray-50 rounded mb-4 overflow-hidden p-2">
-                                <img src="{{ $prod->image ?: ($prod->images->first()->path ?? asset('logo.jpeg')) }}" class="w-full h-full object-contain group-hover:scale-110 transition-transform">
+                                <img src="{{ $prodImgUrl }}" class="w-full h-full object-contain group-hover:scale-110 transition-transform">
                             </div>
                             <h4 class="text-[10px] font-bold text-navy-900 line-clamp-2 italic h-8 leading-tight group-hover:text-gold-600">{{ $prod->name }}</h4>
                             <div class="mt-2 flex items-center justify-between">

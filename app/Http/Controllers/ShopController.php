@@ -149,7 +149,7 @@ class ShopController extends Controller
                 "name" => $product->name,
                 "quantity" => $quantity,
                 "price" => $effectivePrice,
-                "image" => $product->image,
+                "image" => $product->image ?: ($product->images->first()?->path ?? null),
                 "slug" => $product->slug,
                 "options" => $optionsDetails
             ];

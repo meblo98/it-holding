@@ -50,6 +50,13 @@
                                         $productId = $details['product_id'] ?? $id;
                                         $product = \App\Models\Product::find($productId);
                                         $isWholesale = $product && $details['quantity'] >= ($product->wholesale_qty ?? 5) && ($product->wholesale_discount_rate > 0);
+
+                                        $cartRawPath = $details['image'] ?: ($product ? ($product->images->first()?->path ?? null) : null);
+                                        $cartImgUrl = $cartRawPath 
+                                            ? (filter_var($cartRawPath, FILTER_VALIDATE_URL) 
+                                                ? $cartRawPath 
+                                                : (preg_match('#^/?storage/#', $cartRawPath) ? $cartRawPath : '/storage/' . ltrim($cartRawPath, '/'))) 
+                                            : asset('logo.jpeg');
                                     @endphp
                                     <tr class="group hover:bg-gray-50/50 transition-all duration-200">
                                         <td class="px-6 py-8">
@@ -59,11 +66,7 @@
                                                 </button>
                                                 <div class="flex items-center gap-4">
                                                     <div class="w-20 h-20 bg-gray-50 rounded-lg flex-shrink-0 flex items-center justify-center p-2 border border-gray-100">
-                                                        @if (isset($details['image']) && $details['image'])
-                                                            <img src="{{ asset('storage/' . $details['image']) }}" alt="{{ $details['name'] }}" class="max-h-full max-w-full object-contain">
-                                                        @else
-                                                            <img src="{{ asset('logo.jpeg') }}" class="max-h-full max-w-full object-contain opacity-20">
-                                                        @endif
+                                                        <img src="{{ $cartImgUrl }}" alt="{{ $details['name'] }}" class="max-h-full max-w-full object-contain">
                                                     </div>
                                                     <div>
                                                         <a href="{{ route('shop.show', $details['slug'] ?? '#') }}" class="text-sm font-bold text-navy-900 hover:text-gold-500 transition-colors line-clamp-2">{{ $details['name'] }}</a>

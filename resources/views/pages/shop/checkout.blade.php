@@ -206,13 +206,18 @@
                     <!-- Items List -->
                     <div class="space-y-4 mb-8">
                         @foreach($cart as $id => $item)
+                        @php
+                            $itemProduct = \App\Models\Product::find($item['product_id'] ?? $id);
+                            $itemRawPath = ($item['image'] ?? null) ?: ($itemProduct ? ($itemProduct->images->first()?->path ?? null) : null);
+                            $itemImgUrl = $itemRawPath 
+                                ? (filter_var($itemRawPath, FILTER_VALIDATE_URL) 
+                                    ? $itemRawPath 
+                                    : (preg_match('#^/?storage/#', $itemRawPath) ? $itemRawPath : '/storage/' . ltrim($itemRawPath, '/'))) 
+                                : asset('logo.jpeg');
+                        @endphp
                         <div class="flex gap-4 items-center">
                             <div class="w-16 h-16 bg-gray-50 rounded-lg p-2 border border-gray-50 flex-shrink-0 flex items-center justify-center">
-                                @if(isset($item['image']) && $item['image'])
-                                    <img src="{{ asset('storage/' . $item['image']) }}" class="max-h-full max-w-full object-contain">
-                                @else
-                                    <img src="{{ asset('logo.jpeg') }}" class="max-h-full max-w-full object-contain opacity-20">
-                                @endif
+                                <img src="{{ $itemImgUrl }}" class="max-h-full max-w-full object-contain">
                             </div>
                             <div class="flex-1">
                                 <p class="text-[10px] font-bold text-navy-900 line-clamp-1 truncate w-40">{{ $item['name'] }}</p>

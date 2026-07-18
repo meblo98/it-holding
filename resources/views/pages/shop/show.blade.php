@@ -1,11 +1,20 @@
 @extends('layouts.app')
 
+@php
+    $defaultImage = $product->image ?: ($product->images->first()?->path ?? null);
+    $defaultImgUrl = $defaultImage 
+        ? (filter_var($defaultImage, FILTER_VALIDATE_URL) 
+            ? $defaultImage 
+            : (preg_match('#^/?storage/#', $defaultImage) ? $defaultImage : '/storage/' . ltrim($defaultImage, '/'))) 
+        : asset('logo.jpeg');
+@endphp
+
 @section('title', $product->name . ' - IT-Holding Boutique')
 @section('meta_description', Str::limit(strip_tags($product->description), 160))
 @section('meta_keywords', $product->name . ', ' . ($product->category->name ?? '') . ', hardware Sénégal, prix informatique Dakar')
 
 @section('og_type', 'product')
-@section('og_image', $product->image ? asset('storage/' . $product->image) : asset('logo.jpeg'))
+@section('og_image', filter_var($defaultImgUrl, FILTER_VALIDATE_URL) ? $defaultImgUrl : asset(ltrim($defaultImgUrl, '/')))
 
 @section('content')
 <div class="bg-white min-h-screen">
@@ -39,7 +48,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
             <!-- Left: Gallery -->
-            <div x-data="{ mainImage: '{{ $product->image ? (preg_match('#^/?storage/#', $product->image) ? $product->image : '/storage/'.ltrim($product->image, '/')) : asset('logo.jpeg') }}' }" class="space-y-6">
+            <div x-data="{ mainImage: '{{ $defaultImgUrl }}' }" class="space-y-6">
                 <!-- Main Image -->
                 <div class="aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-100 flex items-center justify-center p-8 group relative">
                     <img :src="mainImage" alt="{{ $product->name }}" class="max-h-full max-w-full object-contain transform group-hover:scale-105 transition-transform duration-500">
