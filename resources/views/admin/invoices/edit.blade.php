@@ -22,6 +22,7 @@
         ];
     })->toJson() }},
     catalog: {{ Js::from($catalog) }},
+    applyTax: {{ $invoice->tax_amount > 0 ? 'true' : 'false' }},
     addItem() { this.items.push({ product_id: null, description: '', quantity: 1, unit_price: 0, save_to_catalog: false, catalog_type: 'product', source: 'catalog' }) },
     removeItem(index) { this.items.splice(index, 1) },
     onSelectChange(index, event) {
@@ -209,11 +210,26 @@
                             <option value="free_money" {{ old('payment_method', $invoice->payment_method) == 'free_money' ? 'selected' : '' }}>Free Money</option>
                         </select>
                     </div>
-                    <div class="border-t pt-3">
-                        <div class="flex justify-between items-center text-lg">
-                            <span class="font-medium text-gray-700">TOTAL</span>
+                    <div class="border-t pt-3 space-y-2">
+                        <label class="flex items-center text-sm font-semibold text-gray-700 select-none cursor-pointer">
+                            <input type="checkbox" x-model="applyTax" class="rounded border-gray-300 text-gold-600 focus:ring-gold-500 mr-2">
+                            Appliquer la TVA (18%)
+                        </label>
+                        <input type="hidden" name="tax_amount" :value="applyTax ? Math.round(grandTotal * 0.18) : 0">
+                        
+                        <div class="flex justify-between text-sm text-gray-500 pt-1" x-show="applyTax">
+                            <span>Sous-total HT :</span>
+                            <span class="font-medium"><span x-text="new Intl.NumberFormat('fr-FR').format(grandTotal)"></span> FCFA</span>
+                        </div>
+                        <div class="flex justify-between text-sm text-gray-500" x-show="applyTax">
+                            <span>TVA (18%) :</span>
+                            <span class="font-medium"><span x-text="new Intl.NumberFormat('fr-FR').format(Math.round(grandTotal * 0.18))"></span> FCFA</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center border-t pt-2 mt-2">
+                            <span class="font-bold text-gray-700 text-sm uppercase" x-text="applyTax ? 'TOTAL TTC' : 'TOTAL'">TOTAL</span>
                             <span class="font-bold text-navy-600 text-2xl">
-                                <span x-text="new Intl.NumberFormat('fr-FR').format(grandTotal)"></span> FCFA
+                                <span x-text="new Intl.NumberFormat('fr-FR').format(applyTax ? grandTotal + Math.round(grandTotal * 0.18) : grandTotal)"></span> FCFA
                             </span>
                         </div>
                     </div>

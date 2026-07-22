@@ -102,9 +102,12 @@
 
                             <div class="col-span-6 sm:col-span-3">
                                 <label for="condition" class="block text-sm font-medium text-gray-700">État</label>
-                                <input type="text" name="condition" id="condition"
-                                    value="{{ old('condition') }}"
+                                <select name="condition" id="condition"
                                     class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('condition') border-red-500 @enderror">
+                                    <option value="new" {{ old('condition') == 'new' ? 'selected' : '' }}>Neuf</option>
+                                    <option value="reconditioned" {{ old('condition') == 'reconditioned' ? 'selected' : '' }}>Reconditionné</option>
+                                    <option value="second_hand" {{ old('condition') == 'second_hand' ? 'selected' : '' }}>Seconde main</option>
+                                </select>
                             </div>
 
                             <!-- Section Achat en Gros -->

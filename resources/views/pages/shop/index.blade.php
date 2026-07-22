@@ -62,6 +62,35 @@
                     </ul>
                 </div>
 
+                <!-- Condition Filter -->
+                @if(isset($conditions) && $conditions->count() > 0)
+                <div>
+                    <h3 class="text-xs font-bold text-navy-900 uppercase tracking-widest mb-4 italic">État</h3>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="{{ request()->fullUrlWithQuery(['condition' => null]) }}" class="flex items-center gap-3 text-sm {{ !request('condition') ? 'text-gold-600 font-bold' : 'text-gray-500 hover:text-navy-900' }}">
+                                <div class="w-1.5 h-1.5 rounded-full {{ !request('condition') ? 'bg-gold-500' : 'bg-transparent border border-gray-300' }}"></div>
+                                Tous les états
+                            </a>
+                        </li>
+                        @foreach ($conditions as $cond)
+                            <li>
+                                <a href="{{ request()->fullUrlWithQuery(['condition' => $cond]) }}"
+                                    class="flex items-center gap-3 text-sm {{ request('condition') == $cond ? 'text-gold-600 font-bold' : 'text-gray-500 hover:text-navy-900' }}">
+                                    <div class="w-1.5 h-1.5 rounded-full {{ request('condition') == $cond ? 'bg-gold-500' : 'bg-transparent border border-gray-300' }}"></div>
+                                    @switch($cond)
+                                        @case('new') Neuf @break
+                                        @case('reconditioned') Reconditionné @break
+                                        @case('second_hand') Seconde main @break
+                                        @default {{ ucfirst(str_replace('_', ' ', $cond)) }}
+                                    @endswitch
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
+
                 <!-- Price Range (Mock) -->
                 <div>
                     <h3 class="text-xs font-bold text-navy-900 uppercase tracking-widest mb-4 italic">Gamme de Prix</h3>
@@ -150,6 +179,20 @@
                         Matériel Informatique
                         <button class="hover:text-red-500 transition-colors"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
                     </div>
+                    @if(request('condition'))
+                    <div class="flex items-center gap-2 bg-navy-50 border border-navy-100 px-3 py-1 rounded text-[10px] font-bold text-navy-900 group">
+                        État: 
+                        @switch(request('condition'))
+                            @case('new') Neuf @break
+                            @case('reconditioned') Reconditionné @break
+                            @case('second_hand') Seconde main @break
+                            @default {{ ucfirst(str_replace('_', ' ', request('condition'))) }}
+                        @endswitch
+                        <a href="{{ request()->fullUrlWithQuery(['condition' => null]) }}" class="hover:text-red-500 transition-colors">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </a>
+                    </div>
+                    @endif
                     <span class="text-[10px] font-bold text-navy-900 italic ml-auto"><span class="text-gold-600 font-black">{{ $products->total() }}</span> Produits trouvés</span>
                 </div>
 

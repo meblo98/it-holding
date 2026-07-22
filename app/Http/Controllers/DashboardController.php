@@ -20,6 +20,14 @@ class DashboardController extends Controller
         $pendingOrders = $user->orders()->whereIn('status', ['pending', 'processing', 'in_progress'])->count();
         $completedOrders = $user->orders()->whereIn('status', ['completed', 'delivered'])->count();
         
+        $client = \App\Models\Client::where('user_id', $user->id)->first();
+        $activeWarrantiesCount = 0;
+        if ($client) {
+            $activeWarrantiesCount = \App\Models\Warranty::where('client_id', $client->id)
+                ->where('status', 'active')
+                ->count();
+        }
+
         $recentOrders = $user->orders()->latest()->take(7)->get();
         
         // Mock browsing history with latest products
@@ -30,9 +38,27 @@ class DashboardController extends Controller
             'totalOrders', 
             'pendingOrders', 
             'completedOrders', 
+            'activeWarrantiesCount',
             'recentOrders',
             'browsingHistory'
         ));
+    }
+
+    public function warranties()
+    {
+        $user = Auth::user();
+        $client = \App\Models\Client::where('user_id', $user->id)->first();
+        
+        if ($client) {
+            $warranties = \App\Models\Warranty::where('client_id', $client->id)
+                ->with(['product', 'order'])
+                ->orderByDesc('purchase_date')
+                ->paginate(10);
+        } else {
+            $warranties = \App\Models\Warranty::whereRaw('1=0')->paginate(10);
+        }
+        
+        return view('pages.shop.warranties', compact('user', 'warranties'));
     }
 
     public function orders()
@@ -134,5 +160,385 @@ class DashboardController extends Controller
         ]);
 
         return back()->with('success', 'Mot de passe mis à jour avec succès.');
+    }
+
+    public function savings()
+    {
+        $user = Auth::user();
+        $client = \App\Models\Client::where('user_id', $user->id)->first();
+        
+        $savingPlans = collect();
+        if ($client) {
+            $savingPlans = \App\Models\SavingPlan::where('client_id', $client->id)
+                ->with(['product', 'service'])
+                ->orderByDesc('created_at')
+                ->paginate(10);
+        } else {
+            $savingPlans = \App\Models\SavingPlan::whereRaw('1=0')->paginate(10);
+        }
+        
+        return view('pages.shop.savings.index', compact('user', 'savingPlans', 'client'));
+    }
+
+    public function createSavingPlan(Request $request)
+    {
+        $user = Auth::user();
+        $client = \App\Models\Client::where('user_id', $user->id)->first();
+        if (!$client) {
+            $names = explode(' ', $user->name, 2);
+            $client = \App\Models\Client::create([
+                'user_id'         => $user->id,
+                'first_name'      => $names[0] ?? 'Client',
+                'last_name'       => $names[1] ?? 'Client',
+                'email'           => $user->email,
+                'phone'           => $user->phone ?? '770000000',
+                'wallet_balance'  => 0,
+                'current_balance' => 0,
+            ]);
+        }
+
+        $product = null;
+        $service = null;
+        $targetAmount = 0;
+
+        if ($request->has('product_id')) {
+            $product = Product::findOrFail($request->product_id);
+            $targetAmount = $product->promo_price ?: $product->price;
+        } elseif ($request->has('service_id')) {
+            $service = \App\Models\Service::findOrFail($request->service_id);
+            $targetAmount = $service->price;
+        }
+
+        return view('pages.shop.savings.create', compact('user', 'client', 'product', 'service', 'targetAmount'));
+    }
+
+    public function storeSavingPlan(Request $request)
+    {
+        $user = Auth::user();
+        $client = \App\Models\Client::where('user_id', $user->id)->first();
+        if (!$client) {
+            return back()->with('error', 'Profil client requis.');
+        }
+
+        $request->validate([
+            'product_id' => 'nullable|exists:products,id',
+            'service_id' => 'nullable|exists:services,id',
+            'initial_deposit' => 'required|numeric|min:0',
+            'payment_method' => 'required|string',
+        ]);
+
+        $product = null;
+        $service = null;
+        $targetAmount = 0;
+
+        if ($request->filled('product_id')) {
+            $product = Product::findOrFail($request->product_id);
+            $targetAmount = $product->promo_price ?: $product->price;
+        } elseif ($request->filled('service_id')) {
+            $service = \App\Models\Service::findOrFail($request->service_id);
+            $targetAmount = $service->price;
+        } else {
+            return back()->with('error', 'Veuillez sélectionner un produit ou un service.');
+        }
+
+        $initialDeposit = (float)$request->initial_deposit;
+
+        if ($initialDeposit > $targetAmount) {
+            return back()->withErrors(['initial_deposit' => 'Le dépôt initial ne peut pas dépasser le montant cible.']);
+        }
+
+        if ($request->payment_method === 'wallet' && $client->wallet_balance < $initialDeposit) {
+            return back()->with('error', 'Solde de portefeuille insuffisant.');
+        }
+
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            $savingPlan = \App\Models\SavingPlan::create([
+                'client_id' => $client->id,
+                'product_id' => $product ? $product->id : null,
+                'service_id' => $service ? $service->id : null,
+                'target_amount' => $targetAmount,
+                'current_amount' => 0, // will increment with deposit
+                'status' => 'active',
+            ]);
+
+            if ($initialDeposit > 0) {
+                // Deduct from wallet if wallet selected
+                if ($request->payment_method === 'wallet') {
+                    $client->decrement('wallet_balance', $initialDeposit);
+                    \App\Models\WalletTransaction::create([
+                        'client_id' => $client->id,
+                        'type' => 'payment',
+                        'amount' => $initialDeposit,
+                        'description' => "Dépôt initial épargne plan #" . $savingPlan->id,
+                        'transaction_date' => now(),
+                    ]);
+                }
+
+                $savingPlan->increment('current_amount', $initialDeposit);
+                \App\Models\SavingTransaction::create([
+                    'saving_plan_id' => $savingPlan->id,
+                    'amount' => $initialDeposit,
+                    'type' => 'deposit',
+                    'payment_method' => $request->payment_method,
+                ]);
+
+                // Check if target reached
+                if ($savingPlan->current_amount >= $savingPlan->target_amount) {
+                    $savingPlan->update(['status' => 'completed']);
+                    $this->triggerGoalDelivery($savingPlan);
+                }
+            }
+
+            \Illuminate\Support\Facades\DB::commit();
+            return redirect()->route('dashboard.savings.show', $savingPlan->id)->with('success', 'Plan d\'épargne créé avec succès.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('Saving plan store error: ' . $e->getMessage());
+            return back()->with('error', 'Erreur lors de la création du plan d\'épargne.');
+        }
+    }
+
+    public function showSavingPlan(\App\Models\SavingPlan $savingPlan)
+    {
+        $user = Auth::user();
+        $client = \App\Models\Client::where('user_id', $user->id)->first();
+        if (!$client || $savingPlan->client_id !== $client->id) {
+            abort(403);
+        }
+
+        $savingPlan->load(['product', 'service', 'transactions']);
+        return view('pages.shop.savings.show', compact('user', 'client', 'savingPlan'));
+    }
+
+    public function depositSavingPlan(Request $request, \App\Models\SavingPlan $savingPlan)
+    {
+        $user = Auth::user();
+        $client = \App\Models\Client::where('user_id', $user->id)->first();
+        if (!$client || $savingPlan->client_id !== $client->id) {
+            abort(403);
+        }
+
+        if ($savingPlan->status !== 'active') {
+            return back()->with('error', 'Ce plan d\'épargne n\'est plus actif.');
+        }
+
+        $request->validate([
+            'amount' => 'required|numeric|min:1',
+            'payment_method' => 'required|string',
+        ]);
+
+        $amount = (float)$request->amount;
+
+        // Limit deposit to remaining target amount
+        $remaining = $savingPlan->target_amount - $savingPlan->current_amount;
+        if ($amount > $remaining) {
+            $amount = $remaining;
+        }
+
+        if ($request->payment_method === 'wallet' && $client->wallet_balance < $amount) {
+            return back()->with('error', 'Solde de portefeuille insuffisant.');
+        }
+
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            if ($request->payment_method === 'wallet') {
+                $client->decrement('wallet_balance', $amount);
+                \App\Models\WalletTransaction::create([
+                    'client_id' => $client->id,
+                    'type' => 'payment',
+                    'amount' => $amount,
+                    'description' => "Dépôt épargne plan #" . $savingPlan->id,
+                    'transaction_date' => now(),
+                ]);
+            }
+
+            $savingPlan->increment('current_amount', $amount);
+            \App\Models\SavingTransaction::create([
+                'saving_plan_id' => $savingPlan->id,
+                'amount' => $amount,
+                'type' => 'deposit',
+                'payment_method' => $request->payment_method,
+            ]);
+
+            // Check if target reached
+            if ($savingPlan->current_amount >= $savingPlan->target_amount) {
+                $savingPlan->update(['status' => 'completed']);
+                $this->triggerGoalDelivery($savingPlan);
+            }
+
+            \Illuminate\Support\Facades\DB::commit();
+            return back()->with('success', 'Dépôt effectué avec succès !');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('Saving plan deposit error: ' . $e->getMessage());
+            return back()->with('error', 'Erreur lors du dépôt.');
+        }
+    }
+
+    public function withdrawSavingPlan(Request $request, \App\Models\SavingPlan $savingPlan)
+    {
+        $user = Auth::user();
+        $client = \App\Models\Client::where('user_id', $user->id)->first();
+        if (!$client || $savingPlan->client_id !== $client->id) {
+            abort(403);
+        }
+
+        if ($savingPlan->status !== 'active') {
+            return back()->with('error', 'Seuls les plans actifs peuvent être retirés.');
+        }
+
+        $withdrawAmount = $savingPlan->current_amount;
+        if ($withdrawAmount <= 0) {
+            $savingPlan->update(['status' => 'withdrawn']);
+            return back()->with('success', 'Plan d\'épargne clôturé (sans fonds).');
+        }
+
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            // Refund to client wallet balance
+            $client->increment('wallet_balance', $withdrawAmount);
+            \App\Models\WalletTransaction::create([
+                'client_id' => $client->id,
+                'type' => 'refund',
+                'amount' => $withdrawAmount,
+                'description' => "Retrait épargne plan #" . $savingPlan->id,
+                'transaction_date' => now(),
+            ]);
+
+            // Log withdrawal on saving plan
+            \App\Models\SavingTransaction::create([
+                'saving_plan_id' => $savingPlan->id,
+                'amount' => -$withdrawAmount,
+                'type' => 'withdrawal',
+                'payment_method' => 'wallet',
+            ]);
+
+            $savingPlan->update([
+                'current_amount' => 0,
+                'status' => 'withdrawn'
+            ]);
+
+            \Illuminate\Support\Facades\DB::commit();
+            return back()->with('success', 'Épargne retirée avec succès ! Les fonds (' . number_format($withdrawAmount, 0, ',', ' ') . ' FCFA) ont été crédités sur votre portefeuille client.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('Saving plan withdraw error: ' . $e->getMessage());
+            return back()->with('error', 'Erreur lors du retrait de l\'épargne.');
+        }
+    }
+
+    private function triggerGoalDelivery(\App\Models\SavingPlan $savingPlan)
+    {
+        $client = $savingPlan->client;
+        $user = $client->user;
+
+        // Generate paid invoice
+        $invoiceNumber = 'FAC-' . date('Y') . '-' . str_pad(\App\Models\Invoice::count() + 1, 4, '0', STR_PAD_LEFT);
+        $invoice = \App\Models\Invoice::create([
+            'number' => $invoiceNumber,
+            'client_id' => $client->id,
+            'user_id' => $user->id,
+            'client_name' => $client->full_name,
+            'client_email' => $client->email,
+            'client_phone' => $client->phone,
+            'client_address' => $client->address ?: 'N/A',
+            'subtotal' => $savingPlan->target_amount,
+            'tax_amount' => 0,
+            'total_amount' => $savingPlan->target_amount,
+            'status' => 'paid',
+            'due_date' => now(),
+            'notes' => "Facture générée pour finalisation du Plan d'Épargne #" . $savingPlan->id,
+            'payment_method' => 'epargne',
+            'share_token' => \Illuminate\Support\Str::random(32),
+        ]);
+
+        if ($savingPlan->product_id) {
+            $product = $savingPlan->product;
+            // Create paid order
+            $order = Order::create([
+                'user_id' => $user->id,
+                'client_id' => $client->id,
+                'customer_name' => $client->full_name,
+                'customer_email' => $client->email,
+                'customer_phone' => $client->phone,
+                'customer_address' => $client->address ?: 'N/A',
+                'total_amount' => $savingPlan->target_amount,
+                'status' => 'completed',
+                'payment_status' => 'paid',
+                'payment_method' => 'epargne',
+            ]);
+
+            \App\Models\OrderItem::create([
+                'order_id' => $order->id,
+                'product_id' => $product->id,
+                'quantity' => 1,
+                'price' => $savingPlan->target_amount,
+                'purchase_price' => $product->purchase_price ?? 0,
+            ]);
+
+            $invoice->update(['quote_id' => null]);
+
+            $invoice->items()->create([
+                'product_id' => $product->id,
+                'description' => $product->name,
+                'quantity' => 1,
+                'unit_price' => $savingPlan->target_amount,
+                'purchase_price' => $product->purchase_price ?? 0,
+                'total_price' => $savingPlan->target_amount,
+            ]);
+
+            // Reduce stock
+            $product->decrement('stock', 1);
+
+            // Log stock movement
+            \App\Models\StockMovement::create([
+                'product_id' => $product->id,
+                'quantity' => -1,
+                'type' => 'out',
+                'source' => "Plan d'Épargne #" . $savingPlan->id,
+                'notes' => "Livraison automatique après objectif d'épargne atteint",
+            ]);
+
+            try {
+                \App\Services\WhatsAppService::notifyAdminForOrder($order);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Error sending WhatsApp notification for savings plan order: " . $e->getMessage());
+            }
+        } elseif ($savingPlan->service_id) {
+            $service = $savingPlan->service;
+
+            // Create Maintenance Contract automatically
+            $contractNumber = \App\Models\MaintenanceContract::generateNumber();
+            \App\Models\MaintenanceContract::create([
+                'number' => $contractNumber,
+                'client_id' => $client->id,
+                'client_name' => $client->full_name,
+                'client_phone' => $client->phone,
+                'client_address' => $client->address ?: 'N/A',
+                'type' => 'standard',
+                'start_date' => now(),
+                'end_date' => now()->addYear(),
+                'price' => $savingPlan->target_amount,
+                'billing_period' => 'annuel',
+                'interventions_included' => 12,
+                'interventions_used' => 0,
+                'response_time_hours' => 24,
+                'scope' => "Contrat de service souscrit automatiquement via l'Épargne Service pour : " . $service->title,
+                'status' => 'active',
+                'payment_status' => 'paid',
+                'amount_paid' => $savingPlan->target_amount,
+                'notes' => "Généré via Plan d'Épargne #" . $savingPlan->id,
+            ]);
+
+            $invoice->items()->create([
+                'product_id' => null,
+                'description' => "Service: " . $service->title,
+                'quantity' => 1,
+                'unit_price' => $savingPlan->target_amount,
+                'purchase_price' => 0,
+                'total_price' => $savingPlan->target_amount,
+            ]);
+        }
     }
 }

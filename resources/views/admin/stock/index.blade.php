@@ -142,9 +142,9 @@
                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="bg-white divide-y divide-gray-200" x-data="{ editingProductId: null }">
                 @foreach($products as $product)
-                <tr class="hover:bg-gray-55 transition" x-data="{ editing: false, type: 'set', qty: '{{ $product->stock }}' }">
+                <tr class="hover:bg-gray-55 transition">
                     <!-- Product Details -->
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center gap-3">
@@ -208,14 +208,14 @@
 
                     <!-- Actions / Inline Editing form -->
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button type="button" @click="editing = !editing" class="text-gold-600 hover:text-gold-900 bg-gold-50 hover:bg-gold-100 px-3 py-1 rounded transition">
+                        <button type="button" @click="editingProductId = (editingProductId === {{ $product->id }} ? null : {{ $product->id }})" class="text-gold-600 hover:text-gold-900 bg-gold-50 hover:bg-gold-100 px-3 py-1 rounded transition">
                             Ajuster
                         </button>
                     </td>
                 </tr>
 
                 <!-- Collapsible editing drawer/row -->
-                <tr x-show="editing" x-cloak class="bg-navy-50/20 border border-gold-500/10">
+                <tr x-show="editingProductId === {{ $product->id }}" x-cloak class="bg-navy-50/20 border border-gold-500/10" x-data="{ type: 'set', qty: '{{ $product->stock }}' }">
                     <td colspan="6" class="px-6 py-4">
                         <form action="{{ route('admin.stock.adjust', $product->id) }}" method="POST" class="flex flex-wrap md:flex-nowrap items-end justify-between gap-4 p-4 border border-gold-500/20 rounded-md bg-white shadow-sm">
                             @csrf
@@ -243,7 +243,7 @@
                             </div>
 
                             <div class="flex gap-2">
-                                <button type="button" @click="editing = false" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded transition">
+                                <button type="button" @click="editingProductId = null" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded transition">
                                     Annuler
                                 </button>
                                 <button type="submit" class="px-4 py-2 bg-navy-600 hover:bg-navy-700 text-white text-xs font-bold rounded transition shadow">

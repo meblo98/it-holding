@@ -52,8 +52,13 @@ class Warranty extends Model
     // ── Auto-generate warranty number ─────────────────────────────────────
     public static function generateNumber(): string
     {
-        $count = self::whereYear('created_at', date('Y'))->count() + 1;
-        return 'GAR-' . date('Y') . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+        $year = date('Y');
+        $count = self::whereYear('created_at', $year)->count() + 1;
+        do {
+            $number = 'GAR-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+            $count++;
+        } while (self::where('number', $number)->exists());
+        return $number;
     }
 
     // ── Type labels ──────────────────────────────────────────────────────────

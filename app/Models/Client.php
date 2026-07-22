@@ -71,4 +71,9 @@ class Client extends Model
     {
         return $this->hasMany(WalletTransaction::class)->orderBy('transaction_date', 'desc');
     }
+
+    public function savingPlans()
+    {
+        return $this->hasMany(SavingPlan::class)->latest();
+    }
 }

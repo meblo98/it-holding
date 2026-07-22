@@ -242,7 +242,20 @@ class ShopController extends Controller
             }
             $total += $cart[$id]['price'] * $cart[$id]['quantity'];
         }
-        $client = Auth::check() ? \App\Models\Client::where('user_id', Auth::id())->first() : null;
+        $user = Auth::user();
+        $client = \App\Models\Client::where('user_id', $user->id)->first();
+        if (!$client) {
+            $names = explode(' ', $user->name, 2);
+            $client = \App\Models\Client::create([
+                'user_id'         => $user->id,
+                'first_name'      => $names[0] ?? 'Client',
+                'last_name'       => $names[1] ?? 'Client',
+                'email'           => $user->email,
+                'phone'           => $user->phone ?? '770000000',
+                'wallet_balance'  => 0,
+                'current_balance' => 0,
+            ]);
+        }
         Session::put('cart', $cart);
         return view('pages.shop.checkout', compact('cart', 'total', 'client'));
     }
@@ -286,7 +299,20 @@ class ShopController extends Controller
             $total += $cart[$id]['price'] * $cart[$id]['quantity'];
         }
 
-        $client = Auth::check() ? \App\Models\Client::where('user_id', Auth::id())->first() : null;
+        $user = Auth::user();
+        $client = \App\Models\Client::where('user_id', $user->id)->first();
+        if (!$client) {
+            $names = explode(' ', $user->name, 2);
+            $client = \App\Models\Client::create([
+                'user_id'         => $user->id,
+                'first_name'      => $names[0] ?? 'Client',
+                'last_name'       => $names[1] ?? 'Client',
+                'email'           => $user->email,
+                'phone'           => $user->phone ?? '770000000',
+                'wallet_balance'  => 0,
+                'current_balance' => 0,
+            ]);
+        }
 
         // Check wallet balance if wallet payment chosen
         if ($validated['payment_method'] === 'wallet') {
@@ -384,6 +410,12 @@ class ShopController extends Controller
             }
 
             DB::commit();
+
+            try {
+                \App\Services\WhatsAppService::notifyAdminForOrder($order);
+            } catch (\Exception $e) {
+                Log::error("Error sending WhatsApp notification: " . $e->getMessage());
+            }
 
             // clear cart
             Session::forget('cart');

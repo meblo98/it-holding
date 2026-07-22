@@ -28,10 +28,24 @@
                     <p class="text-lg text-gray-300 font-medium leading-relaxed max-w-xl mb-8">
                         {{ $service->description }}
                     </p>
-                    <a href="{{ route('contact.index', ['subject' => 'Devis : ' . $service->title]) }}" class="inline-flex items-center gap-4 bg-gold-500 text-navy-900 px-8 py-4 rounded-xl font-black uppercase tracking-widest hover:bg-gold-400 transition-all hover:gap-6 group">
-                        Demander une étude personnalisée
-                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                    </a>
+                    <div class="flex flex-col sm:flex-row gap-4 items-center">
+                        <a href="{{ route('contact.index', ['subject' => 'Devis : ' . $service->title]) }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-4 bg-gold-500 text-navy-900 px-8 py-4 rounded-xl font-black uppercase tracking-widest hover:bg-gold-400 transition-all hover:gap-6 group">
+                            Demander une étude personnalisée
+                            <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </a>
+                        @if($service->price > 0)
+                            @auth
+                            <a href="{{ route('dashboard.savings.create', ['service_id' => $service->id]) }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-4 border-2 border-gold-500 text-gold-500 px-8 py-4 rounded-xl font-black uppercase tracking-widest hover:bg-gold-500 hover:text-navy-900 transition-all group">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Épargner ({{ number_format($service->price, 0, ',', ' ') }} F)
+                            </a>
+                            @else
+                            <a href="{{ route('login') }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-4 border-2 border-dashed border-gray-400 text-gray-400 px-8 py-4 rounded-xl font-black uppercase tracking-widest hover:border-gold-500 hover:text-gold-500 transition-all group">
+                                Connexion pour épargner
+                            </a>
+                            @endauth
+                        @endif
+                    </div>
                 </div>
                 <div class="hidden lg:block relative">
                     <div class="aspect-square bg-white shadow-2xl rounded-3xl overflow-hidden border-8 border-navy-800 rotate-3 p-4 group">

@@ -166,6 +166,7 @@
                     <td class="px-4 py-3 text-gray-500">{{ $q->created_at->format('d/m/Y') }}</td>
                     <td class="px-4 py-3 text-right font-bold text-gray-900">{{ number_format($q->total_amount ?? 0, 0, ',', ' ') }} FCFA</td>
                 </tr>
+                @endforeach
                 </tbody>
             </table>
             @endif

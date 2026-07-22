@@ -114,9 +114,15 @@
                                         <div class="col-span-6 sm:col-span-3">
                                             <label for="condition"
                                                 class="block text-sm font-medium text-gray-700">État</label>
-                                            <input type="text" name="condition" id="condition"
-                                                class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                                                value="{{ old('condition', $product->condition) }}">
+                                            <select name="condition" id="condition"
+                                                class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                                <option value="new" {{ old('condition', $product->condition) == 'new' ? 'selected' : '' }}>Neuf</option>
+                                                <option value="reconditioned" {{ old('condition', $product->condition) == 'reconditioned' ? 'selected' : '' }}>Reconditionné</option>
+                                                <option value="second_hand" {{ old('condition', $product->condition) == 'second_hand' ? 'selected' : '' }}>Seconde main</option>
+                                                @if($product->condition && !in_array($product->condition, ['new', 'reconditioned', 'second_hand']))
+                                                    <option value="{{ $product->condition }}" selected>{{ ucfirst($product->condition) }}</option>
+                                                @endif
+                                            </select>
                                         </div>
 
                                         <!-- Section Achat en Gros -->

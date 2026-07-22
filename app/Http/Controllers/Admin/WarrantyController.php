@@ -46,7 +46,7 @@ class WarrantyController extends Controller
     {
         $clients  = Client::orderBy('first_name')->get();
         $products = Product::where('active', true)->orderBy('name')->get(['id', 'name']);
-        $invoices = Invoice::latest()->limit(50)->get(['id', 'number', 'customer_name']);
+        $invoices = Invoice::latest()->limit(50)->get(['id', 'number', 'client_name']);
 
         return view('admin.warranties.create', compact('clients', 'products', 'invoices'));
     }

@@ -71,10 +71,25 @@
                     @endforeach
                 </tbody>
                 <tfoot class="bg-gray-50">
+                    @if($quote->tax_amount > 0)
+                    <tr>
+                        <td colspan="3" class="px-6 py-2 text-right text-sm font-medium text-gray-500 uppercase">Sous-total HT</td>
+                        <td class="px-6 py-2 text-right text-sm font-bold text-gray-900">{{ number_format($quote->subtotal, 0, ',', ' ') }} FCFA</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="px-6 py-2 text-right text-sm font-medium text-gray-500 uppercase">TVA (18%)</td>
+                        <td class="px-6 py-2 text-right text-sm font-bold text-gray-900">{{ number_format($quote->tax_amount, 0, ',', ' ') }} FCFA</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="px-6 py-3 text-right text-sm font-bold text-gray-700 uppercase">Total TTC</td>
+                        <td class="px-6 py-3 text-right text-xl font-extrabold text-navy-600">{{ number_format($quote->total_amount, 0, ',', ' ') }} FCFA</td>
+                    </tr>
+                    @else
                     <tr>
                         <td colspan="3" class="px-6 py-4 text-right text-sm font-medium text-gray-500 uppercase">Total</td>
                         <td class="px-6 py-4 text-right text-xl font-bold text-navy-600">{{ number_format($quote->total_amount, 0, ',', ' ') }} FCFA</td>
                     </tr>
+                    @endif
                 </tfoot>
             </table>
         </div>

@@ -67,6 +67,7 @@ class InvoiceController extends Controller
         foreach ($validated['items'] as $item) {
             $subtotal += $item['quantity'] * $item['unit_price'];
         }
+        $taxAmount = floatval($request->input('tax_amount', 0));
 
         $invoice = Invoice::create([
             'number'         => $validated['number'],
@@ -79,8 +80,8 @@ class InvoiceController extends Controller
             'notes'          => $validated['notes'] ?? null,
             'payment_method' => $validated['payment_method'] ?? null,
             'subtotal'       => $subtotal,
-            'tax_amount'     => 0,
-            'total_amount'   => $subtotal,
+            'tax_amount'     => $taxAmount,
+            'total_amount'   => $subtotal + $taxAmount,
             'share_token'    => Str::random(32),
         ]);
 
@@ -177,6 +178,7 @@ class InvoiceController extends Controller
         foreach ($validated['items'] as $item) {
             $subtotal += $item['quantity'] * $item['unit_price'];
         }
+        $taxAmount = floatval($request->input('tax_amount', 0));
 
         $invoice->update([
             'number'         => $validated['number'],
@@ -190,7 +192,8 @@ class InvoiceController extends Controller
             'status'         => $validated['status'],
             'payment_method' => $validated['payment_method'] ?? null,
             'subtotal'       => $subtotal,
-            'total_amount'   => $subtotal,
+            'tax_amount'     => $taxAmount,
+            'total_amount'   => $subtotal + $taxAmount,
         ]);
 
         $invoice->items()->delete();

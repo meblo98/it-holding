@@ -59,7 +59,7 @@
                     <label class="admin-label">Facture liée</label>
                     <select name="invoice_id" class="admin-select">
                         <option value="">— Aucune facture —</option>
-                        @foreach($invoices as $inv)<option value="{{ $inv->id }}" {{ old('invoice_id') == $inv->id ? 'selected' : '' }}>{{ $inv->number }} — {{ $inv->customer_name }}</option>@endforeach
+                        @foreach($invoices as $inv)<option value="{{ $inv->id }}" {{ old('invoice_id') == $inv->id ? 'selected' : '' }}>{{ $inv->number }} — {{ $inv->client_name }}</option>@endforeach
                     </select>
                 </div>
             </div>

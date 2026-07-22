@@ -76,6 +76,20 @@
         <!-- Totals -->
         <div class="flex justify-end mb-10">
             <div class="w-64">
+                @if($invoice->tax_amount > 0)
+                <div class="flex justify-between py-2 border-b text-sm">
+                    <span class="text-gray-600">Sous-total H.T.</span>
+                    <span class="font-bold text-gray-900">{{ number_format($invoice->subtotal, 0, ',', ' ') }} FCFA</span>
+                </div>
+                <div class="flex justify-between py-2 border-b text-sm">
+                    <span class="text-gray-600">TVA (18%)</span>
+                    <span class="font-bold text-gray-900">{{ number_format($invoice->tax_amount, 0, ',', ' ') }} FCFA</span>
+                </div>
+                <div class="flex justify-between py-4 border-b">
+                    <span class="text-lg font-bold text-gray-900">TOTAL TTC</span>
+                    <span class="text-xl font-black text-navy-600">{{ number_format($invoice->total_amount, 0, ',', ' ') }} FCFA</span>
+                </div>
+                @else
                 <div class="flex justify-between py-2 border-b">
                     <span class="text-gray-600">Sous-total</span>
                     <span class="font-bold">{{ number_format($invoice->subtotal, 0, ',', ' ') }} FCFA</span>
@@ -84,6 +98,7 @@
                     <span class="text-lg font-bold">TOTAL</span>
                     <span class="text-xl font-black text-navy-600">{{ number_format($invoice->total_amount, 0, ',', ' ') }} FCFA</span>
                 </div>
+                @endif
             </div>
         </div>
 

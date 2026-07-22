@@ -26,8 +26,8 @@ Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
 Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
 Route::get('/shop/{slug}', [ShopController::class, 'show'])->name('shop.show');
 Route::get('/cart', [ShopController::class, 'cart'])->name('shop.cart');
-Route::get('/checkout', [ShopController::class, 'checkout'])->name('shop.checkout');
-Route::post('/checkout', [ShopController::class, 'placeOrder'])->name('shop.placeOrder');
+Route::get('/checkout', [ShopController::class, 'checkout'])->name('shop.checkout')->middleware('auth');
+Route::post('/checkout', [ShopController::class, 'placeOrder'])->name('shop.placeOrder')->middleware('auth');
 Route::get('/thanks/{order}', [ShopController::class, 'thanks'])->name('shop.thanks');
 Route::post('/cart/add/{id}', [ShopController::class, 'addToCart'])->name('shop.addToCart');
 Route::post('/cart/update', [ShopController::class, 'updateCart'])->name('shop.updateCart');
@@ -53,6 +53,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/orders', [\App\Http\Controllers\DashboardController::class, 'orders'])->name('dashboard.orders');
     Route::get('/dashboard/orders/{order}', [\App\Http\Controllers\DashboardController::class, 'showOrder'])->name('dashboard.orders.show');
     Route::get('/dashboard/settings', [\App\Http\Controllers\DashboardController::class, 'settings'])->name('dashboard.settings');
+    Route::get('/dashboard/warranties', [\App\Http\Controllers\DashboardController::class, 'warranties'])->name('dashboard.warranties');
+    
+    // Client Savings Routes
+    Route::get('/dashboard/savings', [\App\Http\Controllers\DashboardController::class, 'savings'])->name('dashboard.savings');
+    Route::get('/dashboard/savings/create', [\App\Http\Controllers\DashboardController::class, 'createSavingPlan'])->name('dashboard.savings.create');
+    Route::post('/dashboard/savings', [\App\Http\Controllers\DashboardController::class, 'storeSavingPlan'])->name('dashboard.savings.store');
+    Route::get('/dashboard/savings/{savingPlan}', [\App\Http\Controllers\DashboardController::class, 'showSavingPlan'])->name('dashboard.savings.show');
+    Route::post('/dashboard/savings/{savingPlan}/deposit', [\App\Http\Controllers\DashboardController::class, 'depositSavingPlan'])->name('dashboard.savings.deposit');
+    Route::post('/dashboard/savings/{savingPlan}/withdraw', [\App\Http\Controllers\DashboardController::class, 'withdrawSavingPlan'])->name('dashboard.savings.withdraw');
+
     Route::post('/dashboard/settings/profile', [\App\Http\Controllers\DashboardController::class, 'updateProfile'])->name('dashboard.settings.updateProfile');
     Route::post('/dashboard/settings/address', [\App\Http\Controllers\DashboardController::class, 'updateAddress'])->name('dashboard.settings.updateAddress');
     Route::post('/dashboard/settings/password', [\App\Http\Controllers\DashboardController::class, 'updatePassword'])->name('dashboard.settings.updatePassword');

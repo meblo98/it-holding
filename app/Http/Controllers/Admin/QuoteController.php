@@ -57,6 +57,7 @@ class QuoteController extends Controller
         foreach ($validated['items'] as $item) {
             $subtotal += $item['quantity'] * $item['unit_price'];
         }
+        $taxAmount = floatval($request->input('tax_amount', 0));
 
         $quote = Quote::create([
             'number'        => $validated['number'],
@@ -68,8 +69,8 @@ class QuoteController extends Controller
             'valid_until'   => $validated['valid_until'] ?? null,
             'notes'         => $validated['notes'] ?? null,
             'subtotal'      => $subtotal,
-            'tax_amount'    => 0,
-            'total_amount'  => $subtotal,
+            'tax_amount'    => $taxAmount,
+            'total_amount'  => $subtotal + $taxAmount,
             'share_token'   => Str::random(32),
         ]);
 
@@ -132,6 +133,7 @@ class QuoteController extends Controller
         foreach ($validated['items'] as $item) {
             $subtotal += $item['quantity'] * $item['unit_price'];
         }
+        $taxAmount = floatval($request->input('tax_amount', 0));
 
         $quote->update([
             'number'         => $validated['number'],
@@ -144,7 +146,8 @@ class QuoteController extends Controller
             'notes'          => $validated['notes'] ?? null,
             'status'         => $validated['status'],
             'subtotal'       => $subtotal,
-            'total_amount'   => $subtotal,
+            'tax_amount'     => $taxAmount,
+            'total_amount'   => $subtotal + $taxAmount,
         ]);
 
         $quote->items()->delete();

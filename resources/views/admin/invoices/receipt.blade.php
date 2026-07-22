@@ -96,7 +96,7 @@
             </div>
             @endif
             <div class="flex justify-between font-bold text-xs pt-1 border-t border-dotted border-black">
-                <span>TOTAL TTC:</span>
+                <span>{{ $invoice->tax_amount > 0 ? 'TOTAL TTC' : 'TOTAL' }}:</span>
                 <span>{{ number_format($invoice->total_amount, 0, ',', ' ') }} F</span>
             </div>
         </div>
