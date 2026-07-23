@@ -35,6 +35,11 @@ Route::get('/remove-from-cart/{id}', [ShopController::class, 'removeFromCart'])-
 Route::post('/shop/quote-request', [ShopController::class, 'requestQuote'])->name('shop.requestQuote')->middleware('auth');
 Route::post('/promo/apply', [ShopController::class, 'applyPromoCode'])->name('shop.promo.apply');
 Route::post('/promo/remove', [ShopController::class, 'removePromoCode'])->name('shop.promo.remove');
+Route::post('/tva/toggle', [ShopController::class, 'toggleTva'])->name('shop.tva.toggle');
+
+// Support Chat Routes (Client side)
+Route::get('/chat/messages', [\App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
+Route::post('/chat/send', [\App\Http\Controllers\ChatController::class, 'sendMessage'])->name('chat.send');
 
 
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
@@ -144,11 +149,31 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('reports/suppliers', [\App\Http\Controllers\Admin\ReportController::class, 'suppliers'])->name('reports.suppliers');
     Route::get('reports/sav', [\App\Http\Controllers\Admin\ReportController::class, 'sav'])->name('reports.sav');
     Route::get('reports/export', [\App\Http\Controllers\Admin\ReportController::class, 'export'])->name('reports.export');
+
+    // Support Chat Routes (Admin side)
+    Route::get('chat', [\App\Http\Controllers\ChatController::class, 'adminIndex'])->name('chat.index');
+    Route::get('chat/messages/{identifier}', [\App\Http\Controllers\ChatController::class, 'adminGetMessages'])->name('chat.messages');
+    Route::post('chat/send/{identifier}', [\App\Http\Controllers\ChatController::class, 'adminSendMessage'])->name('chat.send');
 });
 
 // Public views for shared docs
 Route::get('view/quote/{token}', [\App\Http\Controllers\Admin\QuoteController::class, 'publicView'])->name('quotes.public_view');
 Route::get('view/invoice/{token}', [\App\Http\Controllers\Admin\InvoiceController::class, 'publicView'])->name('invoices.public_view');
+
+// Storage Bypass Route for environments with blocked symlinks
+Route::get('storage-bypass/{path}', function ($path) {
+    if (str_contains($path, '..')) {
+        abort(403, 'Unauthorized action.');
+    }
+    
+    $fullPath = storage_path('app/public/' . $path);
+    
+    if (!file_exists($fullPath)) {
+        abort(404);
+    }
+    
+    return response()->file($fullPath);
+})->where('path', '.*')->name('storage.bypass');
 
 
 

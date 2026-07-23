@@ -59,15 +59,23 @@
                                 @endforeach
                             </ul>
                         </div>
-                        @if($order->promo_code_id && $order->discount_amount > 0)
+                        @if(($order->promo_code_id && $order->discount_amount > 0) || ($order->tax_amount && $order->tax_amount > 0))
                         <div class="bg-gray-50 px-4 py-2 sm:px-6 flex justify-between items-center border-t border-gray-200 text-sm">
                             <div class="text-gray-500">Sous-total brut</div>
-                            <div class="font-bold text-gray-700">{{ number_format($order->total_amount + $order->discount_amount, 0, ',', ' ') }} FCFA</div>
+                            <div class="font-bold text-gray-700">{{ number_format($order->total_amount - $order->tax_amount + $order->discount_amount, 0, ',', ' ') }} FCFA</div>
                         </div>
+                        @if($order->promo_code_id && $order->discount_amount > 0)
                         <div class="bg-gray-50 px-4 py-2 sm:px-6 flex justify-between items-center text-sm text-green-600">
                             <div>Remise Partenaire (Code: {{ $order->promoCode->code ?? 'N/A' }})</div>
                             <div class="font-bold">-{{ number_format($order->discount_amount, 0, ',', ' ') }} FCFA</div>
                         </div>
+                        @endif
+                        @if($order->tax_amount && $order->tax_amount > 0)
+                        <div class="bg-gray-50 px-4 py-2 sm:px-6 flex justify-between items-center text-sm text-gray-500">
+                            <div>Taxe / TVA (18%)</div>
+                            <div class="font-bold text-gray-700">+{{ number_format($order->tax_amount, 0, ',', ' ') }} FCFA</div>
+                        </div>
+                        @endif
                         @endif
                         <div class="bg-gray-50 px-4 py-4 sm:px-6 flex justify-between items-center border-t border-gray-200">
                             <div class="text-base font-medium text-gray-900 font-bold">Total payé/dû</div>

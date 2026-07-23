@@ -22,11 +22,13 @@ class Order extends Model
         'payment_method',
         'promo_code_id',
         'discount_amount',
+        'tax_amount',
     ];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
         'client_id' => 'integer',
     ];
 

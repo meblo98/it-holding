@@ -277,4 +277,45 @@ class PartnerPromoCodeTest extends TestCase
         $this->partnerClient->refresh();
         $this->assertEquals(0, $this->partnerClient->wallet_balance);
     }
+
+    /** @test */
+    public function it_applies_tva_on_order_placement_when_enabled()
+    {
+        $response = $this->actingAs($this->user)
+            ->withSession([
+                'cart' => [
+                    $this->product->id => [
+                        'product_id' => $this->product->id,
+                        'name' => $this->product->name,
+                        'slug' => $this->product->slug,
+                        'quantity' => 1,
+                        'price' => 100000,
+                        'options' => [],
+                    ]
+                ],
+                'promo_code' => 'PARTNERCODE',
+                'apply_tva' => true,
+            ])
+            ->post(route('shop.placeOrder'), [
+                'first_name' => 'John',
+                'last_name' => 'Doe',
+                'email' => 'john@example.com',
+                'phone' => '771234567',
+                'address' => 'Medina',
+                'city' => 'Dakar',
+                'country' => 'Sénégal',
+                'zip' => '10000',
+                'payment_method' => 'cod',
+            ]);
+
+        $response->assertRedirect();
+
+        // Check order was created with discount & tax info
+        $order = Order::latest()->first();
+        $this->assertNotNull($order);
+        $this->assertEquals($this->promoCode->id, $order->promo_code_id);
+        $this->assertEquals(5000, $order->discount_amount);
+        $this->assertEquals(17100, $order->tax_amount); // 18% of 95000
+        $this->assertEquals(112100, $order->total_amount); // 95,000 + 17,100 tax
+    }
 }

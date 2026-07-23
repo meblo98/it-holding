@@ -168,6 +168,14 @@
                          SAV & Tickets
                      </a>
 
+                     {{-- Chat Support --}}
+                     <a href="{{ route('admin.chat.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.chat*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                         <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.chat*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                         </svg>
+                         Chat Support
+                     </a>
+
                      {{-- Contrats Maintenance --}}
                      <a href="{{ route('admin.contracts.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.contracts*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
                          <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.contracts*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">

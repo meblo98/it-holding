@@ -177,6 +177,15 @@
                             <span class="text-gray-400">Livraison</span>
                             <span class="font-bold text-green-600">Gratuit</span>
                         </div>
+                        
+                        <div class="border-t border-gray-100 pt-3">
+                            <label class="flex items-center text-xs font-bold text-navy-800 uppercase tracking-tight cursor-pointer select-none">
+                                <input type="checkbox" id="tva_toggle" onchange="toggleTva(this.checked)" {{ Session::get('apply_tva', false) ? 'checked' : '' }} class="rounded border-gray-200 text-gold-500 focus:ring-gold-500 mr-2">
+                                Appliquer la TVA (18%)
+                            </label>
+                        </div>
+                        
+                        @if(Session::get('apply_tva', false))
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-400">Taxe / TVA (18%)</span>
                             <span class="font-bold text-navy-900">{{ number_format($discountedSubtotal * 0.18, 0, ',', ' ') }} CFA</span>
@@ -185,6 +194,12 @@
                             <span class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Total TTC</span>
                             <span class="text-2xl font-black text-gold-500">{{ number_format($discountedSubtotal * 1.18, 0, ',', ' ') }} <span class="text-xs">CFA</span></span>
                         </div>
+                        @else
+                        <div class="border-t border-gray-50 pt-4 mt-4 flex justify-between items-end">
+                            <span class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Total</span>
+                            <span class="text-2xl font-black text-gold-500">{{ number_format($discountedSubtotal, 0, ',', ' ') }} <span class="text-xs">CFA</span></span>
+                        </div>
+                        @endif
                     </div>
 
                     @if(count($cart) > 0)
@@ -272,6 +287,28 @@
         if (confirm('Voulez-vous vraiment retirer cet article du panier ?')) {
             window.location.href = '{{ url('remove-from-cart') }}/' + productId;
         }
+    }
+
+    function toggleTva(checked) {
+        fetch('{{ route('shop.tva.toggle') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                apply_tva: checked
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     }
 </script>
 @endsection

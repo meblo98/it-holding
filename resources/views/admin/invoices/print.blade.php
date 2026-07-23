@@ -23,7 +23,7 @@
                 <h1 class="text-2xl font-bold text-gray-900 uppercase">IT HOLDING SERVICES</h1>
                 <p class="text-sm text-gray-600">Sénégal, Dakar</p>
                 <p class="text-sm text-gray-600">contact@itholding.sn</p>
-                <p class="text-sm text-gray-600">+221 XX XXX XX XX</p>
+                <p class="text-sm text-gray-600">+221 77 351 87 16</p>
             </div>
             <div class="text-right">
                 <h2 class="text-4xl font-black text-gray-300 uppercase mb-2">FACTURE</h2>
@@ -157,8 +157,8 @@
             <div class="text-center flex flex-col items-center">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Pour IT HOLDING SERVICES</p>
                 <div class="h-24 flex items-center justify-center mb-2">
-                    @if(file_exists(public_path('signature_cachet.png')))
-                        <img src="{{ asset('signature_cachet.png') }}" alt="Signature & Cachet" class="max-h-24 object-contain">
+                    @if(file_exists(storage_path('app/public/signature_cachet.png')))
+                        <img src="{{ route('storage.bypass', 'signature_cachet.png') }}" alt="Signature & Cachet" class="max-h-24 object-contain">
                     @elseif(file_exists(public_path('signature.png')) || file_exists(public_path('cachet.png')))
                         <div class="flex justify-center gap-2">
                             @if(file_exists(public_path('signature.png')))

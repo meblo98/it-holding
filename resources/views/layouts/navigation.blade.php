@@ -161,7 +161,7 @@
             
             <div class="px-6 py-8 mt-4 bg-gray-50">
                 <p class="text-xs text-gray-500 mb-2">BESOIN D'AIDE ?</p>
-                <p class="font-bold text-navy-900">+221 33 823 45 67</p>
+                <p class="font-bold text-navy-900">+221 77 351 87 16</p>
                 <p class="text-sm text-navy-700">contact@itholding.sn</p>
             </div>
         </div>

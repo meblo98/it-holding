@@ -37,7 +37,7 @@
         "logo": "{{ asset('logo.jpeg') }}",
         "contactPoint": {
             "@@type": "ContactPoint",
-            "telephone": "+221 XX XXX XX XX",
+            "telephone": "+221 77 351 87 16",
             "contactType": "customer service",
             "areaServed": "SN",
             "availableLanguage": "French"
@@ -217,6 +217,8 @@
     </main>
 
     @include('layouts.footer')
+
+    @include('partials.chat_widget')
 
     @stack('scripts')
 </body>

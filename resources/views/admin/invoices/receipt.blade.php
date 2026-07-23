@@ -21,7 +21,7 @@
             <h1 class="text-sm font-black uppercase tracking-wider">IT HOLDING SERVICES</h1>
             <p class="text-[9px] text-gray-600">Sénégal, Dakar</p>
             <p class="text-[9px] text-gray-600">contact@itholding.sn</p>
-            <p class="text-[9px] text-gray-600">+221 XX XXX XX XX</p>
+            <p class="text-[9px] text-gray-600">+221 77 351 87 16</p>
         </div>
 
         <div class="border-b border-dashed border-black my-2"></div>

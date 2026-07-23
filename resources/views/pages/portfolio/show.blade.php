@@ -140,7 +140,7 @@
                     </div>
                     <div>
                         <span class="block text-[9px] font-black text-navy-900 uppercase tracking-widest mb-1">Téléphone</span>
-                        <span class="text-sm font-black text-navy-900">+221 33 800 00 00</span>
+                        <span class="text-sm font-black text-navy-900">+221 77 351 87 16</span>
                     </div>
                 </div>
             </aside>

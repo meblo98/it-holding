@@ -122,8 +122,8 @@
             <div class="text-center flex flex-col items-center">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Pour IT HOLDING SERVICES</p>
                 <div class="h-24 flex items-center justify-center mb-2">
-                    @if(file_exists(public_path('signature_cachet.png')))
-                        <img src="{{ asset('signature_cachet.png') }}" alt="Signature & Cachet" class="max-h-24 object-contain">
+                    @if(file_exists(storage_path('app/public/signature_cachet.png')))
+                        <img src="{{ route('storage.bypass', 'signature_cachet.png') }}" alt="Signature & Cachet" class="max-h-24 object-contain">
                     @elseif(file_exists(public_path('signature.png')) || file_exists(public_path('cachet.png')))
                         <div class="flex justify-center gap-2">
                             @if(file_exists(public_path('signature.png')))

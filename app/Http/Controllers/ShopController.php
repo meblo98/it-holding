@@ -257,6 +257,13 @@ class ShopController extends Controller
         return redirect()->back()->with('success', 'Code promo retiré.');
     }
 
+    public function toggleTva(Request $request)
+    {
+        $apply = (bool) $request->input('apply_tva');
+        Session::put('apply_tva', $apply);
+        return response()->json(['success' => true]);
+    }
+
     /**
      * Show checkout form
      */
@@ -361,7 +368,14 @@ class ShopController extends Controller
                 $discount = ($total * $promoCode->discount_percent) / 100;
             }
         }
-        $finalTotal = $total - $discount;
+        $subtotalAfterDiscount = $total - $discount;
+
+        // Calculate tax/TVA if requested
+        $taxAmount = 0;
+        if (Session::get('apply_tva', false)) {
+            $taxAmount = $subtotalAfterDiscount * 0.18;
+        }
+        $grandTotal = $subtotalAfterDiscount + $taxAmount;
 
         $user = Auth::user();
         $client = \App\Models\Client::where('user_id', $user->id)->first();
@@ -383,7 +397,7 @@ class ShopController extends Controller
             if (!$client) {
                 return redirect()->back()->with('error', 'Vous devez être enregistré comme client pour payer avec le portefeuille.');
             }
-            if ($client->wallet_balance < $finalTotal) {
+            if ($client->wallet_balance < $grandTotal) {
                 return redirect()->back()->with('error', 'Solde du portefeuille insuffisant. Solde : ' . number_format($client->wallet_balance, 0) . ' FCFA.');
             }
         }
@@ -393,8 +407,8 @@ class ShopController extends Controller
             if (!$client || !$client->is_professional) {
                 return redirect()->back()->with('error', 'Seuls les clients professionnels enregistrés peuvent commander à crédit.');
             }
-            if (($client->current_balance + $finalTotal) > $client->credit_limit) {
-                return redirect()->back()->with('error', 'Plafond de crédit dépassé. Solde dû + Commande : ' . number_format($client->current_balance + $finalTotal, 0) . ' / ' . number_format($client->credit_limit, 0) . ' FCFA.');
+            if (($client->current_balance + $grandTotal) > $client->credit_limit) {
+                return redirect()->back()->with('error', 'Plafond de crédit dépassé. Solde dû + Commande : ' . number_format($client->current_balance + $grandTotal, 0) . ' / ' . number_format($client->credit_limit, 0) . ' FCFA.');
             }
         }
 
@@ -406,9 +420,9 @@ class ShopController extends Controller
             $paymentStatus = 'unpaid';
             if ($validated['payment_method'] === 'wallet') {
                 $paymentStatus = 'paid';
-                $client->decrement('wallet_balance', $finalTotal);
+                $client->decrement('wallet_balance', $grandTotal);
             } elseif ($validated['payment_method'] === 'credit') {
-                $client->increment('current_balance', $finalTotal);
+                $client->increment('current_balance', $grandTotal);
             }
 
             $order = Order::create([
@@ -418,19 +432,20 @@ class ShopController extends Controller
                 'customer_email' => $validated['email'],
                 'customer_phone' => $validated['phone'] ?? null,
                 'customer_address' => $fullAddress,
-                'total_amount' => $finalTotal,
+                'total_amount' => $grandTotal,
                 'status' => 'pending',
                 'payment_status' => $paymentStatus,
                 'payment_method' => $validated['payment_method'],
                 'promo_code_id' => $promoCode ? $promoCode->id : null,
                 'discount_amount' => $discount,
+                'tax_amount' => $taxAmount,
             ]);
 
             if ($validated['payment_method'] === 'wallet') {
                 \App\Models\WalletTransaction::create([
                     'client_id' => $client->id,
                     'type' => 'payment',
-                    'amount' => $finalTotal,
+                    'amount' => $grandTotal,
                     'description' => "Paiement de la commande #" . $order->id,
                     'transaction_date' => now(),
                     'order_id' => $order->id,
@@ -499,6 +514,7 @@ class ShopController extends Controller
             // clear cart and promo code
             Session::forget('cart');
             Session::forget('promo_code');
+            Session::forget('apply_tva');
 
             $successMsg = 'Commande passée.';
             if ($validated['payment_method'] === 'wallet') {
