@@ -162,6 +162,40 @@ class DashboardController extends Controller
         return back()->with('success', 'Mot de passe mis à jour avec succès.');
     }
 
+    public function partner()
+    {
+        $user = Auth::user();
+        $promoCodes = $user->promoCodes;
+        $commissions = $user->commissions()->with(['order', 'promoCode'])->latest()->paginate(10);
+
+        $totalEarned = $user->totalCommissionsEarned();
+        $totalPending = $user->totalCommissionsPending();
+
+        $client = \App\Models\Client::where('user_id', $user->id)->first();
+
+        return view('pages.shop.partner', compact('user', 'promoCodes', 'commissions', 'totalEarned', 'totalPending', 'client'));
+    }
+
+    public function generatePromoCode(Request $request)
+    {
+        $user = Auth::user();
+        $request->validate([
+            'code' => 'required|string|alpha_num|min:3|max:20|unique:partner_promo_codes,code',
+        ]);
+
+        $code = strtoupper($request->code);
+
+        \App\Models\PartnerPromoCode::create([
+            'partner_id' => $user->id,
+            'code' => $code,
+            'discount_percent' => 5.00, // 5% discount for buyers
+            'commission_percent' => 10.00, // 10% commission for partners
+            'is_active' => true,
+        ]);
+
+        return redirect()->back()->with('success', 'Votre code promo partenaire "' . $code . '" a été créé avec succès !');
+    }
+
     public function savings()
     {
         $user = Auth::user();

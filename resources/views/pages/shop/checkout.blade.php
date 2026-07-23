@@ -237,17 +237,24 @@
                             <span class="text-gray-400">Livraison</span>
                             <span class="font-bold text-green-600">Gratuit</span>
                         </div>
+                        @if(isset($promoCode) && $promoCode)
+                        <div class="flex justify-between text-green-600 font-bold">
+                            <span>Remise (Code: {{ $promoCode->code }})</span>
+                            <span>-{{ number_format($discount, 0, ',', ' ') }} CFA</span>
+                        </div>
+                        @else
                         <div class="flex justify-between">
                             <span class="text-gray-400">Remise</span>
                             <span class="font-bold text-red-500">0 CFA</span>
                         </div>
+                        @endif
                         <div class="flex justify-between">
                             <span class="text-gray-400 text-xs">Taxe / TVA (18%)</span>
-                            <span class="font-bold text-navy-900 text-xs">{{ number_format($total * 0.18, 0, ',', ' ') }} CFA</span>
+                            <span class="font-bold text-navy-900 text-xs">{{ number_format($discountedTotal * 0.18, 0, ',', ' ') }} CFA</span>
                         </div>
                         <div class="border-t border-gray-50 pt-4 mt-4 flex justify-between items-end">
                             <span class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Total TTC</span>
-                            <span class="text-2xl font-black text-gold-500">{{ number_format($total * 1.18, 0, ',', ' ') }} <span class="text-xs">CFA</span></span>
+                            <span class="text-2xl font-black text-gold-500">{{ number_format($discountedTotal * 1.18, 0, ',', ' ') }} <span class="text-xs">CFA</span></span>
                         </div>
                     </div>
 

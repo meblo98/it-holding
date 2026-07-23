@@ -92,7 +92,21 @@ class ShopController extends Controller
             $total += $cart[$id]['price'] * $cart[$id]['quantity'];
         }
         Session::put('cart', $cart);
-        return view('pages.shop.cart', compact('cart', 'total'));
+
+        // Apply promo code if set
+        $discount = 0;
+        $promoCode = null;
+        if (Session::has('promo_code')) {
+            $promoCode = \App\Models\PartnerPromoCode::where('code', Session::get('promo_code'))->where('is_active', true)->first();
+            if ($promoCode) {
+                $discount = ($total * $promoCode->discount_percent) / 100;
+            } else {
+                Session::forget('promo_code');
+            }
+        }
+        $discountedTotal = $total - $discount;
+
+        return view('pages.shop.cart', compact('cart', 'total', 'discount', 'discountedTotal', 'promoCode'));
     }
 
     public function addToCart(Request $request, $id)
@@ -218,6 +232,31 @@ class ShopController extends Controller
         return redirect()->back()->with('success', 'Produit retiré du panier.');
     }
 
+    public function applyPromoCode(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|string|max:50',
+        ]);
+
+        $promoCode = \App\Models\PartnerPromoCode::where('code', $request->code)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$promoCode) {
+            return redirect()->back()->with('error', 'Code promo invalide ou expiré.');
+        }
+
+        Session::put('promo_code', $promoCode->code);
+
+        return redirect()->back()->with('success', 'Code promo appliqué avec succès !');
+    }
+
+    public function removePromoCode()
+    {
+        Session::forget('promo_code');
+        return redirect()->back()->with('success', 'Code promo retiré.');
+    }
+
     /**
      * Show checkout form
      */
@@ -242,6 +281,20 @@ class ShopController extends Controller
             }
             $total += $cart[$id]['price'] * $cart[$id]['quantity'];
         }
+
+        // Apply promo code if set
+        $discount = 0;
+        $promoCode = null;
+        if (Session::has('promo_code')) {
+            $promoCode = \App\Models\PartnerPromoCode::where('code', Session::get('promo_code'))->where('is_active', true)->first();
+            if ($promoCode) {
+                $discount = ($total * $promoCode->discount_percent) / 100;
+            } else {
+                Session::forget('promo_code');
+            }
+        }
+        $discountedTotal = $total - $discount;
+
         $user = Auth::user();
         $client = \App\Models\Client::where('user_id', $user->id)->first();
         if (!$client) {
@@ -257,7 +310,7 @@ class ShopController extends Controller
             ]);
         }
         Session::put('cart', $cart);
-        return view('pages.shop.checkout', compact('cart', 'total', 'client'));
+        return view('pages.shop.checkout', compact('cart', 'total', 'discount', 'discountedTotal', 'promoCode', 'client'));
     }
 
     /**
@@ -299,6 +352,17 @@ class ShopController extends Controller
             $total += $cart[$id]['price'] * $cart[$id]['quantity'];
         }
 
+        // Apply promo code if set
+        $discount = 0;
+        $promoCode = null;
+        if (Session::has('promo_code')) {
+            $promoCode = \App\Models\PartnerPromoCode::where('code', Session::get('promo_code'))->where('is_active', true)->first();
+            if ($promoCode) {
+                $discount = ($total * $promoCode->discount_percent) / 100;
+            }
+        }
+        $finalTotal = $total - $discount;
+
         $user = Auth::user();
         $client = \App\Models\Client::where('user_id', $user->id)->first();
         if (!$client) {
@@ -319,7 +383,7 @@ class ShopController extends Controller
             if (!$client) {
                 return redirect()->back()->with('error', 'Vous devez être enregistré comme client pour payer avec le portefeuille.');
             }
-            if ($client->wallet_balance < $total) {
+            if ($client->wallet_balance < $finalTotal) {
                 return redirect()->back()->with('error', 'Solde du portefeuille insuffisant. Solde : ' . number_format($client->wallet_balance, 0) . ' FCFA.');
             }
         }
@@ -329,8 +393,8 @@ class ShopController extends Controller
             if (!$client || !$client->is_professional) {
                 return redirect()->back()->with('error', 'Seuls les clients professionnels enregistrés peuvent commander à crédit.');
             }
-            if (($client->current_balance + $total) > $client->credit_limit) {
-                return redirect()->back()->with('error', 'Plafond de crédit dépassé. Solde dû + Commande : ' . number_format($client->current_balance + $total, 0) . ' / ' . number_format($client->credit_limit, 0) . ' FCFA.');
+            if (($client->current_balance + $finalTotal) > $client->credit_limit) {
+                return redirect()->back()->with('error', 'Plafond de crédit dépassé. Solde dû + Commande : ' . number_format($client->current_balance + $finalTotal, 0) . ' / ' . number_format($client->credit_limit, 0) . ' FCFA.');
             }
         }
 
@@ -342,9 +406,9 @@ class ShopController extends Controller
             $paymentStatus = 'unpaid';
             if ($validated['payment_method'] === 'wallet') {
                 $paymentStatus = 'paid';
-                $client->decrement('wallet_balance', $total);
+                $client->decrement('wallet_balance', $finalTotal);
             } elseif ($validated['payment_method'] === 'credit') {
-                $client->increment('current_balance', $total);
+                $client->increment('current_balance', $finalTotal);
             }
 
             $order = Order::create([
@@ -354,20 +418,35 @@ class ShopController extends Controller
                 'customer_email' => $validated['email'],
                 'customer_phone' => $validated['phone'] ?? null,
                 'customer_address' => $fullAddress,
-                'total_amount' => $total,
+                'total_amount' => $finalTotal,
                 'status' => 'pending',
                 'payment_status' => $paymentStatus,
                 'payment_method' => $validated['payment_method'],
+                'promo_code_id' => $promoCode ? $promoCode->id : null,
+                'discount_amount' => $discount,
             ]);
 
             if ($validated['payment_method'] === 'wallet') {
                 \App\Models\WalletTransaction::create([
                     'client_id' => $client->id,
                     'type' => 'payment',
-                    'amount' => $total,
+                    'amount' => $finalTotal,
                     'description' => "Paiement de la commande #" . $order->id,
                     'transaction_date' => now(),
                     'order_id' => $order->id,
+                ]);
+            }
+
+            // Create the Partner Commission record if a promo code was used
+            if ($promoCode) {
+                $commissionAmount = ($total * $promoCode->commission_percent) / 100;
+                \App\Models\PartnerCommission::create([
+                    'partner_id' => $promoCode->partner_id,
+                    'order_id' => $order->id,
+                    'promo_code_id' => $promoCode->id,
+                    'order_amount' => $total,
+                    'commission_amount' => $commissionAmount,
+                    'status' => 'pending',
                 ]);
             }
 
@@ -417,8 +496,9 @@ class ShopController extends Controller
                 Log::error("Error sending WhatsApp notification: " . $e->getMessage());
             }
 
-            // clear cart
+            // clear cart and promo code
             Session::forget('cart');
+            Session::forget('promo_code');
 
             $successMsg = 'Commande passée.';
             if ($validated['payment_method'] === 'wallet') {

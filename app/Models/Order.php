@@ -20,10 +20,13 @@ class Order extends Model
         'status',
         'payment_status',
         'payment_method',
+        'promo_code_id',
+        'discount_amount',
     ];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
         'client_id' => 'integer',
     ];
 
@@ -40,5 +43,15 @@ class Order extends Model
     public function client()
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function promoCode()
+    {
+        return $this->belongsTo(PartnerPromoCode::class, 'promo_code_id');
+    }
+
+    public function commissions()
+    {
+        return $this->hasMany(PartnerCommission::class, 'order_id');
     }
 }

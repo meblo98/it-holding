@@ -82,6 +82,26 @@ class User extends Authenticatable
         return $this->hasOne(Client::class);
     }
 
+    public function promoCodes()
+    {
+        return $this->hasMany(PartnerPromoCode::class, 'partner_id');
+    }
+
+    public function commissions()
+    {
+        return $this->hasMany(PartnerCommission::class, 'partner_id');
+    }
+
+    public function totalCommissionsEarned()
+    {
+        return $this->commissions()->where('status', 'paid')->sum('commission_amount');
+    }
+
+    public function totalCommissionsPending()
+    {
+        return $this->commissions()->where('status', 'pending')->sum('commission_amount');
+    }
+
     // ── Photo accessor ───────────────────────────────────────────────────────
     protected function photoUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
     {

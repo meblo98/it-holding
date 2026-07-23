@@ -148,6 +148,17 @@
             <!-- Right Column: Order Summary -->
             <div class="lg:col-span-4 mt-12 lg:mt-0 sticky top-8 space-y-8">
                 <!-- Card Totals -->
+                @php
+                    $promoCode = null;
+                    $discountAmount = 0;
+                    if (Session::has('promo_code')) {
+                        $promoCode = \App\Models\PartnerPromoCode::where('code', Session::get('promo_code'))->where('is_active', true)->first();
+                        if ($promoCode) {
+                            $discountAmount = ($total * $promoCode->discount_percent) / 100;
+                        }
+                    }
+                    $discountedSubtotal = $total - $discountAmount;
+                @endphp
                 <div class="bg-white border border-gray-100 rounded-xl shadow-md overflow-hidden p-8">
                     <h2 class="text-lg font-bold text-navy-900 uppercase tracking-tighter italic border-b border-gray-50 pb-4 mb-6">Total Panier</h2>
                     
@@ -156,17 +167,23 @@
                             <span class="text-gray-400">Sous-total</span>
                             <span class="font-bold text-navy-900">{{ number_format($total, 0, ',', ' ') }} CFA</span>
                         </div>
+                        @if($promoCode)
+                        <div class="flex justify-between text-sm text-green-600 font-bold">
+                            <span>Remise (Code: {{ $promoCode->code }} -{{ number_format($promoCode->discount_percent, 0) }}%)</span>
+                            <span>-{{ number_format($discountAmount, 0, ',', ' ') }} CFA</span>
+                        </div>
+                        @endif
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-400">Livraison</span>
                             <span class="font-bold text-green-600">Gratuit</span>
                         </div>
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-400">Taxe / TVA (18%)</span>
-                            <span class="font-bold text-navy-900">{{ number_format($total * 0.18, 0, ',', ' ') }} CFA</span>
+                            <span class="font-bold text-navy-900">{{ number_format($discountedSubtotal * 0.18, 0, ',', ' ') }} CFA</span>
                         </div>
                         <div class="border-t border-gray-50 pt-4 mt-4 flex justify-between items-end">
                             <span class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Total TTC</span>
-                            <span class="text-2xl font-black text-gold-500">{{ number_format($total * 1.18, 0, ',', ' ') }} <span class="text-xs">CFA</span></span>
+                            <span class="text-2xl font-black text-gold-500">{{ number_format($discountedSubtotal * 1.18, 0, ',', ' ') }} <span class="text-xs">CFA</span></span>
                         </div>
                     </div>
 
@@ -184,11 +201,26 @@
 
                 <!-- Coupon Section -->
                 <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden p-8">
-                    <h3 class="text-xs font-bold text-navy-900 uppercase tracking-widest mb-4">Cidre de Promotion</h3>
-                    <div class="relative">
-                        <input type="text" placeholder="Entrez votre code" class="w-full border-gray-100 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/50">
-                        <button type="button" class="mt-4 w-full bg-navy-900 text-white rounded-lg py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-gold-500 hover:text-navy-900 transition-all">Appliquer le coupon</button>
-                    </div>
+                    @if($promoCode)
+                        <h3 class="text-xs font-bold text-navy-900 uppercase tracking-widest mb-4">Code Promo Appliqué</h3>
+                        <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-xs font-bold italic mb-4 flex items-center justify-between">
+                            <span>Code : {{ $promoCode->code }}</span>
+                            <span>-{{ number_format($promoCode->discount_percent, 0) }}%</span>
+                        </div>
+                        <form action="{{ route('shop.promo.remove') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="w-full bg-red-600 text-white rounded-lg py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-red-700 transition-all">Retirer le code</button>
+                        </form>
+                    @else
+                        <h3 class="text-xs font-bold text-navy-900 uppercase tracking-widest mb-4">Code de Promotion</h3>
+                        <form action="{{ route('shop.promo.apply') }}" method="POST">
+                            @csrf
+                            <div class="relative">
+                                <input type="text" name="code" required placeholder="Entrez votre code" class="w-full border-gray-100 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/50 uppercase tracking-widest">
+                                <button type="submit" class="mt-4 w-full bg-navy-900 text-white rounded-lg py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-gold-500 hover:text-navy-900 transition-all">Appliquer le code</button>
+                            </div>
+                        </form>
+                    @endif
                 </div>
             </div>
         </div>

@@ -33,6 +33,8 @@ Route::post('/cart/add/{id}', [ShopController::class, 'addToCart'])->name('shop.
 Route::post('/cart/update', [ShopController::class, 'updateCart'])->name('shop.updateCart');
 Route::get('/remove-from-cart/{id}', [ShopController::class, 'removeFromCart'])->name('shop.removeFromCart');
 Route::post('/shop/quote-request', [ShopController::class, 'requestQuote'])->name('shop.requestQuote')->middleware('auth');
+Route::post('/promo/apply', [ShopController::class, 'applyPromoCode'])->name('shop.promo.apply');
+Route::post('/promo/remove', [ShopController::class, 'removePromoCode'])->name('shop.promo.remove');
 
 
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
@@ -54,6 +56,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/orders/{order}', [\App\Http\Controllers\DashboardController::class, 'showOrder'])->name('dashboard.orders.show');
     Route::get('/dashboard/settings', [\App\Http\Controllers\DashboardController::class, 'settings'])->name('dashboard.settings');
     Route::get('/dashboard/warranties', [\App\Http\Controllers\DashboardController::class, 'warranties'])->name('dashboard.warranties');
+    
+    // Partner Promo & Commission Routes
+    Route::get('/dashboard/partner', [\App\Http\Controllers\DashboardController::class, 'partner'])->name('dashboard.partner');
+    Route::post('/dashboard/partner/promo', [\App\Http\Controllers\DashboardController::class, 'generatePromoCode'])->name('dashboard.partner.promo.generate');
     
     // Client Savings Routes
     Route::get('/dashboard/savings', [\App\Http\Controllers\DashboardController::class, 'savings'])->name('dashboard.savings');
