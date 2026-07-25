@@ -55,7 +55,7 @@ Route::middleware('guest')->group(function () {
 
 Route::post('logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'redirect.admin'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/orders', [\App\Http\Controllers\DashboardController::class, 'orders'])->name('dashboard.orders');
     Route::get('/dashboard/orders/{order}', [\App\Http\Controllers\DashboardController::class, 'showOrder'])->name('dashboard.orders.show');
