@@ -16,6 +16,8 @@ class Product extends Model
         'price',
         'purchase_price',
         'stock',
+        'available_at',
+        'warranty_duration_months',
         'image',
         'active',
         'promo_price',
@@ -33,6 +35,8 @@ class Product extends Model
         'purchase_price' => 'decimal:2',
         'promo_price' => 'decimal:2',
         'stock' => 'integer',
+        'available_at' => 'date',
+        'warranty_duration_months' => 'integer',
         'active' => 'boolean',
         'blackfriday' => 'boolean',
         'wholesale_qty' => 'integer',
@@ -87,5 +91,10 @@ class Product extends Model
     public function options()
     {
         return $this->hasMany(ProductOption::class);
+    }
+
+    public function isPreorderable()
+    {
+        return $this->stock <= 0 && !is_null($this->available_at);
     }
 }

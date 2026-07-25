@@ -97,7 +97,11 @@
                     </div>
                     <div>
                         <span class="text-gray-400 block mb-1">Disponibilité:</span>
-                        <span class="font-bold text-green-600">{{ $product->stock > 0 ? 'En stock' : 'Rupture de stock' }}</span>
+                        @if($product->isPreorderable())
+                            <span class="font-bold text-amber-600">En précommande (Disponible le {{ $product->available_at->format('d/m/Y') }})</span>
+                        @else
+                            <span class="font-bold {{ $product->stock > 0 ? 'text-green-600' : 'text-red-600' }}">{{ $product->stock > 0 ? 'En stock' : 'Rupture de stock' }}</span>
+                        @endif
                     </div>
                     <div>
                         <span class="text-gray-400 block mb-1">Marque:</span>
@@ -200,11 +204,11 @@
                         <div class="flex items-center gap-4">
                             <div x-data="{ qty: 1 }" class="flex items-center border-2 border-gray-100 rounded-lg p-1 bg-gray-50">
                                 <button type="button" @click="if(qty > 1) qty--" class="w-10 h-10 flex items-center justify-center text-navy-900 hover:bg-white rounded transition-colors">-</button>
-                                <input type="number" name="quantity" x-model="qty" class="w-12 text-center border-none bg-transparent font-bold focus:ring-0 text-navy-900" min="1" max="{{ $product->stock }}">
-                                <button type="button" @click="if(qty < {{ $product->stock }}) qty++" class="w-10 h-10 flex items-center justify-center text-navy-900 hover:bg-white rounded transition-colors">+</button>
+                                <input type="number" name="quantity" x-model="qty" class="w-12 text-center border-none bg-transparent font-bold focus:ring-0 text-navy-900" min="1" {!! !$product->isPreorderable() ? 'max="'.$product->stock.'"' : '' !!}>
+                                <button type="button" @click="if({{ $product->isPreorderable() ? 'true' : 'qty < '.$product->stock }}) qty++" class="w-10 h-10 flex items-center justify-center text-navy-900 hover:bg-white rounded transition-colors">+</button>
                             </div>
-                            <button type="submit" class="flex-grow btn-primary-gold h-12 uppercase tracking-widest text-xs flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed" {{ $product->stock <= 0 ? 'disabled' : '' }}>
-                                Ajouter au Panier
+                            <button type="submit" class="flex-grow {{ $product->isPreorderable() ? 'bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg shadow-sm' : 'btn-primary-gold' }} h-12 uppercase tracking-widest text-xs flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed" {{ $product->stock <= 0 && !$product->isPreorderable() ? 'disabled' : '' }}>
+                                {{ $product->isPreorderable() ? 'Précommander' : 'Ajouter au Panier' }}
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                             </button>
                         </div>
@@ -274,6 +278,12 @@
                             @endif
                         </tbody>
                     </table>
+                </div>
+                <div x-show="tab === 'shipping'" x-transition class="max-w-3xl text-sm leading-8 text-gray-500 space-y-4">
+                    <h4 class="font-bold text-navy-900 uppercase tracking-tighter italic">Garantie Client</h4>
+                    <p>Ce produit bénéficie d'une garantie de <strong class="text-navy-900">{{ $product->warranty_duration_months ?? 12 }} mois</strong> (soit {{ ($product->warranty_duration_months ?? 12) % 12 === 0 ? (($product->warranty_duration_months ?? 12) / 12) . ' an(s)' : ($product->warranty_duration_months ?? 12) . ' mois' }}) à compter de la date d'achat.</p>
+                    <h4 class="font-bold text-navy-900 uppercase tracking-tighter italic mt-6">Livraison & Expédition</h4>
+                    <p>Livraison rapide et sécurisée sous 24 à 48 heures. Suivi en temps réel de votre colis depuis votre tableau de bord.</p>
                 </div>
             </div>
         </div>

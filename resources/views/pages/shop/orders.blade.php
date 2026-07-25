@@ -76,7 +76,14 @@
                             <tbody class="divide-y divide-gray-50">
                                 @forelse($orders as $order)
                                 <tr class="hover:bg-gray-50/50 transition-colors group">
-                                    <td class="px-8 py-5 text-[11px] font-bold text-navy-900 italic">#{{ str_pad($order->id, 8, '0', STR_PAD_LEFT) }}</td>
+                                    <td class="px-8 py-5 text-[11px] font-bold text-navy-900 italic">
+                                        #{{ str_pad($order->id, 8, '0', STR_PAD_LEFT) }}
+                                        @if($order->hasPreorder())
+                                            <span class="ml-1 px-2 inline-flex text-[9px] leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
+                                                Précommande
+                                            </span>
+                                        @endif
+                                    </td>
                                     <td class="px-8 py-5">
                                         @php
                                             $statusColors = [

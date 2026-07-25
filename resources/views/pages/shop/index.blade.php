@@ -200,8 +200,10 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                     @forelse($products as $product)
                         <div class="product-card group bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 relative">
-                            <!-- Discount Badge -->
-                            @if($product->promo_price && $product->promo_price < $product->price)
+                            <!-- Discount/Preorder Badge -->
+                            @if($product->isPreorderable())
+                                <div class="absolute top-4 left-4 z-10 bg-amber-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase italic">PRÉCOMMANDE</div>
+                            @elseif($product->promo_price && $product->promo_price < $product->price)
                                 <div class="absolute top-4 left-4 z-10 bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase italic">PROMO</div>
                             @endif
                             @if($product->blackfriday)
@@ -223,7 +225,7 @@
                                     <form action="{{ route('shop.addToCart', $product->id) }}" method="POST">
                                         @csrf
                                         <input type="hidden" name="quantity" value="1">
-                                        <button type="submit" class="w-10 h-10 bg-gold-500 text-navy-900 rounded-full flex items-center justify-center hover:bg-white transition-colors" title="Ajouter au Panier">
+                                        <button type="submit" class="w-10 h-10 {{ $product->isPreorderable() ? 'bg-amber-500' : 'bg-gold-500' }} text-navy-900 rounded-full flex items-center justify-center hover:bg-white transition-colors" title="{{ $product->isPreorderable() ? 'Précommander' : 'Ajouter au Panier' }}">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                                         </button>
                                     </form>
@@ -244,12 +246,19 @@
                                     <a href="{{ route('shop.show', $product->slug) }}">{{ $product->name }}</a>
                                 </h3>
                                 
-                                <div class="flex items-center gap-3">
-                                    @if($product->promo_price && $product->promo_price < $product->price)
-                                        <span class="text-sm font-black text-navy-950">{{ number_format($product->promo_price, 0, ',', ' ') }} <span class="text-[10px]">CFA</span></span>
-                                        <span class="text-xs font-bold text-gray-300 line-through italic">{{ number_format($product->price, 0, ',', ' ') }} <span class="text-[8px]">CFA</span></span>
-                                    @else
-                                        <span class="text-sm font-black text-navy-950">{{ number_format($product->price, 0, ',', ' ') }} <span class="text-[10px]">CFA</span></span>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        @if($product->promo_price && $product->promo_price < $product->price)
+                                            <span class="text-sm font-black text-navy-950">{{ number_format($product->promo_price, 0, ',', ' ') }} <span class="text-[10px]">CFA</span></span>
+                                            <span class="text-xs font-bold text-gray-300 line-through italic">{{ number_format($product->price, 0, ',', ' ') }} <span class="text-[8px]">CFA</span></span>
+                                        @else
+                                            <span class="text-sm font-black text-navy-950">{{ number_format($product->price, 0, ',', ' ') }} <span class="text-[10px]">CFA</span></span>
+                                        @endif
+                                    </div>
+                                    @if($product->isPreorderable() && $product->available_at)
+                                        <span class="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded font-bold">
+                                            Dispo: {{ $product->available_at->format('d/m/Y') }}
+                                        </span>
                                     @endif
                                 </div>
                             </div>

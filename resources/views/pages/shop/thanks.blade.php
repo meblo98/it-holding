@@ -17,6 +17,16 @@
                 Une confirmation a été envoyée à <span class="font-bold text-navy-800">{{ $order->customer_email }}</span>.
             </p>
 
+            @if($order->hasPreorder())
+                <div class="mb-8 bg-amber-50 text-amber-800 p-4 rounded-xl flex items-start gap-3 border border-amber-100 shadow-sm text-left text-xs font-medium">
+                    <svg class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <div>
+                        <span class="font-bold block uppercase tracking-wide mb-1 text-[10px]">Note concernant votre précommande</span>
+                        Cette commande contient un ou plusieurs articles en précommande. Ceux-ci vous seront expédiés en priorité dès leur disponibilité en stock.
+                    </div>
+                </div>
+            @endif
+
             <!-- Order Brief Details -->
             <div class="bg-gray-50 rounded-xl p-8 mb-10 text-left">
                 <h3 class="text-xs font-bold text-navy-900 uppercase tracking-widest mb-6 border-b border-gray-100 pb-3 italic">Détails de l'Expédition</h3>

@@ -27,7 +27,9 @@ class ShopController extends Controller
             'blackfriday' => 'nullable|boolean',
         ]);
 
-        $query = Product::where('active', true)->where('stock', '>', 0);
+        $query = Product::where('active', true)->where(function ($q) {
+            $q->where('stock', '>', 0)->orWhereNotNull('available_at');
+        });
 
         if ($request->filled('category_id')) {
             $category = Category::with('children')->find((int) $request->category_id);
@@ -52,17 +54,29 @@ class ShopController extends Controller
         $categories = Category::with('children')
             ->whereNull('parent_id')
             ->whereHas('products', function ($q) {
-                $q->where('active', true)->where('stock', '>', 0);
+                $q->where('active', true)->where(function ($sub) {
+                    $sub->where('stock', '>', 0)->orWhereNotNull('available_at');
+                });
             })
             ->orWhereHas('children.products', function ($q) {
-                $q->where('active', true)->where('stock', '>', 0);
+                $q->where('active', true)->where(function ($sub) {
+                    $sub->where('stock', '>', 0)->orWhereNotNull('available_at');
+                });
             })
             ->orderBy('name')
             ->get();
         $brands = Brand::whereHas('products', function ($q) {
-            $q->where('active', true)->where('stock', '>', 0);
+            $q->where('active', true)->where(function ($sub) {
+                $sub->where('stock', '>', 0)->orWhereNotNull('available_at');
+            });
         })->get();
-        $conditions = Product::where('active', true)->where('stock', '>', 0)->whereNotNull('condition')->distinct()->pluck('condition');
+        $conditions = Product::where('active', true)
+            ->where(function ($q) {
+                $q->where('stock', '>', 0)->orWhereNotNull('available_at');
+            })
+            ->whereNotNull('condition')
+            ->distinct()
+            ->pluck('condition');
 
         return view('pages.shop.index', compact('products', 'categories', 'brands', 'conditions'));
     }
@@ -115,7 +129,7 @@ class ShopController extends Controller
 
         // Validate quantity
         $quantity = $request->input('quantity', 1);
-        if ($quantity > $product->stock) {
+        if (!$product->isPreorderable() && $quantity > $product->stock) {
             return redirect()->back()->with('error', 'Stock insuffisant. Seulement ' . $product->stock . ' disponible(s).');
         }
 
@@ -147,7 +161,7 @@ class ShopController extends Controller
 
         if (isset($cart[$cartKey])) {
             $newQuantity = $cart[$cartKey]['quantity'] + $quantity;
-            if ($newQuantity > $product->stock) {
+            if (!$product->isPreorderable() && $newQuantity > $product->stock) {
                 return redirect()->back()->with('error', 'Stock insuffisant. Seulement ' . $product->stock . ' disponible(s).');
             }
             $cart[$cartKey]['quantity'] = $newQuantity;
@@ -183,7 +197,7 @@ class ShopController extends Controller
             $productId = $cart[$id]['product_id'] ?? $id;
             $product = Product::findOrFail($productId);
 
-            if ($quantity > $product->stock) {
+            if (!$product->isPreorderable() && $quantity > $product->stock) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Stock insuffisant'
@@ -469,8 +483,8 @@ class ShopController extends Controller
                 $productId = $details['product_id'] ?? $id;
                 $product = Product::findOrFail($productId);
 
-                // prevent ordering more than stock
-                $quantity = min($details['quantity'], $product->stock);
+                // prevent ordering more than stock if not preorderable
+                $quantity = $product->isPreorderable() ? $details['quantity'] : min($details['quantity'], $product->stock);
 
                 // Calculate final dynamic unit price to save
                 $optionSum = 0;
@@ -488,6 +502,7 @@ class ShopController extends Controller
                     'price' => $finalItemPrice,
                     'purchase_price' => $product->purchase_price ?? 0.00,
                     'options' => !empty($details['options']) ? $details['options'] : null,
+                    'is_preorder' => $product->isPreorderable(),
                 ]);
 
                 // reduce stock
@@ -499,7 +514,7 @@ class ShopController extends Controller
                     'quantity'   => -$quantity,
                     'type'       => 'out',
                     'source'     => "Commande #" . $order->id . " (Client: {$order->customer_name})",
-                    'notes'      => "Achat en ligne",
+                    'notes'      => $product->isPreorderable() ? "Précommande en ligne" : "Achat en ligne",
                 ]);
             }
 

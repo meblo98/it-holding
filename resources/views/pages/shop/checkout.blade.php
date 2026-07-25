@@ -221,7 +221,12 @@
                             </div>
                             <div class="flex-1">
                                 <p class="text-[10px] font-bold text-navy-900 line-clamp-1 truncate w-40">{{ $item['name'] }}</p>
-                                <p class="text-[10px] text-gray-400">{{ $item['quantity'] }} x <span class="text-gold-600 font-bold">{{ number_format($item['price'], 0, ',', ' ') }} CFA</span></p>
+                                <p class="text-[10px] text-gray-400">
+                                    {{ $item['quantity'] }} x <span class="text-gold-600 font-bold">{{ number_format($item['price'], 0, ',', ' ') }} CFA</span>
+                                    @if($itemProduct && $itemProduct->isPreorderable())
+                                        <span class="text-amber-600 font-bold ml-1">(Précommande)</span>
+                                    @endif
+                                </p>
                             </div>
                         </div>
                         @endforeach

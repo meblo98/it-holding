@@ -54,6 +54,11 @@
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         #{{ $order->id }}
+                                        @if($order->hasPreorder())
+                                            <span class="ml-1 px-2 inline-flex text-[10px] leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
+                                                Précommande
+                                            </span>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         <div class="text-sm font-medium text-gray-900">

@@ -55,7 +55,10 @@
                                         {{ $product->name }}
                                     </div>
                                     <div class="text-sm text-gray-500">
-                                        Achat: {{ number_format($product->purchase_price, 0, ',', ' ') }} FCFA | Vente: {{ number_format($product->price, 0, ',', ' ') }} FCFA | Stock: {{ $product->stock }}
+                                        Achat: {{ number_format($product->purchase_price, 0, ',', ' ') }} FCFA | Vente: {{ number_format($product->price, 0, ',', ' ') }} FCFA | Stock: {{ $product->stock }} | Garantie: {{ $product->warranty_duration_months ?? 12 }} mois
+                                        @if($product->available_at)
+                                            | <span class="text-amber-600 font-medium">Disponible le: {{ $product->available_at->format('d/m/Y') }} (Précommande)</span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>

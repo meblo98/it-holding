@@ -186,7 +186,14 @@
                                                 <img src="{{ $itemImgUrl }}" class="w-full h-full object-contain">
                                             </div>
                                             <div>
-                                                <p class="text-[11px] font-black text-navy-900 line-clamp-1 italic">{{ $item->product->name }}</p>
+                                                <p class="text-[11px] font-black text-navy-900 line-clamp-1 italic flex items-center">
+                                                    {{ $item->product->name }}
+                                                    @if($item->is_preorder)
+                                                        <span class="ml-2 px-2 inline-flex text-[9px] leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
+                                                            Précommande
+                                                        </span>
+                                                    @endif
+                                                </p>
                                                 <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{{ $item->product->category->name ?? 'Catégorie' }}</span>
                                             </div>
                                         </div>

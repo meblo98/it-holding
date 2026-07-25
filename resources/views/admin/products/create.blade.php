@@ -49,12 +49,29 @@
                                     class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('promo_price') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror">
                             </div>
 
-                            <div class="col-span-6 sm:col-span-3">
+                            <div class="col-span-6 sm:col-span-2">
                                 <label for="stock" class="block text-sm font-medium text-gray-700">Stock</label>
                                 <input type="number" name="stock" id="stock" min="0"
                                     value="{{ old('stock') }}"
                                     class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('stock') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
                                     required>
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-2">
+                                <label for="available_at" class="block text-sm font-medium text-gray-700">Date de disponibilité</label>
+                                <input type="date" name="available_at" id="available_at"
+                                    value="{{ old('available_at') }}"
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('available_at') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror">
+                                <p class="text-xs text-gray-500 mt-1">À définir si le stock est épuisé.</p>
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-2">
+                                <label for="warranty_duration_months" class="block text-sm font-medium text-gray-700">Garantie (Mois)</label>
+                                <input type="number" name="warranty_duration_months" id="warranty_duration_months" min="0" max="120"
+                                    value="{{ old('warranty_duration_months', 12) }}"
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('warranty_duration_months') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
+                                    required>
+                                <p class="text-xs text-gray-500 mt-1">Durée de garantie standard (ex: 12 pour 1 an).</p>
                             </div>
 
                             <div class="col-span-6">

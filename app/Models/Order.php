@@ -56,4 +56,9 @@ class Order extends Model
     {
         return $this->hasMany(PartnerCommission::class, 'order_id');
     }
+
+    public function hasPreorder()
+    {
+        return $this->items()->where('is_preorder', true)->exists();
+    }
 }

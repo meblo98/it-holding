@@ -42,8 +42,13 @@
                                             @endif
                                         </div>
                                         <div class="ml-4 flex-1">
-                                            <div class="text-sm font-medium text-navy-600 truncate">
+                                            <div class="text-sm font-medium text-navy-600 truncate flex items-center">
                                                 {{ $item->product->name }}
+                                                @if($item->is_preorder)
+                                                    <span class="ml-2 px-2 inline-flex text-[9px] leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
+                                                        Précommande
+                                                    </span>
+                                                @endif
                                             </div>
                                             <div class="text-sm text-gray-500">
                                                 PU: {{ number_format($item->price, 0, ',', ' ') }} FCFA

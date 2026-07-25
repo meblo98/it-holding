@@ -81,6 +81,14 @@
 
                                                         <span class="text-[10px] text-gray-400 uppercase tracking-widest block mt-1">Ref: #IT-{{ str_pad($productId, 5, '0', STR_PAD_LEFT) }}</span>
                                                         
+                                                        @if($product && $product->isPreorderable())
+                                                            <div class="mt-1.5">
+                                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                                                                    Précommande (Disponible le {{ $product->available_at->format('d/m/Y') }})
+                                                                </span>
+                                                            </div>
+                                                        @endif
+                                                        
                                                         @if($isWholesale)
                                                             <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[9px] font-black bg-gold-100 text-gold-700 uppercase tracking-widest animate-pulse border border-gold-200">
                                                                 <svg class="w-3 h-3 text-gold-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
