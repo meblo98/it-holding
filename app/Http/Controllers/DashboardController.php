@@ -12,6 +12,17 @@ use Illuminate\Validation\Rules\Password;
 
 class DashboardController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            $user = Auth::user();
+            if ($user && ($user->isAdmin() || $user->isStaff())) {
+                return redirect()->route('admin.dashboard');
+            }
+            return $next($request);
+        });
+    }
+
     public function index()
     {
         $user = Auth::user();

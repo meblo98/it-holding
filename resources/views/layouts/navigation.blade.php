@@ -60,9 +60,10 @@
                             <span class="text-sm font-medium hidden lg:block">{{ Auth::user()->name }}</span>
                         </button>
                         <div x-show="userOpen" @click.away="userOpen = false" x-transition class="absolute right-0 mt-2 w-48 bg-white text-navy-900 rounded-md shadow-xl py-1 z-50">
-                            <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm hover:bg-gray-100">Tableau de bord</a>
-                            @if (auth()->user()->is_admin ?? false)
-                                <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-sm hover:bg-gray-100">Admin</a>
+                            @if (auth()->user()->isAdmin() || auth()->user()->isStaff())
+                                <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-sm hover:bg-gray-100">Administration</a>
+                            @else
+                                <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm hover:bg-gray-100">Tableau de bord</a>
                             @endif
                             <form method="POST" action="{{ route('logout') }}">@csrf <button type="submit" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Déconnexion</button></form>
                         </div>
