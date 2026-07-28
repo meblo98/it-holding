@@ -177,7 +177,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="admin-label">Nom du client <span class="text-red-500">*</span></label>
-                        <input type="text" name="customer_name" id="customer_name" value="{{ old('customer_name', $prefilled['customer_name'] ?? '') }}" required
+                        <input type="text" name="customer_name" id="customer_name" value="{{ old('customer_name', $prefilled['customer_name'] ?? '') }}" :required="blType === 'envoi'"
                                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
                     </div>
                     <div>
