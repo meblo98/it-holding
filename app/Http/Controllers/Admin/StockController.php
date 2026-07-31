@@ -37,7 +37,7 @@ class StockController extends Controller
         })->count();
 
         // 2. Fetch paginated products based on query
-        $products = Product::query()
+        $products = Product::with(['category', 'images'])
             ->when($search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%");
             })

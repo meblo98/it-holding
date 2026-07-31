@@ -119,4 +119,14 @@ class StockAdjustmentTest extends TestCase
         $this->product->refresh();
         $this->assertEquals(10, $this->product->stock); // unchanged
     }
+
+    /** @test */
+    public function it_allows_admin_to_view_stock_index_and_lists_products()
+    {
+        $response = $this->actingAs($this->adminUser)->get(route('admin.stock.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Gestion de Stock');
+        $response->assertSee('Produit Test Stock');
+    }
 }

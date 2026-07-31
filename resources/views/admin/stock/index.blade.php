@@ -148,8 +148,23 @@
                     <!-- Product Details -->
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center gap-3">
-                            @if($product->image)
-                                <img src="{{ asset('storage/' . $product->image) }}" class="w-10 h-10 object-cover rounded border" alt="{{ $product->name }}">
+                            @php
+                                $rawPath = $product->image ?: $product->images->first()->path ?? null;
+                                $imgPath = $rawPath ? preg_replace('#^(/?storage/)#', '', $rawPath) : null;
+                                if (
+                                    $imgPath &&
+                                    \Illuminate\Support\Facades\Storage::disk('public')->exists($imgPath)
+                                ) {
+                                    $thumb = '/storage/' . ltrim($imgPath, '/');
+                                } elseif ($rawPath && filter_var($rawPath, FILTER_VALIDATE_URL)) {
+                                    $thumb = $rawPath;
+                                } else {
+                                    $thumb = $imgPath ? asset('storage/' . ltrim($imgPath, '/')) : null;
+                                }
+                            @endphp
+
+                            @if ($thumb)
+                                <img src="{{ $thumb }}" class="w-10 h-10 object-cover rounded border" alt="{{ $product->name }}">
                             @else
                                 <div class="w-10 h-10 bg-gray-100 flex items-center justify-center border rounded text-gray-400">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
