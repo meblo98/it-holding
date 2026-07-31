@@ -167,7 +167,7 @@
                 html += `
                     <div class="flex items-start gap-2.5 max-w-[85%] ml-auto justify-end">
                         <div class="bg-navy-900 text-white rounded-2xl rounded-tr-none p-3 shadow-md">
-                            <p class="text-xs leading-relaxed">${escapeHtml(msg.message)}</p>
+                            <p class="text-xs leading-relaxed">${formatMessageText(msg.message)}</p>
                             <span class="block text-[8px] text-gray-400 text-right mt-1 font-semibold">${msg.time}</span>
                         </div>
                     </div>
@@ -179,7 +179,7 @@
                             ${activeName.substring(0, 2)}
                         </div>
                         <div class="bg-white border border-gray-100 rounded-2xl rounded-tl-none p-3 shadow-sm">
-                            <p class="text-xs text-gray-800 leading-relaxed">${escapeHtml(msg.message)}</p>
+                            <p class="text-xs text-gray-800 leading-relaxed">${formatMessageText(msg.message)}</p>
                             <span class="block text-[8px] text-gray-400 text-right mt-1 font-semibold">${msg.time}</span>
                         </div>
                     </div>
@@ -246,6 +246,33 @@
         if (container) {
             container.scrollTop = container.scrollHeight;
         }
+    }
+
+    function formatMessageText(text) {
+        let formatted = escapeHtml(text);
+
+        // Convert bold: **text** to <strong>text</strong>
+        formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+        // Convert italic: *text* to <em>text</em>
+        formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+        // Convert bullet points: starting with "- " or "* " on new lines
+        const lines = formatted.split('\n');
+        const processedLines = lines.map(line => {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+                return `<li class="ml-4 list-disc">${trimmed.substring(2)}</li>`;
+            }
+            return line;
+        });
+        
+        formatted = processedLines.join('<br>');
+        
+        // Clean up adjacent <br>s inside list tags
+        formatted = formatted.replace(/(<\/li>)<br>(<li)/g, '$1$2');
+
+        return formatted;
     }
 
     function escapeHtml(text) {
