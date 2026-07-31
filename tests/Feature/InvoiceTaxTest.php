@@ -122,4 +122,38 @@ class InvoiceTaxTest extends TestCase
         $this->assertEquals(1800, $quote->tax_amount);
         $this->assertEquals(11800, $quote->total_amount);
     }
+
+    /** @test */
+    public function an_admin_can_delete_invoice()
+    {
+        $invoice = Invoice::create([
+            'number' => 'FAC-2026-DEL1',
+            'client_name' => 'Client Test Delete',
+            'subtotal' => 10000,
+            'tax_amount' => 1800,
+            'total_amount' => 11800,
+        ]);
+
+        $response = $this->actingAs($this->adminUser)->delete(route('admin.invoices.destroy', $invoice->id));
+
+        $response->assertRedirect(route('admin.invoices.index'));
+        $this->assertDatabaseMissing('invoices', ['id' => $invoice->id]);
+    }
+
+    /** @test */
+    public function an_admin_can_delete_quote()
+    {
+        $quote = Quote::create([
+            'number' => 'DEV-2026-DEL1',
+            'client_name' => 'Client Test Delete',
+            'subtotal' => 10000,
+            'tax_amount' => 1800,
+            'total_amount' => 11800,
+        ]);
+
+        $response = $this->actingAs($this->adminUser)->delete(route('admin.quotes.destroy', $quote->id));
+
+        $response->assertRedirect(route('admin.quotes.index'));
+        $this->assertDatabaseMissing('quotes', ['id' => $quote->id]);
+    }
 }
