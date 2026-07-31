@@ -205,31 +205,56 @@
         <div class="text-center flex flex-col items-center">
             <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Émetteur</p>
             <div class="h-24 flex items-center justify-center mb-2">
-                @if(file_exists(storage_path('app/public/signature_cachet.png')))
-                    <img src="{{ route('storage.bypass', 'signature_cachet.png') }}" alt="Signature & Cachet" class="max-h-24 object-contain">
-                @elseif(file_exists(public_path('signature.png')) || file_exists(public_path('cachet.png')))
-                    <div class="flex justify-center gap-2">
-                        @if(file_exists(public_path('signature.png')))
-                            <img src="{{ asset('signature.png') }}" alt="Signature" class="max-h-24 object-contain">
-                        @endif
-                        @if(file_exists(public_path('cachet.png')))
-                            <img src="{{ asset('cachet.png') }}" alt="Cachet" class="max-h-24 object-contain">
-                        @endif
-                    </div>
+                @if($deliveryNote->type === 'envoi')
+                    @if(file_exists(storage_path('app/public/signature_cachet.png')))
+                        <img src="{{ route('storage.bypass', 'signature_cachet.png') }}" alt="Signature & Cachet" class="max-h-24 object-contain">
+                    @elseif(file_exists(public_path('signature.png')) || file_exists(public_path('cachet.png')))
+                        <div class="flex justify-center gap-2">
+                            @if(file_exists(public_path('signature.png')))
+                                <img src="{{ asset('signature.png') }}" alt="Signature" class="max-h-24 object-contain">
+                            @endif
+                            @if(file_exists(public_path('cachet.png')))
+                                <img src="{{ asset('cachet.png') }}" alt="Cachet" class="max-h-24 object-contain">
+                            @endif
+                        </div>
+                    @else
+                        <span class="text-gray-300 text-xs italic">Placez signature.png et/ou cachet.png dans public/</span>
+                    @endif
                 @else
-                    <span class="text-gray-300 text-xs italic">Placez signature.png et/ou cachet.png dans public/</span>
+                    <span class="text-gray-400 text-xs italic">Nom, signature et date</span>
                 @endif
             </div>
-            <div class="w-full border-t border-gray-400 pt-2 text-sm text-gray-500">Signature & Cachet IT-HOLDING</div>
+            <div class="w-full border-t border-gray-400 pt-2 text-sm text-gray-500">
+                {{ $deliveryNote->type === 'envoi' ? 'Signature & Cachet IT-HOLDING' : 'Signature & Cachet Fournisseur' }}
+            </div>
         </div>
         <div class="text-center flex flex-col items-center">
             <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
                 {{ $deliveryNote->type === 'envoi' ? 'Destinataire' : 'Réceptionné par' }}
             </p>
-            <div class="h-24 flex items-center justify-center text-gray-400 text-xs italic mb-2">
-                Nom, signature et date
+            <div class="h-24 flex items-center justify-center mb-2">
+                @if($deliveryNote->type !== 'envoi')
+                    @if(file_exists(storage_path('app/public/signature_cachet.png')))
+                        <img src="{{ route('storage.bypass', 'signature_cachet.png') }}" alt="Signature & Cachet" class="max-h-24 object-contain">
+                    @elseif(file_exists(public_path('signature.png')) || file_exists(public_path('cachet.png')))
+                        <div class="flex justify-center gap-2">
+                            @if(file_exists(public_path('signature.png')))
+                                <img src="{{ asset('signature.png') }}" alt="Signature" class="max-h-24 object-contain">
+                            @endif
+                            @if(file_exists(public_path('cachet.png')))
+                                <img src="{{ asset('cachet.png') }}" alt="Cachet" class="max-h-24 object-contain">
+                            @endif
+                        </div>
+                    @else
+                        <span class="text-gray-300 text-xs italic">Placez signature.png et/ou cachet.png dans public/</span>
+                    @endif
+                @else
+                    <span class="text-gray-400 text-xs italic">Nom, signature et date</span>
+                @endif
             </div>
-            <div class="w-full border-t border-gray-400 pt-2 text-sm text-gray-500">Signature & Date Client</div>
+            <div class="w-full border-t border-gray-400 pt-2 text-sm text-gray-500">
+                {{ $deliveryNote->type === 'envoi' ? 'Signature & Date Client' : 'Signature & Cachet IT-HOLDING' }}
+            </div>
         </div>
     </div>
 </div>
