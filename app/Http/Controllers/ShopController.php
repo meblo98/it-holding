@@ -91,7 +91,23 @@ class ShopController extends Controller
             ->distinct()
             ->pluck('condition');
 
-        return view('pages.shop.index', compact('products', 'categories', 'brands', 'conditions'));
+        $promoProduct = Product::where('active', true)
+            ->where(function ($q) {
+                $q->where('stock', '>', 0)->orWhereNotNull('available_at');
+            })
+            ->where(function ($q) {
+                $q->where('promo_price', '>', 0)->orWhere('blackfriday', true);
+            })
+            ->inRandomOrder()
+            ->first() 
+            ?? Product::where('active', true)
+            ->where(function ($q) {
+                $q->where('stock', '>', 0)->orWhereNotNull('available_at');
+            })
+            ->latest()
+            ->first();
+
+        return view('pages.shop.index', compact('products', 'categories', 'brands', 'conditions', 'promoProduct'));
     }
 
     public function show($slug)

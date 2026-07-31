@@ -140,18 +140,41 @@
                 </div>
 
                 <!-- Promo Banner -->
+                @if(isset($promoProduct))
                 <div class="relative rounded-xl overflow-hidden group">
-                    <img src="https://images.unsplash.com/photo-1510282135024-94e497ef445x?auto=format&fit=crop&w=400&q=80" class="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-700">
-                    <div class="absolute inset-0 bg-gradient-to-t from-navy-900 via-navy-900/40 to-transparent p-6 flex flex-col justify-end text-center">
-                        <span class="text-gold-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">Offre Limitée</span>
-                        <h4 class="text-white font-black italic uppercase text-lg leading-tight mb-4">Nouvel Apple MacBook Pro</h4>
-                        <p class="text-gray-300 text-xs mb-6 italic">Performance sans compromis pour les professionnels.</p>
-                        <a href="#" class="btn-primary-gold py-2.5 text-[10px] uppercase tracking-widest mx-auto flex items-center gap-2">
+                    @php
+                        $promoRawPath = $promoProduct->image ?: $promoProduct->images->first()->path ?? null;
+                        $promoImgPath = $promoRawPath ? preg_replace('#^(/?storage/)#', '', $promoRawPath) : null;
+                        $promoImgUrl = ($promoImgPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($promoImgPath)) 
+                            ? '/storage/' . ltrim($promoImgPath, '/') 
+                            : ($promoRawPath ?: asset('logo.jpeg'));
+                    @endphp
+                    <img src="{{ $promoImgUrl }}" class="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-navy-900 via-navy-900/60 to-transparent p-6 flex flex-col justify-end text-center">
+                        <span class="text-gold-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">
+                            {{ $promoProduct->promo_price ? 'Offre Spéciale' : 'Dernier Arrivage' }}
+                        </span>
+                        <h4 class="text-white font-black italic uppercase text-sm leading-tight mb-2 line-clamp-2">
+                            {{ $promoProduct->name }}
+                        </h4>
+                        <p class="text-gray-300 text-[10px] mb-4 italic line-clamp-2">
+                            {{ strip_tags($promoProduct->description) }}
+                        </p>
+                        <div class="text-white font-bold text-sm mb-4">
+                            @if($promoProduct->promo_price && $promoProduct->promo_price < $promoProduct->price)
+                                <span class="text-gold-400">{{ number_format($promoProduct->promo_price, 0, ',', ' ') }} CFA</span>
+                                <span class="text-xs line-through text-gray-400 ml-2">{{ number_format($promoProduct->price, 0, ',', ' ') }} CFA</span>
+                            @else
+                                <span class="text-gold-400">{{ number_format($promoProduct->price, 0, ',', ' ') }} CFA</span>
+                            @endif
+                        </div>
+                        <a href="{{ route('shop.show', $promoProduct->slug) }}" class="btn-primary-gold py-2 text-[10px] uppercase tracking-widest mx-auto flex items-center gap-2">
                             Acheter Maintenant
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </a>
                     </div>
                 </div>
+                @endif
             </aside>
 
             <!-- Main Content Area -->

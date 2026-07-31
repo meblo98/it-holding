@@ -57,6 +57,16 @@ class ProductClientViewTest extends TestCase
     /** @test */
     public function it_filters_products_by_category()
     {
+        // Dummy latest product to populate sidebar
+        Product::create([
+            'name' => 'Dummy Sidebar Featured',
+            'slug' => 'dummy-sidebar-featured',
+            'price' => 1000,
+            'stock' => 5,
+            'active' => true,
+            'created_at' => now()->addMinutes(10),
+        ]);
+
         $category = \App\Models\Category::create([
             'name' => 'Ordinateurs',
             'slug' => 'ordinateurs',
@@ -90,6 +100,16 @@ class ProductClientViewTest extends TestCase
     /** @test */
     public function it_searches_products_using_q_and_search_parameters()
     {
+        // Dummy latest product to populate sidebar
+        Product::create([
+            'name' => 'Dummy Sidebar Featured',
+            'slug' => 'dummy-sidebar-featured',
+            'price' => 1000,
+            'stock' => 5,
+            'active' => true,
+            'created_at' => now()->addMinutes(10),
+        ]);
+
         $product1 = Product::create([
             'name' => 'Super Portable Lenovo ThinkPad',
             'slug' => 'super-portable-lenovo-thinkpad',
@@ -117,5 +137,25 @@ class ProductClientViewTest extends TestCase
         $responseQ->assertStatus(200);
         $responseQ->assertSee('Souris Gamer Razer');
         $responseQ->assertDontSee('Super Portable Lenovo ThinkPad');
+    }
+
+    /** @test */
+    public function it_displays_dynamic_promo_product_on_shop_sidebar()
+    {
+        $product = Product::create([
+            'name' => 'Produit Promo Exclusif',
+            'slug' => 'produit-promo-exclusif',
+            'price' => 500000,
+            'promo_price' => 450000,
+            'stock' => 5,
+            'active' => true,
+        ]);
+
+        $response = $this->get(route('shop.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Produit Promo Exclusif');
+        $response->assertSee('Offre Spéciale');
+        $response->assertSee('450 000 CFA');
     }
 }
