@@ -281,7 +281,26 @@
                         <p>{{ $product->description }}</p>
                     </div>
                 </div>
-                <div x-show="tab === 'specs'" x-transition class="max-w-3xl">
+                <div x-show="tab === 'specs'" x-transition class="max-w-3xl space-y-6">
+                    @if($product->fiche_technique)
+                    <div class="p-4 rounded-xl border border-navy-100 bg-navy-50/50 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 rounded-lg bg-red-100 text-red-600">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-navy-900 uppercase tracking-wider">Fiche Technique PDF</h4>
+                                <p class="text-[11px] text-gray-500">Consultez ou téléchargez le document officiel du fabricant.</p>
+                            </div>
+                        </div>
+                        <a href="{{ asset('storage/' . $product->fiche_technique) }}" target="_blank"
+                           class="px-4 py-2 bg-navy-900 hover:bg-navy-950 text-white rounded-lg text-xs font-black uppercase tracking-wider transition-colors flex items-center gap-1.5 shadow-sm">
+                            Télécharger
+                            <svg class="w-4 h-4 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        </a>
+                    </div>
+                    @endif
+
                     <table class="w-full text-sm">
                         <tbody class="divide-y divide-gray-100 italic">
                             @if(is_array($product->specs) || is_object($product->specs))

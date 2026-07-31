@@ -94,15 +94,34 @@ class ProductController extends Controller
             'wholesale_qty' => 'nullable|integer|min:2',
             'wholesale_discount_rate' => 'nullable|numeric|min:0|max:100',
             'wholesale_discount_limit' => 'nullable|numeric|min:0',
+            'specs' => 'nullable|array',
+            'fiche_technique' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
         $validated['slug'] = $this->generateUniqueSlug($request->name);
         $validated['active'] = $request->boolean('active');
         $validated['blackfriday'] = $request->boolean('blackfriday');
 
+        // Transform specs
+        $rawSpecs = $request->input('specs', []);
+        $specs = [];
+        if (is_array($rawSpecs)) {
+            foreach ($rawSpecs as $item) {
+                if (!empty($item['key']) && !empty($item['value'])) {
+                    $specs[$item['key']] = $item['value'];
+                }
+            }
+        }
+        $validated['specs'] = !empty($specs) ? $specs : null;
+
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
             $validated['image'] = $path;
+        }
+
+        if ($request->hasFile('fiche_technique')) {
+            $path = $request->file('fiche_technique')->store('products/tech_sheets', 'public');
+            $validated['fiche_technique'] = $path;
         }
 
         $product = Product::create($validated);
@@ -164,7 +183,21 @@ class ProductController extends Controller
             'wholesale_qty' => 'nullable|integer|min:2',
             'wholesale_discount_rate' => 'nullable|numeric|min:0|max:100',
             'wholesale_discount_limit' => 'nullable|numeric|min:0',
+            'specs' => 'nullable|array',
+            'fiche_technique' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
+
+        // Ensure specs can be cleared / updated
+        $rawSpecs = $request->input('specs', []);
+        $specs = [];
+        if (is_array($rawSpecs)) {
+            foreach ($rawSpecs as $item) {
+                if (!empty($item['key']) && !empty($item['value'])) {
+                    $specs[$item['key']] = $item['value'];
+                }
+            }
+        }
+        $validated['specs'] = !empty($specs) ? $specs : null;
 
         // Only regenerate slug if the name has changed, to preserve existing URLs (SEO)
         if ($request->name !== $product->name) {
@@ -180,6 +213,14 @@ class ProductController extends Controller
             }
             $path = $request->file('image')->store('products', 'public');
             $validated['image'] = $path;
+        }
+
+        if ($request->hasFile('fiche_technique')) {
+            if ($product->fiche_technique) {
+                Storage::disk('public')->delete($product->fiche_technique);
+            }
+            $path = $request->file('fiche_technique')->store('products/tech_sheets', 'public');
+            $validated['fiche_technique'] = $path;
         }
 
         $product->update($validated);

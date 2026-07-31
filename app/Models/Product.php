@@ -13,6 +13,8 @@ class Product extends Model
         'name',
         'slug',
         'description',
+        'specs',
+        'fiche_technique',
         'price',
         'purchase_price',
         'stock',
@@ -42,6 +44,7 @@ class Product extends Model
         'wholesale_qty' => 'integer',
         'wholesale_discount_rate' => 'decimal:2',
         'wholesale_discount_limit' => 'decimal:2',
+        'specs' => 'array',
     ];
 
     /**

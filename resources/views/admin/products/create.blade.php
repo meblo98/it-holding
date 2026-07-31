@@ -185,6 +185,58 @@
                                     class="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
                             </div>
 
+                            <!-- Fiche Technique PDF -->
+                            <div class="col-span-6">
+                                <label for="fiche_technique" class="block text-sm font-medium text-gray-700">Fiche Technique (PDF / Image)</label>
+                                <input type="file" name="fiche_technique" id="fiche_technique" accept=".pdf,image/*"
+                                    class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                <p class="text-xs text-gray-500 mt-1">Fichier PDF ou image de la fiche technique (Max: 5MB).</p>
+                            </div>
+
+                            <!-- Caractéristiques Techniques -->
+                            <div class="col-span-6 border-t border-gray-200 pt-5" x-data="{ 
+                                rows: [],
+                                init() {
+                                    this.addRow();
+                                },
+                                addRow() {
+                                    this.rows.push({ key: '', value: '' });
+                                },
+                                removeRow(index) {
+                                    this.rows.splice(index, 1);
+                                    if (this.rows.length === 0) {
+                                        this.addRow();
+                                    }
+                                }
+                            }">
+                                <h4 class="text-md font-semibold text-navy-900 uppercase tracking-wider mb-1">Caractéristiques Techniques</h4>
+                                <p class="text-xs text-gray-500 mb-4">Ajoutez des détails techniques (ex: Couleur, Processeur, RAM, Dimensions...).</p>
+                                
+                                <div class="space-y-3">
+                                    <template x-for="(row, index) in rows" :key="index">
+                                        <div class="flex gap-4 items-center">
+                                            <div class="flex-grow grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <input type="text" :name="'specs[' + index + '][key]'" x-model="row.key" placeholder="Nom (ex: Couleur)"
+                                                        class="focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                                </div>
+                                                <div>
+                                                    <input type="text" :name="'specs[' + index + '][value]'" x-model="row.value" placeholder="Valeur (ex: Noir)"
+                                                        class="focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                                </div>
+                                            </div>
+                                            <button type="button" @click="removeRow(index)" class="inline-flex items-center p-1.5 border border-transparent rounded-md text-red-600 hover:bg-red-50 focus:outline-none transition">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                                
+                                <button type="button" @click="addRow()" class="mt-3 inline-flex items-center px-3 py-1.5 border border-dashed border-gray-300 rounded-md text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">
+                                    + Ajouter une caractéristique
+                                </button>
+                            </div>
+
                             <div class="col-span-6 flex items-start">
                                 <div class="flex items-center h-5">
                                     <input id="active" name="active" type="checkbox" value="1"
