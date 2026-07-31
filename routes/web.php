@@ -133,6 +133,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // IT HOLDING CARE+
     Route::resource('care', \App\Http\Controllers\Admin\CareSubscriptionController::class);
 
+    // Expenses
+    Route::resource('expenses', \App\Http\Controllers\Admin\ExpenseController::class);
+
     // Finance & Bank
     Route::get('finance', [\App\Http\Controllers\Admin\FinanceController::class, 'index'])->name('finance.index');
     Route::post('finance/bank-accounts', [\App\Http\Controllers\Admin\FinanceController::class, 'storeAccount'])->name('finance.bank-accounts.store');
