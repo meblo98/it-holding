@@ -7,10 +7,18 @@
         <h1 class="text-2xl font-bold text-gray-900">Garanties Produits</h1>
         <p class="text-sm text-gray-500 mt-0.5">Suivi des garanties et IT HOLDING CARE+.</p>
     </div>
-    <a href="{{ route('admin.warranties.create') }}" class="inline-flex items-center px-4 py-2 bg-navy-600 text-white rounded-md font-bold text-sm hover:bg-navy-700 transition shadow-sm gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-        Nouvelle Garantie
-    </a>
+    <div class="flex gap-2">
+        <a href="{{ route('admin.warranties.scanner') }}" class="inline-flex items-center px-4 py-2 bg-gold-500 text-navy-900 rounded-md font-bold text-sm hover:bg-gold-600 transition shadow-sm gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m0 11v1m4-6h-1m-11 0h1m13-4a2 2 0 00-2-2h-3M7 5a2 2 0 00-2 2v3m14 4v3a2 2 0 01-2 2h-3M7 19a2 2 0 01-2-2v-3" />
+            </svg>
+            Scanner QR Code
+        </a>
+        <a href="{{ route('admin.warranties.create') }}" class="inline-flex items-center px-4 py-2 bg-navy-600 text-white rounded-md font-bold text-sm hover:bg-navy-700 transition shadow-sm gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Nouvelle Garantie
+        </a>
+    </div>
 </div>
 
 @if(session('success'))

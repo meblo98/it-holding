@@ -130,4 +130,29 @@ class WarrantyController extends Controller
         return redirect()->route('admin.warranties.index')
             ->with('success', 'Garantie supprimée.');
     }
+
+    public function scanner()
+    {
+        return view('admin.warranties.scanner');
+    }
+
+    public function scanSearch(Request $request, $code = null)
+    {
+        $code = $code ?: $request->input('code');
+
+        if (preg_match('/verify\/([A-Za-z0-9\-]+)/', $code, $matches)) {
+            $code = $matches[1];
+        }
+
+        $warranty = Warranty::where('number', $code)
+            ->orWhere('serial_number', $code)
+            ->first();
+
+        if ($warranty) {
+            return redirect()->route('admin.warranties.show', $warranty->id);
+        }
+
+        return redirect()->route('admin.warranties.index')
+            ->with('error', "Aucune garantie trouvée pour le code : $code");
+    }
 }

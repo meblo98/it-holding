@@ -43,6 +43,7 @@
                                     <th class="px-8 py-4 border-b border-gray-100 italic">Type / Durée</th>
                                     <th class="px-8 py-4 border-b border-gray-100 italic">Fin de Garantie</th>
                                     <th class="px-8 py-4 border-b border-gray-100 italic">Statut</th>
+                                    <th class="px-8 py-4 border-b border-gray-100 italic text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
@@ -84,6 +85,26 @@
                                         <span class="inline-flex px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border {{ $config['classes'] }} italic">
                                             {{ $config['label'] }}
                                         </span>
+                                    </td>
+                                    <td class="px-8 py-5">
+                                        <div class="flex items-center gap-2 justify-end">
+                                            <!-- Download QR Code -->
+                                            <a href="{{ route('warranty.qrcode.download', $warranty->number) }}" title="Télécharger QR Code"
+                                               class="p-2 bg-navy-50 hover:bg-navy-100 text-navy-900 rounded-lg border border-navy-100 transition-colors flex items-center gap-1 text-[10px] font-black uppercase tracking-wider">
+                                                <svg class="w-3.5 h-3.5 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m0 11v1m4-6h-1m-11 0h1m13-4a2 2 0 00-2-2h-3M7 5a2 2 0 00-2 2v3m14 4v3a2 2 0 01-2 2h-3M7 19a2 2 0 01-2-2v-3" />
+                                                </svg>
+                                                QR
+                                            </a>
+                                            <!-- Verify Online -->
+                                            <a href="{{ route('warranty.verify', $warranty->number) }}" target="_blank" title="Vérifier en ligne"
+                                               class="p-2 bg-gold-50 hover:bg-gold-100 text-gold-700 rounded-lg border border-gold-100 transition-colors flex items-center gap-1 text-[10px] font-black uppercase tracking-wider">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z" />
+                                                </svg>
+                                                Vérifier
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                                 @empty

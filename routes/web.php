@@ -41,6 +41,10 @@ Route::post('/tva/toggle', [ShopController::class, 'toggleTva'])->name('shop.tva
 Route::get('/chat/messages', [\App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
 Route::post('/chat/send', [\App\Http\Controllers\ChatController::class, 'sendMessage'])->name('chat.send');
 
+// Public Warranty Verification & QR Code Download
+Route::get('/warranty/verify/{number}', [\App\Http\Controllers\WarrantyVerificationController::class, 'verify'])->name('warranty.verify');
+Route::get('/warranty/{number}/qrcode/download', [\App\Http\Controllers\WarrantyVerificationController::class, 'downloadQrCode'])->name('warranty.qrcode.download');
+
 
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store')->middleware('throttle:5,1');
@@ -121,7 +125,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Clients CRM
     Route::resource('clients', \App\Http\Controllers\Admin\ClientController::class);
 
-    // Warranties
+    // Warranties Scanner & Search
+    Route::get('warranties/scanner', [\App\Http\Controllers\Admin\WarrantyController::class, 'scanner'])->name('warranties.scanner');
+    Route::get('warranties/scan-search/{code?}', [\App\Http\Controllers\Admin\WarrantyController::class, 'scanSearch'])->name('warranties.scanSearch');
     Route::resource('warranties', \App\Http\Controllers\Admin\WarrantyController::class);
 
     // SAV / Tickets

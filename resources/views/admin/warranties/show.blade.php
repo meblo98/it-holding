@@ -103,6 +103,15 @@
             </div>
         </div>
 
+        {{-- QR Code --}}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-5 flex flex-col items-center">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 text-center w-full">QR Code de Garantie</h3>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ urlencode(route('warranty.verify', $warranty->number)) }}" alt="QR Code" class="w-40 h-40 border p-2 bg-gray-50 rounded-lg">
+            <a href="{{ route('warranty.qrcode.download', $warranty->number) }}" class="mt-4 w-full text-center px-4 py-2 bg-navy-600 text-white font-bold rounded-md text-xs hover:bg-navy-700 transition shadow">
+                Télécharger le QR Code
+            </a>
+        </div>
+
         @if($warranty->notes)
         <div class="bg-amber-50 rounded-lg border border-amber-100 p-4">
             <h3 class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-2">Notes</h3>
