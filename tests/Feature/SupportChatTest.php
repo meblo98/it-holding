@@ -15,10 +15,6 @@ class SupportChatTest extends TestCase
     /** @test */
     public function a_guest_can_send_a_message_and_fetch_messages()
     {
-        // Start session
-        Session::start();
-        $sessionId = Session::getId();
-
         // 1. Guest sends a message
         $response = $this->post(route('chat.send'), [
             'message' => 'Hello Support!',
@@ -30,15 +26,23 @@ class SupportChatTest extends TestCase
             'success' => true,
         ]);
 
+        $cookieName = config('session.cookie');
+        $cookieVal = $response->getCookie($cookieName);
+        $this->assertNotNull($cookieVal);
+
+        $msg = ChatMessage::latest()->first();
+        $this->assertNotNull($msg);
+
         $this->assertDatabaseHas('chat_messages', [
             'message' => 'Hello Support!',
             'user_name' => 'John Guest',
-            'session_id' => $sessionId,
+            'session_id' => $msg->session_id,
             'is_from_admin' => false,
         ]);
 
-        // 2. Fetch messages as guest
-        $fetchResponse = $this->get(route('chat.messages'));
+        // 2. Fetch messages as guest using the session cookie
+        $fetchResponse = $this->withCookie($cookieName, $cookieVal->getValue())
+            ->get(route('chat.messages'));
         $fetchResponse->assertStatus(200);
         $fetchResponse->assertJsonFragment([
             'message' => 'Hello Support!',
@@ -70,7 +74,7 @@ class SupportChatTest extends TestCase
     /** @test */
     public function admin_can_view_conversations_list_and_messages()
     {
-        $admin = User::factory()->create(['role' => 'admin']);
+        $admin = User::factory()->create(['role' => 'admin', 'is_admin' => true]);
         $client = User::factory()->create(['name' => 'Bob Client']);
 
         // Create client message
@@ -98,7 +102,7 @@ class SupportChatTest extends TestCase
     /** @test */
     public function admin_can_reply_to_a_conversation()
     {
-        $admin = User::factory()->create(['role' => 'admin']);
+        $admin = User::factory()->create(['role' => 'admin', 'is_admin' => true]);
         $client = User::factory()->create(['name' => 'Bob Client']);
 
         // Create client message

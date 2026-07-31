@@ -25,6 +25,7 @@ class ShopController extends Controller
             'brand_id'    => 'nullable|integer|exists:brands,id',
             'condition'   => 'nullable|string|max:50',
             'blackfriday' => 'nullable|boolean',
+            'search'      => 'nullable|string|max:255',
         ]);
 
         $query = Product::where('active', true)->where(function ($q) {
@@ -46,6 +47,13 @@ class ShopController extends Controller
         }
         if ($request->filled('blackfriday')) {
             $query->where('blackfriday', true);
+        }
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
         }
 
         $products = $query->with('images', 'category', 'brand')->paginate(12)->withQueryString();

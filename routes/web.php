@@ -74,6 +74,12 @@ Route::middleware(['auth', 'redirect.admin'])->group(function () {
     Route::post('/dashboard/savings/{savingPlan}/deposit', [\App\Http\Controllers\DashboardController::class, 'depositSavingPlan'])->name('dashboard.savings.deposit');
     Route::post('/dashboard/savings/{savingPlan}/withdraw', [\App\Http\Controllers\DashboardController::class, 'withdrawSavingPlan'])->name('dashboard.savings.withdraw');
 
+    // Client Ticket / SAV Routes
+    Route::get('/dashboard/tickets', [\App\Http\Controllers\DashboardController::class, 'tickets'])->name('dashboard.tickets');
+    Route::get('/dashboard/tickets/create', [\App\Http\Controllers\DashboardController::class, 'createTicket'])->name('dashboard.tickets.create');
+    Route::post('/dashboard/tickets', [\App\Http\Controllers\DashboardController::class, 'storeTicket'])->name('dashboard.tickets.store');
+    Route::get('/dashboard/tickets/{ticket}', [\App\Http\Controllers\DashboardController::class, 'showTicket'])->name('dashboard.tickets.show');
+
     Route::post('/dashboard/settings/profile', [\App\Http\Controllers\DashboardController::class, 'updateProfile'])->name('dashboard.settings.updateProfile');
     Route::post('/dashboard/settings/address', [\App\Http\Controllers\DashboardController::class, 'updateAddress'])->name('dashboard.settings.updateAddress');
     Route::post('/dashboard/settings/password', [\App\Http\Controllers\DashboardController::class, 'updatePassword'])->name('dashboard.settings.updatePassword');

@@ -158,10 +158,31 @@
             <main class="flex-1">
                 <!-- Header Filters -->
                 <div class="bg-gray-50/50 border border-gray-100 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
-                    <div class="relative w-full md:w-96">
-                        <input type="text" placeholder="Rechercher un produit..." class="w-full border-gray-200 rounded-lg py-2.5 pl-4 pr-10 text-sm focus:ring-gold-500 focus:border-gold-500">
-                        <svg class="w-5 h-5 absolute right-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    </div>
+                    <form action="{{ route('shop.index') }}" method="GET" class="relative w-full md:w-96">
+                        @if(request('category_id'))
+                            <input type="hidden" name="category_id" value="{{ request('category_id') }}">
+                        @endif
+                        @if(request('brand_id'))
+                            <input type="hidden" name="brand_id" value="{{ request('brand_id') }}">
+                        @endif
+                        @if(request('condition'))
+                            <input type="hidden" name="condition" value="{{ request('condition') }}">
+                        @endif
+                        @if(request('blackfriday'))
+                            <input type="hidden" name="blackfriday" value="{{ request('blackfriday') }}">
+                        @endif
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Rechercher un produit..." class="w-full border-gray-200 rounded-lg py-2.5 pl-4 pr-12 text-sm focus:ring-gold-500 focus:border-gold-500">
+                        <div class="absolute right-3 top-2.5 flex items-center gap-2">
+                            @if(request('search'))
+                                <a href="{{ route('shop.index', request()->except('search')) }}" class="text-gray-400 hover:text-red-500" title="Effacer la recherche">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </a>
+                            @endif
+                            <button type="submit" class="text-gray-400 hover:text-navy-900">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            </button>
+                        </div>
+                    </form>
                     <div class="flex items-center gap-4 text-xs">
                         <span class="text-gray-400 font-bold uppercase tracking-widest italic">Trier par:</span>
                         <select class="border-gray-200 rounded-lg py-2 px-4 focus:ring-gold-500 focus:border-gold-500 text-navy-900 font-bold">
@@ -175,10 +196,27 @@
                 <!-- Active Filters -->
                 <div class="flex flex-wrap items-center gap-3 mb-8">
                     <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">Filtres actifs:</span>
-                    <div class="flex items-center gap-2 bg-navy-50 border border-navy-100 px-3 py-1 rounded text-[10px] font-bold text-navy-900 group">
-                        Matériel Informatique
-                        <button class="hover:text-red-500 transition-colors"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
-                    </div>
+                    @if(request('category_id'))
+                        @php
+                            $selectedCat = \App\Models\Category::find(request('category_id'));
+                        @endphp
+                        @if($selectedCat)
+                        <div class="flex items-center gap-2 bg-navy-50 border border-navy-100 px-3 py-1 rounded text-[10px] font-bold text-navy-900 group">
+                            Catégorie: {{ $selectedCat->name }}
+                            <a href="{{ route('shop.index', request()->except('category_id')) }}" class="hover:text-red-500 transition-colors">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </a>
+                        </div>
+                        @endif
+                    @else
+                        <div class="flex items-center gap-2 bg-navy-50 border border-navy-100 px-3 py-1 rounded text-[10px] font-bold text-navy-900 group">
+                            Matériel Informatique
+                            <a href="{{ route('shop.index') }}" class="hover:text-red-500 transition-colors">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </a>
+                        </div>
+                    @endif
+                    
                     @if(request('condition'))
                     <div class="flex items-center gap-2 bg-navy-50 border border-navy-100 px-3 py-1 rounded text-[10px] font-bold text-navy-900 group">
                         État: 
@@ -193,6 +231,16 @@
                         </a>
                     </div>
                     @endif
+
+                    @if(request('search'))
+                    <div class="flex items-center gap-2 bg-navy-50 border border-navy-100 px-3 py-1 rounded text-[10px] font-bold text-navy-900 group">
+                        Recherche: "{{ request('search') }}"
+                        <a href="{{ route('shop.index', request()->except('search')) }}" class="hover:text-red-500 transition-colors">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </a>
+                    </div>
+                    @endif
+
                     <span class="text-[10px] font-bold text-navy-900 italic ml-auto"><span class="text-gold-600 font-black">{{ $products->total() }}</span> Produits trouvés</span>
                 </div>
 

@@ -575,4 +575,134 @@ class DashboardController extends Controller
             ]);
         }
     }
+
+    public function tickets()
+    {
+        $user = Auth::user();
+        $client = \App\Models\Client::where('user_id', $user->id)->first();
+        
+        if ($client) {
+            $tickets = \App\Models\Ticket::where('client_id', $client->id)
+                ->with(['product', 'technician'])
+                ->latest()
+                ->paginate(10);
+        } else {
+            $tickets = \App\Models\Ticket::whereRaw('1=0')->paginate(10);
+        }
+        
+        return view('pages.shop.tickets.index', compact('user', 'tickets', 'client'));
+    }
+
+    public function createTicket()
+    {
+        $user = Auth::user();
+        $client = \App\Models\Client::where('user_id', $user->id)->first();
+        
+        // Auto create client profile if missing
+        if (!$client) {
+            $names = explode(' ', $user->name, 2);
+            $client = \App\Models\Client::create([
+                'user_id'         => $user->id,
+                'first_name'      => $names[0] ?? 'Client',
+                'last_name'       => $names[1] ?? 'Client',
+                'email'           => $user->email,
+                'phone'           => $user->phone ?? '770000000',
+                'wallet_balance'  => 0,
+                'current_balance' => 0,
+            ]);
+        }
+
+        $warranties = \App\Models\Warranty::where('client_id', $client->id)
+            ->with('product')
+            ->get();
+
+        return view('pages.shop.tickets.create', compact('user', 'client', 'warranties'));
+    }
+
+    public function storeTicket(Request $request)
+    {
+        $user = Auth::user();
+        $client = \App\Models\Client::where('user_id', $user->id)->first();
+        
+        if (!$client) {
+            return back()->with('error', 'Profil client requis.');
+        }
+
+        $request->validate([
+            'title'         => 'required|string|max:255',
+            'description'   => 'required|string',
+            'type'          => 'required|in:repair,installation,maintenance,advice,warranty_claim',
+            'priority'      => 'required|in:low,normal,high,urgent',
+            'warranty_id'   => 'nullable|exists:warranties,id',
+            'product_name'  => 'nullable|string|max:255',
+            'serial_number' => 'nullable|string|max:255',
+            'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+        ]);
+
+        $warranty = null;
+        $productId = null;
+        $productName = $request->product_name;
+        $serialNumber = $request->serial_number;
+        $coveredByWarranty = false;
+
+        if ($request->filled('warranty_id')) {
+            $warranty = \App\Models\Warranty::where('id', $request->warranty_id)
+                ->where('client_id', $client->id)
+                ->first();
+            if ($warranty) {
+                $productId = $warranty->product_id;
+                $productName = $warranty->product_name ?? ($warranty->product ? $warranty->product->name : 'N/A');
+                $serialNumber = $warranty->serial_number;
+                $coveredByWarranty = ($warranty->status === 'active');
+            }
+        }
+
+        $ticket = \App\Models\Ticket::create([
+            'number'              => \App\Models\Ticket::generateNumber(),
+            'client_id'           => $client->id,
+            'warranty_id'         => $warranty ? $warranty->id : null,
+            'product_id'          => $productId,
+            'client_name'         => $client->full_name,
+            'client_phone'        => $client->phone,
+            'client_email'        => $client->email,
+            'product_name'        => $productName,
+            'serial_number'       => $serialNumber,
+            'title'               => $request->title,
+            'description'         => $request->description,
+            'status'              => 'open',
+            'priority'            => $request->priority,
+            'type'                => $request->type,
+            'opened_at'           => now(),
+            'covered_by_warranty' => $coveredByWarranty,
+        ]);
+
+        // Handle file uploads
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('tickets/' . $ticket->id, 'public');
+                $ticket->attachments()->create([
+                    'file_path' => $path,
+                    'file_name' => $file->getClientOriginalName(),
+                    'type'      => str_starts_with($file->getMimeType(), 'image') ? 'image' : 'document',
+                ]);
+            }
+        }
+
+        return redirect()->route('dashboard.tickets.show', $ticket->id)
+            ->with('success', "Votre ticket {$ticket->number} a été créé avec succès.");
+    }
+
+    public function showTicket(\App\Models\Ticket $ticket)
+    {
+        $user = Auth::user();
+        $client = \App\Models\Client::where('user_id', $user->id)->first();
+        
+        if (!$client || $ticket->client_id !== $client->id) {
+            abort(403);
+        }
+
+        $ticket->load(['product', 'warranty', 'technician', 'attachments']);
+
+        return view('pages.shop.tickets.show', compact('user', 'client', 'ticket'));
+    }
 }

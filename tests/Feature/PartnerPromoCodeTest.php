@@ -209,9 +209,9 @@ class PartnerPromoCodeTest extends TestCase
 
         // Update status via admin OrderController update
         // We act as an admin user (admins might need role update if middleware exists)
-        $admin = User::factory()->create(['role' => 'admin']);
+        $admin = User::factory()->create(['role' => 'admin', 'is_admin' => true]);
         
-        $response = $this->actingAs($admin)->put(route('orders.update', $order->id), [
+        $response = $this->actingAs($admin)->put(route('admin.orders.update', $order->id), [
             'status' => 'completed',
             'payment_status' => 'paid',
         ]);
@@ -260,11 +260,11 @@ class PartnerPromoCodeTest extends TestCase
             'status' => 'pending',
         ]);
 
-        $admin = User::factory()->create(['role' => 'admin']);
+        $admin = User::factory()->create(['role' => 'admin', 'is_admin' => true]);
         
-        $response = $this->actingAs($admin)->put(route('orders.update', $order->id), [
+        $response = $this->actingAs($admin)->put(route('admin.orders.update', $order->id), [
             'status' => 'cancelled',
-            'payment_status' => 'unpaid',
+            'payment_status' => 'pending',
         ]);
 
         $response->assertRedirect();
