@@ -53,4 +53,69 @@ class ProductClientViewTest extends TestCase
         $response->assertSee('Sans garantie / Standard');
         $response->assertDontSee('Garantie null Mois');
     }
+
+    /** @test */
+    public function it_filters_products_by_category()
+    {
+        $category = \App\Models\Category::create([
+            'name' => 'Ordinateurs',
+            'slug' => 'ordinateurs',
+        ]);
+
+        $product1 = Product::create([
+            'name' => 'Ordinateur Dell Inspiron',
+            'slug' => 'ordinateur-dell-inspiron',
+            'price' => 300000,
+            'stock' => 5,
+            'active' => true,
+            'category_id' => $category->id,
+        ]);
+
+        $product2 = Product::create([
+            'name' => 'Clavier Basique',
+            'slug' => 'clavier-basique',
+            'price' => 15000,
+            'stock' => 5,
+            'active' => true,
+        ]);
+
+        // Get shop with category_id
+        $response = $this->get(route('shop.index', ['category_id' => $category->id]));
+
+        $response->assertStatus(200);
+        $response->assertSee('Ordinateur Dell Inspiron');
+        $response->assertDontSee('Clavier Basique');
+    }
+
+    /** @test */
+    public function it_searches_products_using_q_and_search_parameters()
+    {
+        $product1 = Product::create([
+            'name' => 'Super Portable Lenovo ThinkPad',
+            'slug' => 'super-portable-lenovo-thinkpad',
+            'price' => 450000,
+            'stock' => 5,
+            'active' => true,
+        ]);
+
+        $product2 = Product::create([
+            'name' => 'Souris Gamer Razer',
+            'slug' => 'souris-gamer-razer',
+            'price' => 35000,
+            'stock' => 5,
+            'active' => true,
+        ]);
+
+        // Test search parameter
+        $response = $this->get(route('shop.index', ['search' => 'Lenovo']));
+        $response->assertStatus(200);
+        $response->assertSee('Super Portable Lenovo ThinkPad');
+        $response->assertDontSee('Souris Gamer Razer');
+
+        // Test q parameter fallback
+        $responseQ = $this->get(route('shop.index', ['q' => 'Razer']));
+        $responseQ->assertStatus(200);
+        $responseQ->assertSee('Souris Gamer Razer');
+        $responseQ->assertDontSee('Super Portable Lenovo ThinkPad');
+    }
 }

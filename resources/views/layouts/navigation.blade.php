@@ -1,3 +1,6 @@
+@php
+    $navCategories = \App\Models\Category::whereNull('parent_id')->with('children')->orderBy('name')->get();
+@endphp
 <nav x-data="{ open: false }" class="relative z-50">
     <!-- Top Utility Bar -->
     <div class="bg-navy-700 text-white/80 py-2 text-xs border-b border-white/10 hidden sm:block">
@@ -30,7 +33,7 @@
             <!-- Search Bar -->
             <div class="flex-grow max-w-2xl hidden md:block">
                 <form action="{{ route('shop.index') }}" method="GET" class="relative group">
-                    <input type="search" name="q" placeholder="Rechercher des produits..." value="{{ request('q') }}"
+                    <input type="search" name="search" placeholder="Rechercher des produits..." value="{{ request('search') }}"
                         class="w-full bg-white text-navy-900 px-5 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500 transition-all shadow-inner">
                     <button type="submit" class="absolute right-0 top-0 h-full px-6 bg-gold-500 text-navy-900 rounded-r-md hover:bg-gold-600 transition-colors">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/></svg>
@@ -82,20 +85,36 @@
     <div class="bg-white border-b border-gray-100 py-3 shadow-sm hidden md:block">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
             <div class="flex items-center gap-8">
-                <!-- Categories Dropdown (Mock) -->
+                <!-- Categories Dropdown (Dynamic) -->
                 <div x-data="{ catOpen: false }" class="relative">
                     <button @click="catOpen = !catOpen" class="bg-gray-100 hover:bg-gray-200 text-navy-900 px-4 py-2 rounded-md font-semibold flex items-center gap-3 transition-colors focus:outline-none">
                         <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                         Toutes les catégories
                         <svg class="w-4 h-4 ml-2 transition-transform duration-200" :class="{'rotate-180': catOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <!-- Mock categories -->
+                    <!-- Dynamic categories -->
                     <div x-show="catOpen" @click.away="catOpen = false" x-transition class="absolute left-0 mt-2 w-64 bg-white border border-gray-100 shadow-xl rounded-md z-50 py-2">
-                        <a href="#" class="block px-4 py-2 text-sm text-navy-700 hover:bg-gold-50 hover:text-gold-700">Ordinateurs & Laptops</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-navy-700 hover:bg-gold-50 hover:text-gold-700">Composants PC</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-navy-700 hover:bg-gold-50 hover:text-gold-700">Périphériques</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-navy-700 hover:bg-gold-50 hover:text-gold-700">Logiciels & SaaS</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-navy-700 hover:bg-gold-50 hover:text-gold-700">Réseaux & Serveurs</a>
+                        @forelse($navCategories as $cat)
+                            <div class="group/cat relative">
+                                <a href="{{ route('shop.index', ['category_id' => $cat->id]) }}" class="flex items-center justify-between px-4 py-2 text-sm text-navy-700 hover:bg-gold-50 hover:text-gold-700 font-semibold transition-colors">
+                                    {{ $cat->name }}
+                                    @if($cat->children->count())
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    @endif
+                                </a>
+                                @if($cat->children->count())
+                                    <div class="hidden group-hover/cat:block absolute left-full top-0 ml-1 w-64 bg-white border border-gray-100 shadow-xl rounded-md py-2 z-50">
+                                        @foreach($cat->children as $child)
+                                            <a href="{{ route('shop.index', ['category_id' => $child->id]) }}" class="block px-4 py-2 text-sm text-navy-700 hover:bg-gold-50 hover:text-gold-700 transition-colors">
+                                                {{ $child->name }}
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                        @empty
+                            <a href="{{ route('shop.index') }}" class="block px-4 py-2 text-sm text-gray-500 italic">Tous les produits</a>
+                        @endforelse
                     </div>
                 </div>
 
@@ -154,6 +173,23 @@
         <div class="flex flex-col py-4">
             <a href="{{ route('home') }}" class="px-6 py-4 text-navy-900 font-bold border-b border-gray-50 {{ request()->routeIs('home') ? 'bg-gold-50 text-gold-700' : '' }}">ACCUEIL</a>
             <a href="{{ route('shop.index') }}" class="px-6 py-4 text-navy-900 font-bold border-b border-gray-50 {{ request()->routeIs('shop.*') ? 'bg-gold-50 text-gold-700' : '' }}">BOUTIQUE</a>
+            
+            <div x-data="{ mobileCatOpen: false }" class="border-b border-gray-50">
+                <button @click="mobileCatOpen = !mobileCatOpen" class="w-full flex items-center justify-between px-6 py-4 text-navy-900 font-bold focus:outline-none">
+                    <span>CATÉGORIES</span>
+                    <svg class="w-4 h-4 transition-transform duration-200" :class="{'rotate-180': mobileCatOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div x-show="mobileCatOpen" x-transition class="bg-gray-50 pl-4 py-2">
+                    <a href="{{ route('shop.index') }}" class="block px-6 py-2 text-sm text-navy-700 hover:text-gold-700 font-medium">Tous les produits</a>
+                    @foreach($navCategories as $cat)
+                        <a href="{{ route('shop.index', ['category_id' => $cat->id]) }}" class="block px-6 py-2 text-sm text-navy-700 hover:text-gold-700 font-semibold">{{ $cat->name }}</a>
+                        @foreach($cat->children as $child)
+                            <a href="{{ route('shop.index', ['category_id' => $child->id]) }}" class="block px-10 py-1.5 text-xs text-gray-500 hover:text-gold-700">└ {{ $child->name }}</a>
+                        @endforeach
+                    @endforeach
+                </div>
+            </div>
+
             <a href="{{ route('services.index') }}" class="px-6 py-4 text-navy-900 font-bold border-b border-gray-50 {{ request()->routeIs('services.*') ? 'bg-gold-50 text-gold-700' : '' }}">NOS SERVICES</a>
             <a href="{{ route('portfolio.index') }}" class="px-6 py-4 text-navy-900 font-bold border-b border-gray-50 {{ request()->routeIs('portfolio.*') ? 'bg-gold-50 text-gold-700' : '' }}">PORTFOLIO</a>
             <a href="{{ route('blog.index') }}" class="px-6 py-4 text-navy-900 font-bold border-b border-gray-50 {{ request()->routeIs('blog.*') ? 'bg-gold-50 text-gold-700' : '' }}">BLOG</a>

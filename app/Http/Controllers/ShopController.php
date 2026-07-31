@@ -20,12 +20,17 @@ class ShopController extends Controller
 {
     public function index(Request $request)
     {
+        if ($request->filled('q') && !$request->filled('search')) {
+            $request->merge(['search' => $request->input('q')]);
+        }
+
         $request->validate([
             'category_id' => 'nullable|integer|exists:categories,id',
             'brand_id'    => 'nullable|integer|exists:brands,id',
             'condition'   => 'nullable|string|max:50',
             'blackfriday' => 'nullable|boolean',
             'search'      => 'nullable|string|max:255',
+            'q'           => 'nullable|string|max:255',
         ]);
 
         $query = Product::where('active', true)->where(function ($q) {
