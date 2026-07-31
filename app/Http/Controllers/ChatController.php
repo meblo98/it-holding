@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ChatController extends Controller
 {
@@ -69,6 +71,19 @@ class ChatController extends Controller
 
         $msg = ChatMessage::create($data);
 
+        // Generate AI reply if API key is present
+        $aiReply = $this->getGeminiReply($request->message, $msg->user_id, $msg->session_id);
+        if ($aiReply) {
+            ChatMessage::create([
+                'user_id' => $msg->user_id,
+                'session_id' => $msg->session_id,
+                'user_name' => 'Assistant IA',
+                'message' => $aiReply,
+                'is_from_admin' => true,
+                'is_read' => false,
+            ]);
+        }
+
         return response()->json([
             'success' => true,
             'message' => [
@@ -78,6 +93,66 @@ class ChatController extends Controller
                 'time' => $msg->created_at->format('H:i'),
             ]
         ]);
+    }
+
+    /**
+     * Get reply from Gemini API using the conversation context
+     */
+    private function getGeminiReply($clientMessage, $userId = null, $sessionId = null)
+    {
+        $apiKey = config('services.gemini.key');
+        if (empty($apiKey)) {
+            return null;
+        }
+
+        $model = config('services.gemini.model', 'gemini-1.5-flash');
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+        // Retrieve last 10 messages for context (excluding the message just saved)
+        $query = ChatMessage::query();
+        if ($userId) {
+            $query->where('user_id', $userId);
+        } else {
+            $query->where('session_id', $sessionId)->whereNull('user_id');
+        }
+
+        // We only fetch history prior to the newest message to build context cleanly
+        $recentMessages = $query->orderBy('created_at', 'desc')->skip(1)->take(10)->get()->reverse();
+
+        $context = "Tu es l'assistant IA de support client pour IT-HOLDING, une entreprise technologique de référence au Sénégal spécialisée dans les équipements informatiques (ordinateurs, composants PC, réseaux, serveurs), les services informatiques, et les solutions SaaS/logiciels.\n";
+        $context .= "Réponds poliment, professionnellement et de manière concise en français. Aide le client en fonction de l'historique ci-dessous.\n\n";
+        $context .= "Historique de la discussion :\n";
+
+        foreach ($recentMessages as $msg) {
+            $sender = $msg->is_from_admin ? "Support IT-HOLDING" : ($msg->user_name ?: "Client");
+            $context .= "- {$sender}: {$msg->message}\n";
+        }
+        $context .= "- Client (nouveau message): {$clientMessage}\n";
+        $context .= "Support IT-HOLDING :";
+
+        try {
+            $response = Http::timeout(20)->post($url, [
+                'contents' => [
+                    [
+                        'parts' => [
+                            ['text' => $context]
+                        ]
+                    ]
+                ]
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $reply = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+                return $reply ? trim($reply) : null;
+            } else {
+                Log::error('Gemini API request failed: ' . $response->body());
+            }
+        } catch (\Exception $e) {
+            Log::error('Error calling Gemini API: ' . $e->getMessage());
+        }
+
+        return null;
     }
 
     /**

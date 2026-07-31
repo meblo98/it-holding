@@ -240,6 +240,38 @@
 
         input.value = '';
 
+        // Append client message immediately for instant feedback
+        const container = document.getElementById('chat-messages-container');
+        const escapedText = escapeHtml(text);
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+        const clientMessageHtml = `
+            <div class="flex items-start gap-2.5 max-w-[80%] ml-auto justify-end">
+                <div class="bg-navy-900 text-white rounded-2xl rounded-tr-none p-3 shadow-sm">
+                    <p class="text-xs leading-relaxed">${escapedText}</p>
+                    <span class="block text-[8px] text-gray-400 text-right mt-1 font-semibold">${timeStr}</span>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', clientMessageHtml);
+
+        // Add typing indicator
+        const typingIndicatorHtml = `
+            <div id="chat-typing-indicator" class="flex items-start gap-2.5 max-w-[80%] animate-pulse">
+                <div class="flex-shrink-0 w-6 h-6 rounded-full bg-gold-500/20 border border-gold-500/30 flex items-center justify-center text-[10px] font-bold text-gold-500">IT</div>
+                <div class="bg-white dark:bg-navy-800 border border-gray-100 dark:border-gray-800 rounded-2xl rounded-tl-none p-3 shadow-sm">
+                    <p class="text-xs text-gray-500 leading-relaxed italic">L'assistant IA écrit...</p>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', typingIndicatorHtml);
+        scrollToBottom();
+
+        // Temporarily disable input
+        input.disabled = true;
+        input.placeholder = "IA réfléchit...";
+
         const payload = {
             message: text
         };
@@ -258,11 +290,30 @@
         })
         .then(response => response.json())
         .then(data => {
+            // Re-enable input
+            input.disabled = false;
+            input.placeholder = "Écrivez votre message...";
+            input.focus();
+
+            // Remove typing indicator
+            const typingEl = document.getElementById('chat-typing-indicator');
+            if (typingEl) {
+                typingEl.remove();
+            }
+
             if (data.success) {
                 fetchMessages();
             }
         })
-        .catch(error => console.error('Error sending chat message:', error));
+        .catch(error => {
+            console.error('Error sending chat message:', error);
+            input.disabled = false;
+            input.placeholder = "Écrivez votre message...";
+            const typingEl = document.getElementById('chat-typing-indicator');
+            if (typingEl) {
+                typingEl.remove();
+            }
+        });
     }
 
     function scrollToBottom() {

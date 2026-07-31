@@ -129,4 +129,77 @@ class SupportChatTest extends TestCase
             'is_from_admin' => true,
         ]);
     }
+
+    /** @test */
+    public function it_triggers_gemini_chatbot_response_when_api_key_is_configured()
+    {
+        // 1. Configure fake api key
+        config(['services.gemini.key' => 'test-gemini-key']);
+
+        // 2. Fake HTTP request to Gemini
+        \Illuminate\Support\Facades\Http::fake([
+            'generativelanguage.googleapis.com/*' => \Illuminate\Support\Facades\Http::response([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'parts' => [
+                                ['text' => 'Ceci est une réponse générée par l\'IA Gemini.']
+                            ]
+                        ]
+                    ]
+                ]
+            ], 200)
+        ]);
+
+        $user = User::factory()->create(['name' => 'Alice Client']);
+
+        $response = $this->actingAs($user)->post(route('chat.send'), [
+            'message' => 'Bonjour, quel est votre délai de livraison ?',
+        ]);
+
+        $response->assertStatus(200);
+
+        // Verify client message was saved
+        $this->assertDatabaseHas('chat_messages', [
+            'user_id' => $user->id,
+            'message' => 'Bonjour, quel est votre délai de livraison ?',
+            'is_from_admin' => false,
+        ]);
+
+        // Verify Gemini message was saved
+        $this->assertDatabaseHas('chat_messages', [
+            'user_id' => $user->id,
+            'user_name' => 'Assistant IA',
+            'message' => 'Ceci est une réponse générée par l\'IA Gemini.',
+            'is_from_admin' => true,
+        ]);
+    }
+
+    /** @test */
+    public function it_does_not_trigger_gemini_when_api_key_is_missing()
+    {
+        // Ensure API key is null/empty
+        config(['services.gemini.key' => null]);
+
+        $user = User::factory()->create(['name' => 'Alice Client']);
+
+        $response = $this->actingAs($user)->post(route('chat.send'), [
+            'message' => 'Bonjour, quel est votre délai de livraison ?',
+        ]);
+
+        $response->assertStatus(200);
+
+        // Verify only client message was saved
+        $this->assertDatabaseHas('chat_messages', [
+            'user_id' => $user->id,
+            'message' => 'Bonjour, quel est votre délai de livraison ?',
+            'is_from_admin' => false,
+        ]);
+
+        // Verify no Gemini/admin message was auto-saved
+        $this->assertDatabaseMissing('chat_messages', [
+            'user_id' => $user->id,
+            'is_from_admin' => true,
+        ]);
+    }
 }
