@@ -124,6 +124,16 @@
                         </span>
                     </div>
                     @endif
+                    <div>
+                        <span class="text-gray-400 block mb-1">Garantie:</span>
+                        <span class="font-bold text-navy-900">
+                            @if($product->warranty_duration_months)
+                                {{ $product->warranty_duration_months }} mois ({{ $product->warranty_duration_months % 12 === 0 ? ($product->warranty_duration_months / 12) . ' an(s)' : $product->warranty_duration_months . ' mois' }})
+                            @else
+                                Sans garantie / Standard
+                            @endif
+                        </span>
+                    </div>
                 </div>
 
             <!-- Bespoke Configurator Wrapper -->
@@ -247,6 +257,12 @@
                         <svg class="w-4 h-4 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
                         Expédition 24H
                     </span>
+                    @if($product->warranty_duration_months)
+                    <span class="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                        <svg class="w-4 h-4 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                        Garantie {{ $product->warranty_duration_months }} Mois
+                    </span>
+                    @endif
                 </div>
             </div>
         </div>
