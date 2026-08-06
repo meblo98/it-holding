@@ -10,8 +10,8 @@ class EnsureUserIsAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user() || !$request->user()->is_admin) {
-            abort(403, 'Accès réservé aux administrateurs.');
+        if (!$request->user() || (!$request->user()->isAdmin() && !$request->user()->isStaff())) {
+            abort(403, "Accès réservé aux administrateurs et membres du personnel.");
         }
 
         return $next($request);

@@ -66,6 +66,31 @@ class User extends Authenticatable
         return $this->is_admin || in_array($this->role, ['admin', 'dg', 'commercial', 'comptable', 'magasinier', 'technicien', 'livreur']);
     }
 
+    protected static ?array $cachedPermissions = null;
+
+    public function hasPermission(string $module): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        if (!$this->isStaff()) {
+            return false;
+        }
+
+        if (self::$cachedPermissions === null) {
+            self::$cachedPermissions = \App\Models\RolePermission::pluck('permissions', 'role')->toArray();
+        }
+
+        $rolePermissions = self::$cachedPermissions[$this->role] ?? null;
+
+        if (is_array($rolePermissions)) {
+            return in_array($module, $rolePermissions);
+        }
+
+        return false;
+    }
+
     public function getRoleLabelAttribute(): string
     {
         return self::ROLES[$this->role] ?? ucfirst($this->role);

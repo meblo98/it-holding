@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\RolePermission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -84,6 +85,61 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index')
             ->with('success', "Utilisateur {$user->name} mis à jour.");
+    }
+
+    public function permissions()
+    {
+        $roles = User::ROLES;
+        // Exclude admin and client from list of role permissions to configure
+        unset($roles['admin'], $roles['client']);
+
+        $modules = [
+            'services'       => 'Services',
+            'projects'       => 'Portfolio',
+            'posts'          => 'Blog',
+            'products'       => 'Boutique',
+            'orders'         => 'Commandes',
+            'quotes'         => 'Devis',
+            'invoices'       => 'Factures',
+            'delivery-notes' => 'Bons de livraison',
+            'suppliers'      => 'Fournisseurs',
+            'stock'          => 'Gestion de stock',
+            'clients'        => 'Clients CRM',
+            'warranties'     => 'Garanties',
+            'tickets'        => 'SAV & Tickets',
+            'chat'           => 'Chat Support',
+            'contracts'      => 'Contrats Maintenance',
+            'care'           => 'IT HOLDING CARE+',
+            'expenses'       => 'Gestion des Dépenses',
+            'finance'        => 'Finance & Trésorerie',
+            'reports'        => 'Rapports & Stats',
+            'users'          => 'Équipe & Accès',
+        ];
+
+        // Fetch existing permissions
+        $rolePermissions = RolePermission::pluck('permissions', 'role')->toArray();
+
+        return view('admin.users.permissions', compact('roles', 'modules', 'rolePermissions'));
+    }
+
+    public function updatePermissions(Request $request)
+    {
+        $roles = User::ROLES;
+        unset($roles['admin'], $roles['client']);
+
+        $submittedPermissions = $request->input('permissions', []);
+
+        foreach (array_keys($roles) as $role) {
+            $rolePerms = $submittedPermissions[$role] ?? [];
+            
+            RolePermission::updateOrCreate(
+                ['role' => $role],
+                ['permissions' => $rolePerms]
+            );
+        }
+
+        return redirect()->route('admin.users.permissions')
+            ->with('success', 'Les accès pour chaque profil ont été mis à jour avec succès.');
     }
 
     public function destroy(User $user)
