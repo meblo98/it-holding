@@ -221,7 +221,18 @@
                             </div>
                             <div class="flex-1">
                                 <p class="text-[10px] font-bold text-navy-900 line-clamp-1 truncate w-40">{{ $item['name'] }}</p>
-                                <p class="text-[10px] text-gray-400">
+                                @if(!empty($item['options']))
+                                    <div class="text-[9px] text-gray-500 font-medium mt-0.5 space-y-0.5">
+                                        @foreach($item['options'] as $opt)
+                                            @if($opt['name'] === 'Personnalisation')
+                                                <span class="inline-block px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100 font-bold text-[8px] max-w-full truncate">Perso: {{ $opt['value'] }}</span>
+                                            @else
+                                                <span class="block">• {{ $opt['name'] }} : {{ $opt['value'] }} @if($opt['price'] > 0)(+{{ number_format($opt['price'], 0, ',', ' ') }} F)@endif</span>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                @endif
+                                <p class="text-[10px] text-gray-400 mt-1">
                                     {{ $item['quantity'] }} x <span class="text-gold-600 font-bold">{{ number_format($item['price'], 0, ',', ' ') }} CFA</span>
                                     @if($itemProduct && $itemProduct->isPreorderable())
                                         <span class="text-amber-600 font-bold ml-1">(Précommande)</span>

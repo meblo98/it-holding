@@ -163,7 +163,21 @@
                                                         </span>
                                                     @endif
                                                 </p>
-                                                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{{ $item->product->category->name ?? 'Catégorie' }}</span>
+                                                @if(!empty($item->options))
+                                                    <div class="text-[10px] text-gray-500 font-medium mt-1 space-y-1">
+                                                        @foreach($item->options as $opt)
+                                                            @if($opt['name'] === 'Personnalisation')
+                                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                                    Personnalisation : {{ $opt['value'] }}
+                                                                </span>
+                                                            @else
+                                                                <span class="block text-navy-950">• {{ $opt['name'] }} : {{ $opt['value'] }} @if($opt['price'] > 0)(+{{ number_format($opt['price'], 0, ',', ' ') }} F)@endif</span>
+                                                            @endif
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mt-1">{{ $item->product->category->name ?? 'Catégorie' }}</span>
                                             </div>
                                         </div>
                                     </td>

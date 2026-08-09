@@ -185,8 +185,23 @@ class ShopController extends Controller
                 }
             }
         }
+
+        // Handle customization text
+        $customization = $request->input('customization');
+        if (!empty($customization)) {
+            $optionsDetails[] = [
+                'id' => null,
+                'name' => 'Personnalisation',
+                'value' => $customization,
+                'price' => 0.00
+            ];
+        }
+
         sort($optionIds);
         $cartKey = empty($optionIds) ? (string)$id : $id . '-' . implode('-', $optionIds);
+        if (!empty($customization)) {
+            $cartKey .= '-' . md5($customization);
+        }
 
         if (isset($cart[$cartKey])) {
             $newQuantity = $cart[$cartKey]['quantity'] + $quantity;
@@ -596,6 +611,7 @@ class ShopController extends Controller
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
             'options' => 'nullable|array',
+            'customization' => 'nullable|string|max:1000',
         ]);
 
         $product = Product::findOrFail($validated['product_id']);
@@ -621,6 +637,11 @@ class ShopController extends Controller
                     ];
                 }
             }
+        }
+
+        $customization = $request->input('customization');
+        if (!empty($customization)) {
+            $optStrings[] = 'Personnalisation: ' . $customization;
         }
 
         $unitPrice = Product::calculateWholesalePrice($product, $quantity) + $optionSum;

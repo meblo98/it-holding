@@ -114,6 +114,11 @@
                                         Découvrir l'offre
                                         <svg class="w-4 h-4 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                                     </a>
+                                    @if($service->price)
+                                        <span class="text-xs font-black text-gold-600 bg-gold-50 px-3 py-1 rounded-full border border-gold-200/20">
+                                            {{ number_format($service->price, 0, ',', ' ') }} FCFA
+                                        </span>
+                                    @endif
                                 </div>
                             </div>
                         </div>

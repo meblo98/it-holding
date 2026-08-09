@@ -50,7 +50,21 @@
                                                     </span>
                                                 @endif
                                             </div>
-                                            <div class="text-sm text-gray-500">
+                                            @if(!empty($item->options))
+                                                <div class="text-xs text-gray-500 mt-1 space-y-1">
+                                                    @foreach($item->options as $opt)
+                                                        @if($opt['name'] === 'Personnalisation')
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                                                                <svg class="w-3.5 h-3.5 mr-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                                Personnalisation : {{ $opt['value'] }}
+                                                            </span>
+                                                        @else
+                                                            <span class="block">• <strong class="text-navy-900">{{ $opt['name'] }}</strong> : {{ $opt['value'] }} @if($opt['price'] > 0)(+{{ number_format($opt['price'], 0, ',', ' ') }} F)@endif</span>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                            <div class="text-sm text-gray-500 mt-1">
                                                 PU: {{ number_format($item->price, 0, ',', ' ') }} FCFA
                                             </div>
                                         </div>

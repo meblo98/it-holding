@@ -36,7 +36,8 @@ class ServiceController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'content' => 'required|string',
-            'icon' => 'nullable|string|max:255', // Could be a font-awesome class or similar
+            'icon' => 'nullable|string|max:255',
+            'price' => 'nullable|numeric|min:0',
             'image' => 'nullable|image|max:2048', // Max 2MB
             'active' => 'boolean',
         ]);
@@ -84,6 +85,7 @@ class ServiceController extends Controller
             'description' => 'required|string',
             'content' => 'required|string',
             'icon' => 'nullable|string|max:255',
+            'price' => 'nullable|numeric|min:0',
             'image' => 'nullable|image|max:2048',
             'active' => 'boolean',
         ]);

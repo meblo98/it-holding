@@ -36,12 +36,24 @@
                                     @endif
                                 </div>
                                 <div class="ml-4">
-                                    <div class="text-sm font-medium text-navy-600 truncate">
-                                        {{ $service->title }}
+                                    <div class="text-sm font-medium text-navy-600 flex items-center">
+                                        <span>{{ $service->title }}</span>
+                                        @if($service->price)
+                                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gold-100 text-gold-800">
+                                                {{ number_format($service->price, 0, ',', ' ') }} FCFA
+                                            </span>
+                                        @endif
                                     </div>
                                     <div class="text-sm text-gray-500">
                                         {{ Str::limit($service->description, 50) }}
                                     </div>
+                                    @if($service->icon)
+                                        <div class="mt-1">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-navy-50 text-navy-700">
+                                                Icône: {{ $service->icon }}
+                                            </span>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                             <div class="flex items-center space-x-2">
@@ -89,4 +101,5 @@
 
     <div class="mt-4">
         {{ $services->links() }}
-    @endsection
+    </div>
+@endsection

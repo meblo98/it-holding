@@ -171,7 +171,7 @@
 
                     <!-- Real Product Options -->
                     @if($product->options->count() > 0)
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
                         @foreach($product->options->groupBy('name') as $optName => $opts)
                         <div class="space-y-3">
                             <label class="text-sm font-bold text-navy-900 uppercase tracking-tighter italic">{{ $optName }}</label>
@@ -187,6 +187,17 @@
                         @endforeach
                     </div>
                     @endif
+
+                    <!-- Personalization / Customization -->
+                    <div class="space-y-2 bg-gray-50/50 p-4 rounded-xl border border-gray-100 mb-6">
+                        <label class="text-xs font-black text-navy-900 uppercase tracking-widest block italic">
+                            Personnalisation de la configuration (Optionnel)
+                        </label>
+                        <p class="text-[10px] text-gray-400 font-medium">Spécifiez vos exigences sur mesure (ex: RAM de 32GB, disque de 1To, etc.)</p>
+                        <textarea name="customization" rows="2" 
+                            placeholder="Ex: Je souhaite ce produit avec 32 Go de RAM et un disque de 1 To SSD." 
+                            class="mt-1 w-full border-gray-200 rounded-lg text-xs focus:ring-gold-500 focus:border-gold-500 bg-white placeholder-gray-300"></textarea>
+                    </div>
 
                     <!-- Wholesale Pricing Offer Card -->
                     @if($product->wholesale_qty && $product->wholesale_qty >= 2 && $product->wholesale_discount_rate > 0)
