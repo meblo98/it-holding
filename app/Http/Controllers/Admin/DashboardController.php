@@ -48,8 +48,13 @@ class DashboardController extends Controller
             ->whereIn('invoices.status', ['paid', 'sent'])
             ->sum(\Illuminate\Support\Facades\DB::raw('invoice_items.quantity * invoice_items.purchase_price'));
 
-        // 3. Combined Financials
-        $totalRevenue = $ordersRevenue + $invoicesRevenue;
+        // 3. Combined Financials & Reseller Commissions
+        $ordersCommissions = \App\Models\PartnerCommission::where('status', 'paid')
+            ->whereHas('order', function ($q) {
+                $q->where('status', '!=', 'cancelled');
+            })->sum('commission_amount');
+
+        $totalRevenue = $ordersRevenue + $invoicesRevenue - $ordersCommissions;
         $totalCost = $ordersCost + $invoicesCost;
         $totalProfit = $totalRevenue - $totalCost;
         $marginPercentage = $totalRevenue > 0 ? ($totalProfit / $totalRevenue) * 100 : 0;
@@ -59,11 +64,13 @@ class DashboardController extends Controller
             'cost' => $totalCost,
             'profit' => $totalProfit,
             'margin' => $marginPercentage,
+            'commissions' => $ordersCommissions,
             'orders' => [
                 'count' => $ordersCount,
-                'revenue' => $ordersRevenue,
+                'revenue' => $ordersRevenue - $ordersCommissions,
+                'gross_revenue' => $ordersRevenue,
                 'cost' => $ordersCost,
-                'profit' => $ordersRevenue - $ordersCost,
+                'profit' => ($ordersRevenue - $ordersCommissions) - $ordersCost,
             ],
             'invoices' => [
                 'count' => $invoicesCount,
@@ -96,6 +103,14 @@ class DashboardController extends Controller
                 ->whereMonth('created_at', $monthNum)
                 ->whereYear('created_at', $yearNum)
                 ->sum('total_amount');
+
+            // Commissions for this month
+            $ordersComm = \App\Models\PartnerCommission::where('status', 'paid')
+                ->whereMonth('created_at', $monthNum)
+                ->whereYear('created_at', $yearNum)
+                ->sum('commission_amount');
+
+            $ordersRev = $ordersRev - $ordersComm;
 
             $ordersCst = \Illuminate\Support\Facades\DB::table('order_items')
                 ->join('orders', 'order_items.order_id', '=', 'orders.id')

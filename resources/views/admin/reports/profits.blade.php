@@ -40,9 +40,9 @@
 <!-- Profit KPIs Grid -->
 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
     <div class="bg-white border border-gray-100 rounded-xl p-6 shadow-sm">
-        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Chiffre d'Affaires Brut</span>
+        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Chiffre d'Affaires Net</span>
         <h3 class="text-2xl font-black text-navy-900">{{ number_format($revenue, 0, ',', ' ') }} FCFA</h3>
-        <p class="text-xs text-gray-500 mt-1">Revenus cumulés sur les commandes réglées.</p>
+        <p class="text-xs text-gray-500 mt-1">Revenus net après déduction des commissions partenaires ({{ number_format($commissions, 0, ',', ' ') }} FCFA déduits).</p>
     </div>
 
     <div class="bg-white border border-gray-100 rounded-xl p-6 shadow-sm">
@@ -52,15 +52,15 @@
     </div>
 
     <div class="bg-navy-900 text-white rounded-xl p-6 shadow-sm">
-        <span class="text-xs font-bold text-gold-400 uppercase tracking-widest block mb-2">Bénéfice Brut</span>
+        <span class="text-xs font-bold text-gold-400 uppercase tracking-widest block mb-2">Bénéfice Brut (Net)</span>
         <h3 class="text-2xl font-black text-gold-500">{{ number_format($grossProfit, 0, ',', ' ') }} FCFA</h3>
-        <p class="text-xs text-gray-400 mt-1">Revenus restants après coût de revient.</p>
+        <p class="text-xs text-gray-400 mt-1">Revenus restants après coût de revient et commissions.</p>
     </div>
 
     <div class="bg-white border border-gray-100 rounded-xl p-6 shadow-sm">
         <span class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Marge Commerciale</span>
         <h3 class="text-2xl font-black text-green-600">{{ number_format($margin, 2) }}%</h3>
-        <p class="text-xs text-gray-500 mt-1">Ratio bénéfice brut / chiffre d'affaires.</p>
+        <p class="text-xs text-gray-500 mt-1">Ratio bénéfice brut / chiffre d'affaires net.</p>
     </div>
 </div>
 
@@ -75,6 +75,7 @@
             <p class="text-xs text-navy-950 leading-relaxed font-medium">
                 Le bénéfice brut est basé uniquement sur les commandes dont le paiement a été validé/réglé (`payment_status = paid`).
                 Le coût d'achat des marchandises vendues (COGS) utilise le snapshot du prix d'achat (`purchase_price`) enregistré dans l'article de commande au moment de la vente pour garantir l'exactitude historique, indépendamment des variations futures des prix d'achat chez les fournisseurs.
+                De plus, les commissions reversées aux partenaires / revendeurs affiliés sont automatiquement déduites du chiffre d'affaires net et du bénéfice brut pour refléter la rentabilité réelle.
             </p>
         </div>
     </div>

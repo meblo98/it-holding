@@ -318,4 +318,65 @@ class PartnerPromoCodeTest extends TestCase
         $this->assertEquals(17100, $order->tax_amount); // 18% of 95000
         $this->assertEquals(112100, $order->total_amount); // 95,000 + 17,100 tax
     }
+
+    /** @test */
+    public function it_deducts_commissions_from_dashboard_and_reports()
+    {
+        $order = Order::create([
+            'user_id' => $this->user->id,
+            'client_id' => $this->client->id,
+            'customer_name' => 'John Doe',
+            'customer_email' => 'john@example.com',
+            'total_amount' => 95000,
+            'status' => 'completed',
+            'payment_status' => 'paid',
+            'payment_method' => 'cod',
+            'promo_code_id' => $this->promoCode->id,
+            'discount_amount' => 5000,
+        ]);
+
+        $commission = PartnerCommission::create([
+            'partner_id' => $this->partnerUser->id,
+            'order_id' => $order->id,
+            'promo_code_id' => $this->promoCode->id,
+            'order_amount' => 100000,
+            'commission_amount' => 10000,
+            'status' => 'paid',
+        ]);
+
+        // Also add an OrderItem to let ReportController sales & profits query find it
+        \App\Models\OrderItem::create([
+            'order_id' => $order->id,
+            'product_id' => $this->product->id,
+            'quantity' => 1,
+            'price' => 100000,
+            'purchase_price' => 70000,
+        ]);
+
+        $admin = User::factory()->create(['role' => 'admin', 'is_admin' => true]);
+
+        // 1. Check Dashboard Controller
+        $response = $this->actingAs($admin)->get(route('admin.dashboard'));
+        $response->assertStatus(200);
+        $financials = $response->viewData('financials');
+        
+        // Orders gross revenue was 95000, commission was 10000. Net orders revenue = 85000.
+        $this->assertEquals(85000, $financials['orders']['revenue']);
+        $this->assertEquals(10000, $financials['commissions']);
+
+        // 2. Check Reports Index
+        $response = $this->actingAs($admin)->get(route('admin.reports.index'));
+        $response->assertStatus(200);
+        $response->assertViewHas('totalCA', 85000);
+        $response->assertViewHas('totalCommissions', 10000);
+
+        // 3. Check Reports Profits
+        $response = $this->actingAs($admin)->get(route('admin.reports.profits'), [
+            'start_date' => now()->subDay()->toDateString(),
+            'end_date' => now()->addDay()->toDateString(),
+        ]);
+        $response->assertStatus(200);
+        $response->assertViewHas('revenue', 90000); // 100000 (from order item) - 10000 (commission)
+        $response->assertViewHas('commissions', 10000);
+    }
 }

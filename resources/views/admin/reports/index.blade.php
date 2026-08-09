@@ -29,7 +29,7 @@
             </span>
         </div>
         <h3 class="text-2xl font-black text-navy-900">{{ number_format($totalCA, 0, ',', ' ') }} <span class="text-xs">FCFA</span></h3>
-        <p class="text-xs text-gray-400 mt-1">Factures réglées</p>
+        <p class="text-xs text-gray-400 mt-1">Net (Commissions déduites : {{ number_format($totalCommissions, 0, ',', ' ') }} F)</p>
     </div>
 
     <div class="bg-white border border-gray-100 rounded-xl p-6 shadow-sm">

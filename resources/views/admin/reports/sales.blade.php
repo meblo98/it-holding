@@ -40,9 +40,9 @@
 <!-- Performance Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
     <div class="bg-navy-900 text-white rounded-xl p-6">
-        <span class="text-xs font-bold text-gold-400 uppercase tracking-widest">Revenus des Ventes</span>
+        <span class="text-xs font-bold text-gold-400 uppercase tracking-widest">Revenus des Ventes (Net)</span>
         <h3 class="text-3xl font-black mt-2">{{ number_format($totalSales, 0, ',', ' ') }} FCFA</h3>
-        <p class="text-xs text-gray-400 mt-2">Chiffre d'affaires brut généré sur la période.</p>
+        <p class="text-xs text-gray-400 mt-2">Net après déduction des commissions partenaires ({{ number_format($commissions, 0, ',', ' ') }} FCFA déduits).</p>
     </div>
     <div class="bg-gray-50 border border-gray-100 rounded-xl p-6">
         <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Articles Commandés</span>

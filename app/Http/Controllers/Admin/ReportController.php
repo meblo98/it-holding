@@ -20,7 +20,8 @@ class ReportController extends Controller
     {
         // Overview of basic KPIs
         $salesCount = Order::count();
-        $totalCA = Order::where('payment_status', 'paid')->sum('total_amount');
+        $totalCommissions = \App\Models\PartnerCommission::where('status', 'paid')->sum('commission_amount');
+        $totalCA = Order::where('payment_status', 'paid')->sum('total_amount') - $totalCommissions;
         
         $stockValuation = Product::sum(DB::raw('stock * price'));
         $purchaseValuation = Product::sum(DB::raw('stock * purchase_price'));
@@ -29,7 +30,7 @@ class ReportController extends Controller
         $activeWarranties = Warranty::where('status', 'active')->count();
 
         return view('admin.reports.index', compact(
-            'salesCount', 'totalCA', 'stockValuation', 'purchaseValuation', 'openTicketsCount', 'activeWarranties'
+            'salesCount', 'totalCA', 'totalCommissions', 'stockValuation', 'purchaseValuation', 'openTicketsCount', 'activeWarranties'
         ));
     }
 
@@ -54,13 +55,21 @@ class ReportController extends Controller
 
         $items = $query->latest()->get();
 
-        $totalSales = $items->sum(fn($i) => $i->quantity * $i->price);
+        $commissions = \App\Models\PartnerCommission::where('status', 'paid')
+            ->whereHas('order', function ($q) use ($startDate, $endDate, $clientId) {
+                $q->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+                if ($clientId) {
+                    $q->where('client_id', $clientId);
+                }
+            })->sum('commission_amount');
+
+        $totalSales = $items->sum(fn($i) => $i->quantity * $i->price) - $commissions;
         $totalQty = $items->sum('quantity');
 
         $products = Product::orderBy('name')->get();
         $clients = Client::orderBy('company_name')->orderBy('last_name')->get();
 
-        return view('admin.reports.sales', compact('items', 'totalSales', 'totalQty', 'products', 'clients', 'startDate', 'endDate'));
+        return view('admin.reports.sales', compact('items', 'totalSales', 'commissions', 'totalQty', 'products', 'clients', 'startDate', 'endDate'));
     }
 
     public function stocks()
@@ -87,12 +96,18 @@ class ReportController extends Controller
               ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
         })->get();
 
-        $revenue = $items->sum(fn($i) => $i->quantity * $i->price);
+        $commissions = \App\Models\PartnerCommission::where('status', 'paid')
+            ->whereHas('order', function ($q) use ($startDate, $endDate) {
+                $q->where('payment_status', 'paid')
+                  ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+            })->sum('commission_amount');
+
+        $revenue = $items->sum(fn($i) => $i->quantity * $i->price) - $commissions;
         $cogs = $items->sum(fn($i) => $i->quantity * ($i->purchase_price ?: 0));
         $grossProfit = $revenue - $cogs;
         $margin = $revenue > 0 ? ($grossProfit / $revenue) * 100 : 0;
 
-        return view('admin.reports.profits', compact('revenue', 'cogs', 'grossProfit', 'margin', 'startDate', 'endDate'));
+        return view('admin.reports.profits', compact('revenue', 'commissions', 'cogs', 'grossProfit', 'margin', 'startDate', 'endDate'));
     }
 
     public function suppliers()
@@ -182,7 +197,7 @@ class ReportController extends Controller
                     ]);
                 }
             } elseif ($type === 'profits') {
-                fputcsv($file, ['Mois', 'Chiffre d\'Affaires (FCFA)', 'Coût d\'Achat (FCFA)', 'Bénéfice Brut (FCFA)', 'Marge (%)']);
+                fputcsv($file, ['Mois', 'Chiffre d\'Affaires Net (FCFA)', 'Commissions Partenaires (FCFA)', 'Coût d\'Achat (FCFA)', 'Bénéfice Net (FCFA)', 'Marge (%)']);
                 $startDate = $request->input('start_date', now()->subYear()->toDateString());
                 $endDate = $request->input('end_date', now()->toDateString());
 
@@ -192,13 +207,23 @@ class ReportController extends Controller
                 })->get()->groupBy(fn($i) => $i->created_at->format('Y-m'));
 
                 foreach ($items as $month => $monthItems) {
-                    $rev = $monthItems->sum(fn($i) => $i->quantity * $i->price);
+                    $year = substr($month, 0, 4);
+                    $mVal = substr($month, 5, 2);
+
+                    $commissionsMonth = \App\Models\PartnerCommission::where('status', 'paid')
+                        ->whereMonth('created_at', $mVal)
+                        ->whereYear('created_at', $year)
+                        ->sum('commission_amount');
+
+                    $grossRev = $monthItems->sum(fn($i) => $i->quantity * $i->price);
+                    $rev = $grossRev - $commissionsMonth;
                     $cogs = $monthItems->sum(fn($i) => $i->quantity * ($i->purchase_price ?: 0));
                     $profit = $rev - $cogs;
                     $margin = $rev > 0 ? ($profit / $rev) * 100 : 0;
                     fputcsv($file, [
                         $month,
                         $rev,
+                        $commissionsMonth,
                         $cogs,
                         $profit,
                         number_format($margin, 2) . '%'

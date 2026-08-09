@@ -80,9 +80,15 @@
                     <dd class="mt-2 text-3xl font-black text-navy-900">{{ number_format($financials['revenue'], 0, ',', ' ') }} <span class="text-sm font-semibold">FCFA</span></dd>
                     <div class="mt-4 flex flex-col gap-1 text-xs text-gray-500">
                         <div class="flex justify-between">
-                            <span>Boutique :</span>
-                            <span class="font-bold text-gray-700">{{ number_format($financials['orders']['revenue'], 0, ',', ' ') }} FCFA</span>
+                            <span>Boutique (Brut) :</span>
+                            <span class="font-bold text-gray-700">{{ number_format($financials['orders']['gross_revenue'], 0, ',', ' ') }} FCFA</span>
                         </div>
+                        @if(isset($financials['commissions']) && $financials['commissions'] > 0)
+                        <div class="flex justify-between text-red-600">
+                            <span>Commissions :</span>
+                            <span class="font-bold">-{{ number_format($financials['commissions'], 0, ',', ' ') }} FCFA</span>
+                        </div>
+                        @endif
                         <div class="flex justify-between">
                             <span>Factures :</span>
                             <span class="font-bold text-gray-700">{{ number_format($financials['invoices']['revenue'], 0, ',', ' ') }} FCFA</span>
