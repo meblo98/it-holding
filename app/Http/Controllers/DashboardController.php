@@ -523,16 +523,40 @@ class DashboardController extends Controller
             ]);
 
             // Reduce stock
-            $product->decrement('stock', 1);
+            if ($product->is_pack) {
+                \App\Models\StockMovement::create([
+                    'product_id' => $product->id,
+                    'quantity' => -1,
+                    'type' => 'out',
+                    'source' => "Plan d'Épargne #" . $savingPlan->id,
+                    'notes' => "Livraison automatique du pack {$product->name} après objectif d'épargne atteint",
+                ]);
 
-            // Log stock movement
-            \App\Models\StockMovement::create([
-                'product_id' => $product->id,
-                'quantity' => -1,
-                'type' => 'out',
-                'source' => "Plan d'Épargne #" . $savingPlan->id,
-                'notes' => "Livraison automatique après objectif d'épargne atteint",
-            ]);
+                foreach ($product->packItems as $packItem) {
+                    if ($packItem->product) {
+                        $packItem->product->decrement('stock', $packItem->quantity);
+
+                        \App\Models\StockMovement::create([
+                            'product_id' => $packItem->product_id,
+                            'quantity' => -$packItem->quantity,
+                            'type' => 'out',
+                            'source' => "Plan d'Épargne #" . $savingPlan->id,
+                            'notes' => "Composant du pack {$product->name}",
+                        ]);
+                    }
+                }
+            } else {
+                $product->decrement('stock', 1);
+
+                // Log stock movement
+                \App\Models\StockMovement::create([
+                    'product_id' => $product->id,
+                    'quantity' => -1,
+                    'type' => 'out',
+                    'source' => "Plan d'Épargne #" . $savingPlan->id,
+                    'notes' => "Livraison automatique après objectif d'épargne atteint",
+                ]);
+            }
 
             try {
                 \App\Services\WhatsAppService::notifyAdminForOrder($order);

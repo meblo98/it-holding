@@ -317,28 +317,82 @@ class DeliveryNoteController extends Controller
 
         // Stock impact trigger states
         if ($type === 'reception' && $status === 'received') {
-            $product->increment('stock', $quantity);
-            $product->update(['purchase_price' => $purchasePrice]);
+            if ($product->is_pack) {
+                StockMovement::create([
+                    'product_id' => $product->id,
+                    'quantity'   => $quantity,
+                    'type'       => 'in',
+                    'source'     => "Bon de livraison #{$deliveryNote->number}",
+                    'notes'      => "Réception du pack {$product->name}",
+                    'user_id'    => Auth::id(),
+                ]);
 
-            StockMovement::create([
-                'product_id' => $product->id,
-                'quantity'   => $quantity,
-                'type'       => 'in',
-                'source'     => "Bon de livraison #{$deliveryNote->number}",
-                'notes'      => "Réception de marchandises (Entrée fournisseur)",
-                'user_id'    => Auth::id(),
-            ]);
+                foreach ($product->packItems as $packItem) {
+                    if ($packItem->product) {
+                        $compQty = $packItem->quantity * $quantity;
+                        $packItem->product->increment('stock', $compQty);
+
+                        StockMovement::create([
+                            'product_id' => $packItem->product_id,
+                            'quantity'   => $compQty,
+                            'type'       => 'in',
+                            'source'     => "Bon de livraison #{$deliveryNote->number}",
+                            'notes'      => "Composant de pack: {$product->name}",
+                            'user_id'    => Auth::id(),
+                        ]);
+                    }
+                }
+            } else {
+                $product->increment('stock', $quantity);
+                $product->update(['purchase_price' => $purchasePrice]);
+
+                StockMovement::create([
+                    'product_id' => $product->id,
+                    'quantity'   => $quantity,
+                    'type'       => 'in',
+                    'source'     => "Bon de livraison #{$deliveryNote->number}",
+                    'notes'      => "Réception de marchandises (Entrée fournisseur)",
+                    'user_id'    => Auth::id(),
+                ]);
+            }
         } elseif ($type === 'envoi' && ($status === 'shipped' || $status === 'delivered')) {
-            $product->decrement('stock', $quantity);
+            if ($product->is_pack) {
+                StockMovement::create([
+                    'product_id' => $product->id,
+                    'quantity'   => -$quantity,
+                    'type'       => 'out',
+                    'source'     => "Bon de livraison #{$deliveryNote->number}",
+                    'notes'      => "Expédition du pack {$product->name}",
+                    'user_id'    => Auth::id(),
+                ]);
 
-            StockMovement::create([
-                'product_id' => $product->id,
-                'quantity'   => -$quantity,
-                'type'       => 'out',
-                'source'     => "Bon de livraison #{$deliveryNote->number}",
-                'notes'      => "Expédition de marchandises (Sortie client)",
-                'user_id'    => Auth::id(),
-            ]);
+                foreach ($product->packItems as $packItem) {
+                    if ($packItem->product) {
+                        $compQty = $packItem->quantity * $quantity;
+                        $packItem->product->decrement('stock', $compQty);
+
+                        StockMovement::create([
+                            'product_id' => $packItem->product_id,
+                            'quantity'   => -$compQty,
+                            'type'       => 'out',
+                            'source'     => "Bon de livraison #{$deliveryNote->number}",
+                            'notes'      => "Composant de pack: {$product->name}",
+                            'user_id'    => Auth::id(),
+                        ]);
+                    }
+                }
+            } else {
+                $product->decrement('stock', $quantity);
+
+                StockMovement::create([
+                    'product_id' => $product->id,
+                    'quantity'   => -$quantity,
+                    'type'       => 'out',
+                    'source'     => "Bon de livraison #{$deliveryNote->number}",
+                    'notes'      => "Expédition de marchandises (Sortie client)",
+                    'user_id'    => Auth::id(),
+                ]);
+            }
         }
     }
 
@@ -353,16 +407,43 @@ class DeliveryNoteController extends Controller
                 if ($item->product_id) {
                     $product = Product::find($item->product_id);
                     if ($product) {
-                        $product->decrement('stock', $item->quantity);
+                        if ($product->is_pack) {
+                            StockMovement::create([
+                                'product_id' => $product->id,
+                                'quantity'   => -$item->quantity,
+                                'type'       => 'out',
+                                'source'     => "Annulation Bon #{$deliveryNote->number}",
+                                'notes'      => "Annulation Réception pack {$product->name}",
+                                'user_id'    => Auth::id(),
+                            ]);
 
-                        StockMovement::create([
-                            'product_id' => $product->id,
-                            'quantity'   => -$item->quantity,
-                            'type'       => 'out',
-                            'source'     => "Annulation Bon #{$deliveryNote->number}",
-                            'notes'      => "Réajustement automatique suite à mise à jour/suppression",
-                            'user_id'    => Auth::id(),
-                        ]);
+                            foreach ($product->packItems as $packItem) {
+                                if ($packItem->product) {
+                                    $compQty = $packItem->quantity * $item->quantity;
+                                    $packItem->product->decrement('stock', $compQty);
+
+                                    StockMovement::create([
+                                        'product_id' => $packItem->product_id,
+                                        'quantity'   => -$compQty,
+                                        'type'       => 'out',
+                                        'source'     => "Annulation Bon #{$deliveryNote->number}",
+                                        'notes'      => "Composant de pack: {$product->name}",
+                                        'user_id'    => Auth::id(),
+                                    ]);
+                                }
+                            }
+                        } else {
+                            $product->decrement('stock', $item->quantity);
+
+                            StockMovement::create([
+                                'product_id' => $product->id,
+                                'quantity'   => -$item->quantity,
+                                'type'       => 'out',
+                                'source'     => "Annulation Bon #{$deliveryNote->number}",
+                                'notes'      => "Réajustement automatique suite à mise à jour/suppression",
+                                'user_id'    => Auth::id(),
+                            ]);
+                        }
                     }
                 }
             }
@@ -372,16 +453,43 @@ class DeliveryNoteController extends Controller
                 if ($item->product_id) {
                     $product = Product::find($item->product_id);
                     if ($product) {
-                        $product->increment('stock', $item->quantity);
+                        if ($product->is_pack) {
+                            StockMovement::create([
+                                'product_id' => $product->id,
+                                'quantity'   => $item->quantity,
+                                'type'       => 'in',
+                                'source'     => "Annulation Bon #{$deliveryNote->number}",
+                                'notes'      => "Annulation Expédition pack {$product->name}",
+                                'user_id'    => Auth::id(),
+                            ]);
 
-                        StockMovement::create([
-                            'product_id' => $product->id,
-                            'quantity'   => $item->quantity,
-                            'type'       => 'in',
-                            'source'     => "Annulation Bon #{$deliveryNote->number}",
-                            'notes'      => "Réajustement automatique suite à mise à jour/suppression",
-                            'user_id'    => Auth::id(),
-                        ]);
+                            foreach ($product->packItems as $packItem) {
+                                if ($packItem->product) {
+                                    $compQty = $packItem->quantity * $item->quantity;
+                                    $packItem->product->increment('stock', $compQty);
+
+                                    StockMovement::create([
+                                        'product_id' => $packItem->product_id,
+                                        'quantity'   => $compQty,
+                                        'type'       => 'in',
+                                        'source'     => "Annulation Bon #{$deliveryNote->number}",
+                                        'notes'      => "Composant de pack: {$product->name}",
+                                        'user_id'    => Auth::id(),
+                                    ]);
+                                }
+                            }
+                        } else {
+                            $product->increment('stock', $item->quantity);
+
+                            StockMovement::create([
+                                'product_id' => $product->id,
+                                'quantity'   => $item->quantity,
+                                'type'       => 'in',
+                                'source'     => "Annulation Bon #{$deliveryNote->number}",
+                                'notes'      => "Réajustement automatique suite à mise à jour/suppression",
+                                'user_id'    => Auth::id(),
+                            ]);
+                        }
                     }
                 }
             }

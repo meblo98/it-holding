@@ -66,6 +66,10 @@ class StockController extends Controller
 
     public function adjust(Request $request, Product $product)
     {
+        if ($product->is_pack) {
+            return redirect()->back()->with('error', 'Le stock des packs de produits est calculé de manière dynamique et ne peut pas être ajusté manuellement.');
+        }
+
         $validated = $request->validate([
             'quantity' => 'required|integer',
             'type'     => 'required|in:set,add', // set: exact stock count, add: add/subtract from stock

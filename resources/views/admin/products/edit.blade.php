@@ -14,7 +14,13 @@
                     </div>
                     <div class="mt-5 md:mt-0 md:col-span-2">
                         <form action="{{ route('admin.products.update', $product->id) }}" method="POST"
-                            enctype="multipart/form-data">
+                            enctype="multipart/form-data"
+                            x-data="{ 
+                                is_pack: {{ old('is_pack', $product->is_pack ? 'true' : 'false') }}, 
+                                packItems: {{ json_encode(old('pack_items', $product->packItems->map(function($item) {
+                                    return ['product_id' => $item->product_id, 'quantity' => $item->quantity];
+                                })->toArray())) }}
+                            }">
                             @csrf
                             @method('PUT')
                             <div class="shadow sm:rounded-md sm:overflow-hidden">
@@ -49,12 +55,19 @@
                                                 value="{{ old('promo_price', $product->promo_price) }}">
                                         </div>
 
-                                        <div class="col-span-6 sm:col-span-2">
+                                        <div class="col-span-6 sm:col-span-2" x-show="!is_pack">
                                             <label for="stock"
                                                 class="block text-sm font-medium text-gray-700">Stock</label>
                                             <input type="number" name="stock" id="stock" min="0"
                                                 class="mt-1 focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                                                value="{{ old('stock', $product->stock) }}" required>
+                                                value="{{ old('stock', $product->stock) }}" ::required="!is_pack">
+                                        </div>
+
+                                        <div class="col-span-6 sm:col-span-2" x-show="is_pack" x-cloak>
+                                            <label class="block text-sm font-medium text-gray-500">Stock (Dynamique)</label>
+                                            <div class="mt-1 p-2.5 bg-gray-50 text-gray-600 rounded-md border border-dashed border-gray-200 text-xs">
+                                                Calculé à partir des composants.
+                                            </div>
                                         </div>
 
                                         <div class="col-span-6 sm:col-span-2">
@@ -96,6 +109,53 @@
                                                 <p class="text-gray-500">Cocher si le produit fait partie des offres Black
                                                     Friday.</p>
                                             </div>
+                                        </div>
+
+                                        <div class="col-span-6 flex items-center border-t border-gray-100 pt-4">
+                                            <div class="flex items-center h-5">
+                                                <input id="is_pack" name="is_pack" type="checkbox" value="1"
+                                                    x-model="is_pack"
+                                                    class="focus:ring-gold-500 h-4 w-4 text-navy-600 border-gray-300 rounded">
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="is_pack" class="font-medium text-gray-700">Est un Pack de produits</label>
+                                                <p class="text-gray-500">Cocher si ce produit est composé de plusieurs autres produits existants.</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Section Pack Items -->
+                                        <div class="col-span-6 border-t border-gray-200 pt-5" x-show="is_pack" x-cloak>
+                                            <h4 class="text-md font-semibold text-navy-900 uppercase tracking-wider mb-1">Composants du Pack</h4>
+                                            <p class="text-xs text-gray-500 mb-4">Sélectionnez les produits qui composent ce pack et indiquez leurs quantités.</p>
+                                            
+                                            <div class="space-y-3">
+                                                <template x-for="(item, index) in packItems" :key="index">
+                                                    <div class="flex gap-4 items-center">
+                                                        <div class="flex-grow grid grid-cols-3 gap-4">
+                                                            <div class="col-span-2">
+                                                                <select :name="'pack_items[' + index + '][product_id]'" x-model="item.product_id"
+                                                                    class="focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                                                                    <option value="">-- Sélectionner un produit --</option>
+                                                                    @foreach ($allProducts as $p)
+                                                                        <option value="{{ $p->id }}">{{ $p->name }} (Stock: {{ $p->stock }})</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <input type="number" :name="'pack_items[' + index + '][quantity]'" x-model="item.quantity" min="1" placeholder="Quantité"
+                                                                    class="focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                                                            </div>
+                                                        </div>
+                                                        <button type="button" @click="packItems.splice(index, 1)" class="inline-flex items-center p-1.5 border border-transparent rounded-md text-red-600 hover:bg-red-50 focus:outline-none transition">
+                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                        </button>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                            
+                                            <button type="button" @click="packItems.push({ product_id: '', quantity: 1 })" class="mt-3 inline-flex items-center px-3 py-1.5 border border-dashed border-gray-300 rounded-md text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">
+                                                + Ajouter un produit au pack
+                                            </button>
                                         </div>
 
                                         <div class="col-span-6 sm:col-span-3">

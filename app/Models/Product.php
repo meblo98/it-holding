@@ -22,6 +22,7 @@ class Product extends Model
         'warranty_duration_months',
         'image',
         'active',
+        'is_pack',
         'promo_price',
         'blackfriday',
         'category_id',
@@ -40,6 +41,7 @@ class Product extends Model
         'available_at' => 'date',
         'warranty_duration_months' => 'integer',
         'active' => 'boolean',
+        'is_pack' => 'boolean',
         'blackfriday' => 'boolean',
         'wholesale_qty' => 'integer',
         'wholesale_discount_rate' => 'decimal:2',
@@ -94,6 +96,29 @@ class Product extends Model
     public function options()
     {
         return $this->hasMany(ProductOption::class);
+    }
+
+    public function packItems()
+    {
+        return $this->hasMany(PackItem::class, 'pack_id');
+    }
+
+    public function getStockAttribute($value)
+    {
+        if ($this->is_pack) {
+            $this->loadMissing('packItems.product');
+            if ($this->packItems->isEmpty()) {
+                return 0;
+            }
+            $stocks = [];
+            foreach ($this->packItems as $item) {
+                if ($item->product) {
+                    $stocks[] = floor($item->product->stock / $item->quantity);
+                }
+            }
+            return empty($stocks) ? 0 : (int) min($stocks);
+        }
+        return $value;
     }
 
     public function isPreorderable()

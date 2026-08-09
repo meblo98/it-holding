@@ -550,16 +550,42 @@ class ShopController extends Controller
                 ]);
 
                 // reduce stock
-                $product->decrement('stock', $quantity);
+                if ($product->is_pack) {
+                    // Log stock movement for the pack itself
+                    \App\Models\StockMovement::create([
+                        'product_id' => $product->id,
+                        'quantity'   => -$quantity,
+                        'type'       => 'out',
+                        'source'     => "Commande #" . $order->id . " (Client: {$order->customer_name})",
+                        'notes'      => "Achat du pack {$product->name}",
+                    ]);
 
-                // Log stock movement
-                \App\Models\StockMovement::create([
-                    'product_id' => $product->id,
-                    'quantity'   => -$quantity,
-                    'type'       => 'out',
-                    'source'     => "Commande #" . $order->id . " (Client: {$order->customer_name})",
-                    'notes'      => $product->isPreorderable() ? "Précommande en ligne" : "Achat en ligne",
-                ]);
+                    foreach ($product->packItems as $packItem) {
+                        if ($packItem->product) {
+                            $compQty = $packItem->quantity * $quantity;
+                            $packItem->product->decrement('stock', $compQty);
+
+                            \App\Models\StockMovement::create([
+                                'product_id' => $packItem->product_id,
+                                'quantity'   => -$compQty,
+                                'type'       => 'out',
+                                'source'     => "Commande #" . $order->id . " (Client: {$order->customer_name})",
+                                'notes'      => "Composant de pack: {$product->name}",
+                            ]);
+                        }
+                    }
+                } else {
+                    $product->decrement('stock', $quantity);
+
+                    // Log stock movement
+                    \App\Models\StockMovement::create([
+                        'product_id' => $product->id,
+                        'quantity'   => -$quantity,
+                        'type'       => 'out',
+                        'source'     => "Commande #" . $order->id . " (Client: {$order->customer_name})",
+                        'notes'      => $product->isPreorderable() ? "Précommande en ligne" : "Achat en ligne",
+                    ]);
+                }
             }
 
             DB::commit();

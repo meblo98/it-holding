@@ -69,8 +69,13 @@
                                     @endif
                                 </div>
                                 <div class="ml-4">
-                                    <div class="text-sm font-medium text-navy-600 truncate">
+                                    <div class="text-sm font-medium text-navy-600 truncate flex items-center gap-2">
                                         {{ $product->name }}
+                                        @if($product->is_pack)
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-800">
+                                                Pack
+                                            </span>
+                                        @endif
                                     </div>
                                     <div class="text-sm text-gray-500">
                                         Achat: {{ number_format($product->purchase_price, 0, ',', ' ') }} FCFA | Vente: {{ number_format($product->price, 0, ',', ' ') }} FCFA | Stock: {{ $product->stock }} | Garantie: {{ $product->warranty_duration_months ?? 12 }} mois

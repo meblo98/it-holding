@@ -33,14 +33,12 @@ class ProductController extends Controller
         return view('admin.products.index', compact('products'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $categories = Category::all();
         $brands = Brand::all();
-        return view('admin.products.create', compact('categories', 'brands'));
+        $allProducts = Product::where('is_pack', false)->orderBy('name')->get();
+        return view('admin.products.create', compact('categories', 'brands', 'allProducts'));
     }
 
     /**
@@ -69,9 +67,6 @@ class ProductController extends Controller
         return $slug;
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -80,10 +75,11 @@ class ProductController extends Controller
             'purchase_price' => 'required|numeric|min:0',
             'price' => 'required|numeric|min:0',
             'promo_price' => 'nullable|numeric|min:0',
-            'stock' => 'required|integer|min:0',
+            'stock' => 'required_without:is_pack|nullable|integer|min:0',
             'available_at' => 'nullable|date',
             'warranty_duration_months' => 'required|integer|min:0|max:120',
             'blackfriday' => 'boolean',
+            'is_pack' => 'boolean',
             'category_id' => 'nullable|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
             'condition' => 'nullable|string|max:255',
@@ -96,11 +92,16 @@ class ProductController extends Controller
             'wholesale_discount_limit' => 'nullable|numeric|min:0',
             'specs' => 'nullable|array',
             'fiche_technique' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'pack_items' => 'nullable|array',
+            'pack_items.*.product_id' => 'required_with:pack_items|exists:products,id',
+            'pack_items.*.quantity' => 'required_with:pack_items|integer|min:1',
         ]);
 
         $validated['slug'] = $this->generateUniqueSlug($request->name);
         $validated['active'] = $request->boolean('active');
         $validated['blackfriday'] = $request->boolean('blackfriday');
+        $validated['is_pack'] = $request->boolean('is_pack');
+        $validated['stock'] = $validated['is_pack'] ? 0 : intval($request->input('stock', 0));
 
         // Transform specs
         $rawSpecs = $request->input('specs', []);
@@ -126,6 +127,19 @@ class ProductController extends Controller
 
         $product = Product::create($validated);
 
+        // Handle pack items
+        if ($product->is_pack && !empty($request->input('pack_items'))) {
+            foreach ($request->input('pack_items') as $item) {
+                if (!empty($item['product_id']) && !empty($item['quantity'])) {
+                    \App\Models\PackItem::create([
+                        'pack_id' => $product->id,
+                        'product_id' => $item['product_id'],
+                        'quantity' => intval($item['quantity']),
+                    ]);
+                }
+            }
+        }
+
         // Handle multiple images upload
         if ($request->hasFile('images')) {
             try {
@@ -145,15 +159,13 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')->with('success', 'Produit créé avec succès.');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
-        $product = Product::findOrFail($id);
+        $product = Product::with('packItems.product')->findOrFail($id);
         $categories = Category::all();
         $brands = Brand::all();
-        return view('admin.products.edit', compact('product', 'categories', 'brands'));
+        $allProducts = Product::where('is_pack', false)->where('id', '!=', $product->id)->orderBy('name')->get();
+        return view('admin.products.edit', compact('product', 'categories', 'brands', 'allProducts'));
     }
 
     /**
@@ -169,10 +181,11 @@ class ProductController extends Controller
             'purchase_price' => 'required|numeric|min:0',
             'price' => 'required|numeric|min:0',
             'promo_price' => 'nullable|numeric|min:0',
-            'stock' => 'required|integer|min:0',
+            'stock' => 'required_without:is_pack|nullable|integer|min:0',
             'available_at' => 'nullable|date',
             'warranty_duration_months' => 'required|integer|min:0|max:120',
             'blackfriday' => 'boolean',
+            'is_pack' => 'boolean',
             'category_id' => 'nullable|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
             'condition' => 'nullable|string|max:255',
@@ -185,6 +198,9 @@ class ProductController extends Controller
             'wholesale_discount_limit' => 'nullable|numeric|min:0',
             'specs' => 'nullable|array',
             'fiche_technique' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'pack_items' => 'nullable|array',
+            'pack_items.*.product_id' => 'required_with:pack_items|exists:products,id',
+            'pack_items.*.quantity' => 'required_with:pack_items|integer|min:1',
         ]);
 
         // Ensure specs can be cleared / updated
@@ -205,6 +221,8 @@ class ProductController extends Controller
         }
         $validated['active'] = $request->boolean('active');
         $validated['blackfriday'] = $request->boolean('blackfriday');
+        $validated['is_pack'] = $request->boolean('is_pack');
+        $validated['stock'] = $validated['is_pack'] ? 0 : intval($request->input('stock', 0));
 
 
         if ($request->hasFile('image')) {
@@ -224,6 +242,24 @@ class ProductController extends Controller
         }
 
         $product->update($validated);
+
+        // Handle pack items update
+        if ($product->is_pack) {
+            $product->packItems()->delete();
+            if (!empty($request->input('pack_items'))) {
+                foreach ($request->input('pack_items') as $item) {
+                    if (!empty($item['product_id']) && !empty($item['quantity'])) {
+                        \App\Models\PackItem::create([
+                            'pack_id' => $product->id,
+                            'product_id' => $item['product_id'],
+                            'quantity' => intval($item['quantity']),
+                        ]);
+                    }
+                }
+            }
+        } else {
+            $product->packItems()->delete();
+        }
 
         // Handle new multiple images upload
         if ($request->hasFile('images')) {
