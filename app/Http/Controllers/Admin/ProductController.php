@@ -317,4 +317,87 @@ class ProductController extends Controller
 
         return redirect()->back()->with('success', 'Image supprimée.');
     }
+
+    /**
+     * Duplicate the specified resource.
+     */
+    public function duplicate(string $id)
+    {
+        $product = Product::with(['images', 'options', 'packItems'])->findOrFail($id);
+
+        $newProduct = $product->replicate();
+        
+        $newProduct->name = $product->name . ' (Copie)';
+        $newProduct->slug = $this->generateUniqueSlug($newProduct->name);
+
+        // Handle physical file duplication for main image
+        if ($product->image && Storage::disk('public')->exists($product->image)) {
+            try {
+                $oldPath = $product->image;
+                $extension = pathinfo($oldPath, PATHINFO_EXTENSION);
+                $newPath = 'products/' . Str::random(40) . '.' . $extension;
+                Storage::disk('public')->copy($oldPath, $newPath);
+                $newProduct->image = $newPath;
+            } catch (\Exception $e) {
+                \Log::error('Error copying product main image during duplication: ' . $e->getMessage());
+            }
+        }
+
+        // Handle physical file duplication for tech sheet
+        if ($product->fiche_technique && Storage::disk('public')->exists($product->fiche_technique)) {
+            try {
+                $oldPath = $product->fiche_technique;
+                $extension = pathinfo($oldPath, PATHINFO_EXTENSION);
+                $newPath = 'products/tech_sheets/' . Str::random(40) . '.' . $extension;
+                Storage::disk('public')->copy($oldPath, $newPath);
+                $newProduct->fiche_technique = $newPath;
+            } catch (\Exception $e) {
+                \Log::error('Error copying product tech sheet during duplication: ' . $e->getMessage());
+            }
+        }
+
+        $newProduct->save();
+
+        // Duplicate multiple images
+        foreach ($product->images as $img) {
+            if ($img->path && Storage::disk('public')->exists($img->path)) {
+                try {
+                    $oldPath = $img->path;
+                    $extension = pathinfo($oldPath, PATHINFO_EXTENSION);
+                    $newPath = 'products/' . Str::random(40) . '.' . $extension;
+                    Storage::disk('public')->copy($oldPath, $newPath);
+                    
+                    $newProduct->images()->create([
+                        'path' => $newPath,
+                        'sort_order' => $img->sort_order,
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Error copying product gallery image during duplication: ' . $e->getMessage());
+                }
+            }
+        }
+
+        // Duplicate options
+        foreach ($product->options as $option) {
+            $newProduct->options()->create([
+                'name' => $option->name,
+                'value' => $option->value,
+                'price' => $option->price,
+            ]);
+        }
+
+        // Duplicate pack items
+        if ($product->is_pack) {
+            foreach ($product->packItems as $item) {
+                \App\Models\PackItem::create([
+                    'pack_id' => $newProduct->id,
+                    'product_id' => $item->product_id,
+                    'quantity' => $item->quantity,
+                ]);
+            }
+        }
+
+        return redirect()->route('admin.products.edit', $newProduct->id)
+            ->with('success', 'Produit dupliqué avec succès. Vous pouvez maintenant modifier cette copie.');
+    }
 }

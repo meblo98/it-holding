@@ -113,6 +113,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
         Route::resource('brands', \App\Http\Controllers\Admin\BrandController::class);
         Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
+        Route::post('products/{product}/duplicate', [\App\Http\Controllers\Admin\ProductController::class, 'duplicate'])->name('products.duplicate');
         Route::delete('products/{product}/images/{image}', [\App\Http\Controllers\Admin\ProductController::class, 'destroyImage'])->name('products.images.destroy');
     });
 
