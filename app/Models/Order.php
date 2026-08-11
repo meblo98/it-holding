@@ -12,6 +12,7 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'client_id',
+        'partner_id',
         'customer_name',
         'customer_email',
         'customer_phone',
@@ -30,6 +31,7 @@ class Order extends Model
         'discount_amount' => 'decimal:2',
         'tax_amount' => 'decimal:2',
         'client_id' => 'integer',
+        'partner_id' => 'integer',
     ];
 
     public function items()
@@ -45,6 +47,11 @@ class Order extends Model
     public function client()
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function partner()
+    {
+        return $this->belongsTo(User::class, 'partner_id');
     }
 
     public function promoCode()

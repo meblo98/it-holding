@@ -426,6 +426,23 @@ class ShopController extends Controller
                 $discount = ($total * $promoCode->discount_percent) / 100;
             }
         }
+
+        // Resolve referring partner (promo code has priority over cookie tracking)
+        $partnerId = null;
+        if ($promoCode) {
+            $partnerId = $promoCode->partner_id;
+        } else {
+            $cookieRef = $request->cookie('partner_ref');
+            if ($cookieRef) {
+                $cookiePartner = \App\Models\User::where('role', 'partner')
+                    ->where('partner_status', 'approved')
+                    ->where('partner_code', $cookieRef)
+                    ->first();
+                if ($cookiePartner) {
+                    $partnerId = $cookiePartner->id;
+                }
+            }
+        }
         $subtotalAfterDiscount = $total - $discount;
 
         // Calculate tax/TVA if requested
@@ -486,6 +503,7 @@ class ShopController extends Controller
             $order = Order::create([
                 'user_id' => Auth::id(),
                 'client_id' => $client ? $client->id : null,
+                'partner_id' => $partnerId,
                 'customer_name' => $validated['first_name'] . ' ' . $validated['last_name'],
                 'customer_email' => $validated['email'],
                 'customer_phone' => $validated['phone'] ?? null,
@@ -510,13 +528,15 @@ class ShopController extends Controller
                 ]);
             }
 
-            // Create the Partner Commission record if a promo code was used
-            if ($promoCode) {
-                $commissionAmount = ($total * $promoCode->commission_percent) / 100;
+            // Create the Partner Commission record if a partner was resolved
+            if ($partnerId) {
+                $commissionPercent = $promoCode ? $promoCode->commission_percent : 10.00;
+                $commissionAmount = ($total * $commissionPercent) / 100;
+                
                 \App\Models\PartnerCommission::create([
-                    'partner_id' => $promoCode->partner_id,
+                    'partner_id' => $partnerId,
                     'order_id' => $order->id,
-                    'promo_code_id' => $promoCode->id,
+                    'promo_code_id' => $promoCode ? $promoCode->id : null,
                     'order_amount' => $total,
                     'commission_amount' => $commissionAmount,
                     'status' => 'pending',

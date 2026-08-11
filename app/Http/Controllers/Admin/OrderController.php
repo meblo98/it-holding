@@ -68,11 +68,18 @@ class OrderController extends Controller
 
                     $partnerClient->increment('wallet_balance', $commission->commission_amount);
 
+                    $desc = "Commission de la commande #" . $order->id;
+                    if ($commission->promoCode) {
+                        $desc .= " (Code: " . $commission->promoCode->code . ")";
+                    } else {
+                        $desc .= " (Lien direct)";
+                    }
+
                     \App\Models\WalletTransaction::create([
                         'client_id' => $partnerClient->id,
                         'type' => 'deposit',
                         'amount' => $commission->commission_amount,
-                        'description' => "Commission de la commande #" . $order->id . " (Code: " . $commission->promoCode->code . ")",
+                        'description' => $desc,
                         'transaction_date' => now(),
                         'order_id' => $order->id,
                     ]);

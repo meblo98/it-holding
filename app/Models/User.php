@@ -21,6 +21,7 @@ class User extends Authenticatable
         'technicien'  => 'Technicien',
         'livreur'     => 'Livreur',
         'client'      => 'Client',
+        'partner'     => 'Partenaire',
     ];
 
     protected $fillable = [
@@ -30,6 +31,7 @@ class User extends Authenticatable
         'billing_city', 'billing_zip',
         'shipping_first_name', 'shipping_last_name', 'shipping_address',
         'shipping_city', 'shipping_zip',
+        'partner_code', 'partner_status',
     ];
 
     protected $hidden = [
@@ -60,6 +62,8 @@ class User extends Authenticatable
     public function isMagasinier(): bool  { return $this->hasRole('magasinier'); }
     public function isTechnicien(): bool  { return $this->hasRole('technicien'); }
     public function isLivreur(): bool     { return $this->hasRole('livreur'); }
+    public function isPartner(): bool     { return $this->role === 'partner' && $this->partner_status === 'approved'; }
+    public function isPartnerPending(): bool { return $this->role === 'partner' && $this->partner_status === 'pending'; }
 
     public function isStaff(): bool
     {
@@ -115,6 +119,16 @@ class User extends Authenticatable
     public function commissions()
     {
         return $this->hasMany(PartnerCommission::class, 'partner_id');
+    }
+
+    public function prospects()
+    {
+        return $this->hasMany(PartnerProspect::class, 'partner_id');
+    }
+
+    public function scheduledPosts()
+    {
+        return $this->hasMany(PartnerScheduledPost::class, 'user_id');
     }
 
     public function totalCommissionsEarned()

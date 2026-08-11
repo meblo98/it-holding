@@ -120,6 +120,23 @@
                                     </dd>
                                 </div>
                                 @endif
+                                @if($order->partner)
+                                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 bg-indigo-50 border-t border-indigo-100">
+                                    <dt class="text-sm font-bold text-indigo-800">Partenaire Référent</dt>
+                                    <dd class="mt-1 text-sm text-indigo-900 sm:mt-0 sm:col-span-2 font-bold flex items-center gap-2">
+                                        <span>{{ $order->partner->name }} (Code: {{ $order->partner->partner_code }})</span>
+                                        @if($order->promoCode)
+                                            <span class="px-2 py-0.5 inline-flex text-[9px] leading-5 font-bold rounded bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                                Code Promo: {{ $order->promoCode->code }}
+                                            </span>
+                                        @else
+                                            <span class="px-2 py-0.5 inline-flex text-[9px] leading-5 font-bold rounded bg-blue-100 text-blue-800 border border-blue-200">
+                                                Lien Direct
+                                            </span>
+                                        @endif
+                                    </dd>
+                                </div>
+                                @endif
                                 <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                                     <dt class="text-sm font-medium text-gray-500">Nom complet</dt>
                                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ $order->customer_name }}</dd>

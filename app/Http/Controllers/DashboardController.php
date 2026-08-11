@@ -176,6 +176,34 @@ class DashboardController extends Controller
         return view('pages.shop.partner', compact('user', 'promoCodes', 'commissions', 'totalEarned', 'totalPending', 'client'));
     }
 
+    public function applyAsPartner(Request $request)
+    {
+        $user = Auth::user();
+        if ($user->role === 'partner') {
+            return back()->with('error', 'Vous êtes déjà partenaire ou votre candidature est en cours.');
+        }
+
+        $username = $user->username;
+        if (!$username) {
+            $baseUsername = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $user->name));
+            $username = $baseUsername;
+            $count = 1;
+            while (\App\Models\User::where('username', $username)->exists()) {
+                $username = $baseUsername . $count;
+                $count++;
+            }
+        }
+
+        $user->update([
+            'role' => 'partner',
+            'partner_status' => 'pending',
+            'partner_code' => 'PART-' . str_pad($user->id, 6, '0', STR_PAD_LEFT),
+            'username' => $username,
+        ]);
+
+        return back()->with('success', 'Votre candidature a été soumise avec succès.');
+    }
+
     public function generatePromoCode(Request $request)
     {
         $user = Auth::user();

@@ -142,6 +142,33 @@ class UserController extends Controller
             ->with('success', 'Les accès pour chaque profil ont été mis à jour avec succès.');
     }
 
+    public function approvePartner(User $user)
+    {
+        if ($user->role !== 'partner') {
+            return back()->with('error', "Cet utilisateur n'est pas un partenaire.");
+        }
+
+        $user->update([
+            'partner_status' => 'approved',
+            'partner_code' => $user->partner_code ?: 'PART-' . str_pad($user->id, 6, '0', STR_PAD_LEFT),
+        ]);
+
+        return back()->with('success', "Le partenaire {$user->name} a été approuvé avec succès. Code : {$user->partner_code}");
+    }
+
+    public function rejectPartner(User $user)
+    {
+        if ($user->role !== 'partner') {
+            return back()->with('error', "Cet utilisateur n'est pas un partenaire.");
+        }
+
+        $user->update([
+            'partner_status' => 'rejected',
+        ]);
+
+        return back()->with('success', "La candidature du partenaire {$user->name} a été rejetée.");
+    }
+
     public function destroy(User $user)
     {
         if ($user->id === auth()->id()) {

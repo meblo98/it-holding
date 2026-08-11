@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('/about', [PageController::class, 'about'])->name('about');
+Route::get('/partner/{identifier}', [\App\Http\Controllers\PartnerReferralController::class, 'track'])->name('partner.referral');
 
 Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
 Route::get('/services/{slug}', [ServiceController::class, 'show'])->name('services.show');
@@ -55,6 +56,9 @@ Route::middleware('guest')->group(function () {
 
     Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('register', [RegisterController::class, 'register'])->middleware('throttle:3,1');
+
+    Route::get('partner/register', [\App\Http\Controllers\Auth\PartnerRegisterController::class, 'showRegistrationForm'])->name('partner.register');
+    Route::post('partner/register', [\App\Http\Controllers\Auth\PartnerRegisterController::class, 'register'])->middleware('throttle:3,1');
 });
 
 Route::post('logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
@@ -69,6 +73,25 @@ Route::middleware(['auth', 'redirect.admin'])->group(function () {
     // Partner Promo & Commission Routes
     Route::get('/dashboard/partner', [\App\Http\Controllers\DashboardController::class, 'partner'])->name('dashboard.partner');
     Route::post('/dashboard/partner/promo', [\App\Http\Controllers\DashboardController::class, 'generatePromoCode'])->name('dashboard.partner.promo.generate');
+    Route::post('/dashboard/partner/apply', [\App\Http\Controllers\DashboardController::class, 'applyAsPartner'])->name('dashboard.partner.apply');
+    
+    // Partner CRM Routes
+    Route::get('/dashboard/partner/crm', [\App\Http\Controllers\PartnerCRMController::class, 'index'])->name('dashboard.partner.crm');
+    Route::post('/dashboard/partner/crm', [\App\Http\Controllers\PartnerCRMController::class, 'store'])->name('dashboard.partner.crm.store');
+    Route::put('/dashboard/partner/crm/{prospect}', [\App\Http\Controllers\PartnerCRMController::class, 'update'])->name('dashboard.partner.crm.update');
+    Route::delete('/dashboard/partner/crm/{prospect}', [\App\Http\Controllers\PartnerCRMController::class, 'destroy'])->name('dashboard.partner.crm.destroy');
+
+    // Partner AI Assistant Routes
+    Route::get('/dashboard/partner/assistant', [\App\Http\Controllers\PartnerCRMController::class, 'assistantIndex'])->name('dashboard.partner.assistant');
+    Route::post('/dashboard/partner/assistant/chat', [\App\Http\Controllers\PartnerCRMController::class, 'assistantChat'])->name('dashboard.partner.assistant.chat');
+    
+    // Partner Marketing Studio Routes
+    Route::get('/dashboard/partner/marketing', [\App\Http\Controllers\PartnerMarketingController::class, 'index'])->name('dashboard.partner.marketing');
+    Route::post('/dashboard/partner/marketing/catalog', [\App\Http\Controllers\PartnerMarketingController::class, 'generateCatalog'])->name('dashboard.partner.marketing.catalog');
+    Route::post('/dashboard/partner/marketing/posts', [\App\Http\Controllers\PartnerMarketingController::class, 'storePost'])->name('dashboard.partner.marketing.posts.store');
+    Route::post('/dashboard/partner/marketing/posts/{post}/publish', [\App\Http\Controllers\PartnerMarketingController::class, 'publishPost'])->name('dashboard.partner.marketing.posts.publish');
+    Route::delete('/dashboard/partner/marketing/posts/{post}', [\App\Http\Controllers\PartnerMarketingController::class, 'destroyPost'])->name('dashboard.partner.marketing.posts.destroy');
+    Route::post('/dashboard/partner/marketing/video-script', [\App\Http\Controllers\PartnerMarketingController::class, 'generateVideoScript'])->name('dashboard.partner.marketing.video');
     
     // Client Savings Routes
     Route::get('/dashboard/savings', [\App\Http\Controllers\DashboardController::class, 'savings'])->name('dashboard.savings');
@@ -121,6 +144,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::middleware('permission:orders')->group(function () {
         Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class)->only(['index', 'show', 'update']);
     });
+    
+    // Marketing Assets
+    Route::resource('marketing-assets', \App\Http\Controllers\Admin\MarketingAssetController::class);
 
     // Devis (Quotes)
     Route::middleware('permission:quotes')->group(function () {
@@ -220,6 +246,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::middleware('permission:users')->group(function () {
         Route::get('users/permissions', [\App\Http\Controllers\Admin\UserController::class, 'permissions'])->name('users.permissions');
         Route::post('users/permissions', [\App\Http\Controllers\Admin\UserController::class, 'updatePermissions'])->name('users.permissions.update');
+        Route::post('users/{user}/approve-partner', [\App\Http\Controllers\Admin\UserController::class, 'approvePartner'])->name('users.approvePartner');
+        Route::post('users/{user}/reject-partner', [\App\Http\Controllers\Admin\UserController::class, 'rejectPartner'])->name('users.rejectPartner');
         Route::resource('users', \App\Http\Controllers\Admin\UserController::class)->except(['show']);
     });
 });

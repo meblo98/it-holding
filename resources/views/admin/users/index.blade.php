@@ -76,17 +76,38 @@
                 </td>
                 <td class="px-6 py-4">
                     @php
-                        $roleColors = ['admin'=>'red','dg'=>'purple','commercial'=>'blue','comptable'=>'amber','magasinier'=>'green','technicien'=>'cyan','livreur'=>'orange'];
+                        $roleColors = ['admin'=>'red','dg'=>'purple','commercial'=>'blue','comptable'=>'amber','magasinier'=>'green','technicien'=>'cyan','livreur'=>'orange','partner'=>'indigo'];
                         $color = $roleColors[$user->role] ?? 'gray';
                     @endphp
                     <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-{{ $color }}-50 text-{{ $color }}-700 border border-{{ $color }}-200">
                         {{ $user->role_label }}
                     </span>
+                    @if($user->role === 'partner')
+                        <div class="mt-1">
+                            @if($user->partner_status === 'approved')
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-50 text-green-700 border border-green-200">Actif ({{ $user->partner_code }})</span>
+                            @elseif($user->partner_status === 'rejected')
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-50 text-red-700 border border-red-200">Rejeté</span>
+                            @else
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-50 text-yellow-700 border border-yellow-200">En attente</span>
+                            @endif
+                        </div>
+                    @endif
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-600">{{ $user->phone ?? '—' }}</td>
                 <td class="px-6 py-4 text-sm text-gray-500">{{ $user->created_at->format('d/m/Y') }}</td>
                 <td class="px-6 py-4 text-right">
                     <div class="flex items-center justify-end gap-1">
+                        @if($user->role === 'partner' && $user->partner_status === 'pending')
+                            <form action="{{ route('admin.users.approvePartner', $user->id) }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="text-xs font-bold text-white bg-green-600 hover:bg-green-700 px-2.5 py-1 rounded transition">Approuver</button>
+                            </form>
+                            <form action="{{ route('admin.users.rejectPartner', $user->id) }}" method="POST" class="inline" onsubmit="return confirm('Rejeter ce partenaire ?')">
+                                @csrf
+                                <button type="submit" class="text-xs font-bold text-white bg-red-600 hover:bg-red-700 px-2.5 py-1 rounded transition">Rejeter</button>
+                            </form>
+                        @endif
                         <a href="{{ route('admin.users.edit', $user->id) }}" class="text-xs font-bold text-navy-600 bg-navy-50 hover:bg-navy-100 px-2.5 py-1 rounded transition">Modifier</a>
                         <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="inline" onsubmit="return confirm('Supprimer cet utilisateur ?')">
                             @csrf @method('DELETE')

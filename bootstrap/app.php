@@ -12,6 +12,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->encryptCookies(except: [
+            'partner_ref',
+        ]);
+        $middleware->web(append: [
+            \App\Http\Middleware\TrackPartnerReferral::class,
+        ]);
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'role'  => \App\Http\Middleware\CheckRole::class,

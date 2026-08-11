@@ -379,4 +379,104 @@ class PartnerPromoCodeTest extends TestCase
         $response->assertViewHas('revenue', 90000); // 100000 (from order item) - 10000 (commission)
         $response->assertViewHas('commissions', 10000);
     }
+
+    /** @test */
+    public function it_sets_referral_cookie_on_direct_landing()
+    {
+        // Set partner username
+        $this->partnerUser->update(['username' => 'mamad', 'partner_status' => 'approved', 'partner_code' => 'PART-000001', 'role' => 'partner']);
+
+        // Call direct landing route with username
+        $response = $this->get(route('partner.referral', 'mamad'));
+
+        $response->assertRedirect('/shop');
+        $response->assertPlainCookie('partner_ref', 'PART-000001');
+
+        // Call direct landing route with code
+        $response2 = $this->get(route('partner.referral', 'PART-000001'));
+        $response2->assertRedirect('/shop');
+        $response2->assertPlainCookie('partner_ref', 'PART-000001');
+    }
+
+    /** @test */
+    public function it_does_not_set_referral_cookie_for_inactive_partner_or_invalid_code()
+    {
+        $this->partnerUser->update(['username' => 'mamad', 'partner_status' => 'pending', 'partner_code' => 'PART-000001', 'role' => 'partner']);
+
+        // Inactive partner
+        $response = $this->get(route('partner.referral', 'mamad'));
+        $response->assertRedirect('/shop');
+        $response->assertCookieMissing('partner_ref');
+
+        // Invalid code
+        $response2 = $this->get(route('partner.referral', 'INVALID'));
+        $response2->assertRedirect('/shop');
+        $response2->assertCookieMissing('partner_ref');
+    }
+
+    /** @test */
+    public function it_applies_tracking_via_cookie_when_no_promo_code_is_used()
+    {
+        $this->partnerUser->update(['partner_status' => 'approved', 'partner_code' => 'PART-000001', 'role' => 'partner']);
+
+        $response = $this->actingAs($this->user)
+            ->withUnencryptedCookie('partner_ref', 'PART-000001')
+            ->withSession([
+                'cart' => [
+                    $this->product->id => [
+                        'product_id' => $this->product->id,
+                        'name' => $this->product->name,
+                        'slug' => $this->product->slug,
+                        'quantity' => 1,
+                        'price' => 100000,
+                        'options' => [],
+                    ]
+                ]
+            ])
+            ->post(route('shop.placeOrder'), [
+                'first_name' => 'John',
+                'last_name' => 'Doe',
+                'email' => 'john@example.com',
+                'phone' => '771234567',
+                'address' => 'Medina',
+                'city' => 'Dakar',
+                'country' => 'Sénégal',
+                'zip' => '10000',
+                'payment_method' => 'cod',
+            ]);
+
+        $response->assertRedirect();
+
+        // Check order was created with partner_id resolved from cookie
+        $order = Order::latest()->first();
+        $this->assertNotNull($order);
+        $this->assertEquals($this->partnerUser->id, $order->partner_id);
+        $this->assertNull($order->promo_code_id);
+        $this->assertEquals(0, $order->discount_amount);
+        $this->assertEquals(100000, $order->total_amount);
+
+        // Check commission was created with 10% rate and null promo_code_id
+        $commission = PartnerCommission::where('order_id', $order->id)->first();
+        $this->assertNotNull($commission);
+        $this->assertEquals($this->partnerUser->id, $commission->partner_id);
+        $this->assertNull($commission->promo_code_id);
+        $this->assertEquals(10000, $commission->commission_amount); // 10% of 100,000 order_amount
+        $this->assertEquals('pending', $commission->status);
+
+        // Complete the order and make sure wallet is credited correctly
+        $admin = User::factory()->create(['role' => 'admin', 'is_admin' => true]);
+        
+        $response2 = $this->actingAs($admin)->put(route('admin.orders.update', $order->id), [
+            'status' => 'completed',
+            'payment_status' => 'paid',
+        ]);
+
+        $response2->assertRedirect();
+        
+        $commission->refresh();
+        $this->assertEquals('paid', $commission->status);
+
+        $this->partnerClient->refresh();
+        $this->assertEquals(10000, $this->partnerClient->wallet_balance);
+    }
 }

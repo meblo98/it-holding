@@ -18,7 +18,11 @@
             @endphp
             @foreach($navItems as $item)
             @php
-                $isActive = $item['route'] != '#' && (request()->routeIs($item['route']) || (str_starts_with($item['route'], 'dashboard.tickets') && request()->routeIs('dashboard.tickets*')));
+                $isActive = $item['route'] != '#' && (
+                    request()->routeIs($item['route']) || 
+                    (str_starts_with($item['route'], 'dashboard.tickets') && request()->routeIs('dashboard.tickets*')) ||
+                    (str_starts_with($item['route'], 'dashboard.partner') && request()->routeIs('dashboard.partner*'))
+                );
             @endphp
             <a href="{{ $item['route'] != '#' ? route($item['route']) : '#' }}" class="px-6 py-4 flex items-center gap-3 text-sm font-bold uppercase tracking-tight italic transition-all {{ $isActive ? 'bg-gold-500 text-navy-900' : 'text-gray-400 hover:text-navy-900 hover:bg-gray-50 border-b border-gray-50' }}">
                 {!! $item['icon'] !!}
