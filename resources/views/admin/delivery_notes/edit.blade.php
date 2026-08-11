@@ -170,14 +170,61 @@
                 <div class="space-y-3">
                     <template x-for="(item, i) in items" :key="i">
                         <div class="grid grid-cols-12 gap-2 items-start bg-gray-50 p-3 rounded-lg border border-gray-100">
-                            <div class="col-span-5">
+                            <div class="col-span-5 relative" x-data="{ open: false, searchQuery: '' }" @click.away="open = false">
                                 <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Produit</label>
-                                <select :name="`items[${i}][product_id]`" x-model="item.product_id" @change="onProductChange(i)" required class="block w-full border-gray-300 rounded-md shadow-sm text-xs">
-                                    <option value="">— Sélectionner —</option>
-                                    <template x-for="p in products" :key="p.id">
-                                        <option :value="p.id" x-text="p.name" :selected="item.product_id == p.id"></option>
-                                    </template>
-                                </select>
+                                
+                                <!-- Trigger Button -->
+                                <button type="button" 
+                                        @click="open = !open" 
+                                        class="relative w-full bg-white border border-gray-300 rounded-md shadow-sm pl-3 pr-8 py-1.5 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-gold-500 focus:border-gold-500 text-xs">
+                                    <span class="block truncate text-gray-700 font-medium" x-text="getProduct(item.product_id)?.name || '— Sélectionner —'"></span>
+                                    <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                        <svg class="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </span>
+                                </button>
+
+                                <!-- Dropdown Panel -->
+                                <div x-show="open" 
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="opacity-100 scale-100"
+                                     x-transition:leave-end="opacity-0 scale-95"
+                                     class="absolute z-50 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-hidden flex flex-col sm:text-sm"
+                                     style="display: none;">
+                                    
+                                    <!-- Search Input inside Dropdown -->
+                                    <div class="p-2 border-b border-gray-100">
+                                        <input type="text" 
+                                               placeholder="Rechercher..." 
+                                               x-model="searchQuery" 
+                                               @keydown.enter.prevent
+                                               class="block w-full border border-gray-300 rounded-md py-1 px-2 text-xs focus:outline-none focus:ring-1 focus:ring-gold-500 focus:border-gold-500">
+                                    </div>
+                                    
+                                    <!-- Options List -->
+                                    <div class="overflow-y-auto max-h-48 divide-y divide-gray-50 text-xs">
+                                        <!-- Products list -->
+                                        <template x-for="p in products.filter(prod => !searchQuery || prod.name.toLowerCase().includes(searchQuery.toLowerCase()))" :key="p.id">
+                                            <button type="button"
+                                                    @click="
+                                                        item.product_id = p.id;
+                                                        onProductChange(i);
+                                                        open = false;
+                                                        searchQuery = '';
+                                                    "
+                                                    class="w-full text-left cursor-default select-none relative py-2 pl-3 pr-9 hover:bg-gold-500 hover:text-navy-955 text-gray-900 transition duration-150">
+                                                <span class="block truncate font-medium" x-text="p.name"></span>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                                
+                                <!-- Hidden Input to submit product_id -->
+                                <input type="hidden" :name="`items[${i}][product_id]`" x-model="item.product_id">
                             </div>
                             <div class="col-span-2">
                                 <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Qté</label>

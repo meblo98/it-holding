@@ -120,19 +120,77 @@
                                     <label class="block text-xs font-medium text-gray-500 uppercase">Article / Service</label>
                                     
                                     <!-- Selection Dropdown -->
-                                    <div x-show="item.source === 'catalog'" class="mt-1 space-y-1.5" x-data="{ searchQuery: '' }">
-                                        <input type="text" 
-                                               placeholder="🔍 Rechercher un produit / service..." 
-                                               x-model="searchQuery" 
-                                               class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-xs py-1 px-2.5">
+                                    <div x-show="item.source === 'catalog'" class="mt-1" x-data="{ open: false, searchQuery: '' }" @click.away="open = false">
+                                        <!-- Trigger Button -->
+                                        <button type="button" 
+                                                @click="open = !open" 
+                                                class="relative w-full bg-white border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
+                                            <span class="block truncate text-gray-700" x-text="item.description || '-- Sélectionner un article --'"></span>
+                                            <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                </svg>
+                                            </span>
+                                        </button>
+
+                                        <!-- Dropdown Panel -->
+                                        <div x-show="open" 
+                                             x-transition:enter="transition ease-out duration-100"
+                                             x-transition:enter-start="opacity-0 scale-95"
+                                             x-transition:enter-end="opacity-100 scale-100"
+                                             x-transition:leave="transition ease-in duration-75"
+                                             x-transition:leave-start="opacity-100 scale-100"
+                                             x-transition:leave-end="opacity-0 scale-95"
+                                             class="absolute z-50 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-hidden flex flex-col sm:text-sm"
+                                             style="display: none;">
+                                            
+                                            <!-- Search Input inside Dropdown -->
+                                            <div class="p-2 border-b border-gray-100">
+                                                <input type="text" 
+                                                       placeholder="Rechercher..." 
+                                                       x-model="searchQuery" 
+                                                       @keydown.enter.prevent
+                                                       class="block w-full border border-gray-300 rounded-md py-1 px-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-gold-500 focus:border-gold-500">
+                                            </div>
+                                            
+                                            <!-- Options List -->
+                                            <div class="overflow-y-auto max-h-48 divide-y divide-gray-50">
+                                                <!-- Catalog items -->
+                                                <template x-for="c in catalog.filter(cat => !searchQuery || cat.name.toLowerCase().includes(searchQuery.toLowerCase()))" :key="c.name">
+                                                    <button type="button"
+                                                            @click="
+                                                                item.source = 'catalog';
+                                                                item.description = c.name;
+                                                                item.product_id = c.type === 'product' ? (c.id || null) : null;
+                                                                item.unit_price = c.price;
+                                                                item.catalog_type = c.type;
+                                                                item.save_to_catalog = false;
+                                                                open = false;
+                                                                searchQuery = '';
+                                                            "
+                                                            class="w-full text-left cursor-default select-none relative py-2 pl-3 pr-9 hover:bg-gold-500 hover:text-navy-955 text-gray-900 transition duration-150">
+                                                        <span class="block truncate font-medium" x-text="c.name"></span>
+                                                        <span class="block text-xs text-gray-500" x-text="`${c.type === 'product' ? 'Produit' : 'Service'} — ${new Intl.NumberFormat('fr-FR').format(c.price)} FCFA`"></span>
+                                                    </button>
+                                                </template>
+                                                
+                                                <!-- Custom/New Option -->
+                                                <button type="button"
+                                                        @click="
+                                                            item.source = 'manual';
+                                                            item.description = searchQuery;
+                                                            item.product_id = null;
+                                                            item.unit_price = 0;
+                                                            item.save_to_catalog = true;
+                                                            open = false;
+                                                            searchQuery = '';
+                                                        "
+                                                        class="w-full text-left cursor-default select-none relative py-2.5 pl-3 pr-9 bg-gray-50 text-gold-600 hover:bg-navy-600 hover:text-white font-bold transition duration-150 border-t">
+                                                    <span x-text="searchQuery ? `+ Créer : ${searchQuery}` : '+ Nouveau / Autre article'"></span>
+                                                </button>
+                                            </div>
+                                        </div>
                                         
-                                        <select @change="onSelectChange(index, $event); searchQuery = ''" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
-                                            <option value="">-- Sélectionner un article --</option>
-                                            <template x-for="c in catalog.filter(item => !searchQuery || item.name.toLowerCase().includes(searchQuery.toLowerCase()))" :key="c.name">
-                                                <option :value="c.name" :selected="item.description === c.name" x-text="`${c.name} (${c.type === 'product' ? 'Produit' : 'Service'})`"></option>
-                                            </template>
-                                            <option value="new" class="text-gold-600 font-bold">+ Nouveau / Autre article</option>
-                                        </select>
                                         <!-- Hidden input to submit description and product_id -->
                                         <input type="hidden" :name="`items[${index}][description]`" x-model="item.description">
                                         <input type="hidden" :name="`items[${index}][product_id]`" x-model="item.product_id">
