@@ -117,10 +117,15 @@
                                     <label class="block text-xs font-medium text-gray-500 uppercase">Article / Service</label>
                                     
                                     <!-- Selection Dropdown -->
-                                    <div x-show="item.source === 'catalog'" class="mt-1">
-                                        <select @change="onSelectChange(index, $event)" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
+                                    <div x-show="item.source === 'catalog'" class="mt-1 space-y-1.5" x-data="{ searchQuery: '' }">
+                                        <input type="text" 
+                                               placeholder="🔍 Rechercher un produit / service..." 
+                                               x-model="searchQuery" 
+                                               class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-xs py-1 px-2.5">
+                                        
+                                        <select @change="onSelectChange(index, $event); searchQuery = ''" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
                                             <option value="">-- Sélectionner un article --</option>
-                                            <template x-for="c in catalog" :key="c.name">
+                                            <template x-for="c in catalog.filter(item => !searchQuery || item.name.toLowerCase().includes(searchQuery.toLowerCase()))" :key="c.name">
                                                 <option :value="c.name" :selected="item.description === c.name" x-text="`${c.name} (${c.type === 'product' ? 'Produit' : 'Service'})`"></option>
                                             </template>
                                             <option value="new" class="text-gold-600 font-bold">+ Nouveau / Autre article</option>

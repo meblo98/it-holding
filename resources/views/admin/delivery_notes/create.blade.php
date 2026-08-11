@@ -207,12 +207,16 @@
                     <template x-for="(item, i) in items" :key="i">
                         <div class="grid grid-cols-12 gap-2 items-start bg-gray-50 p-3 rounded-lg border border-gray-100">
                             {{-- Product select --}}
-                            <div class="col-span-5">
+                            <div class="col-span-5 space-y-1" x-data="{ searchQuery: '' }">
                                 <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Produit</label>
-                                <select :name="`items[${i}][product_id]`" x-model="item.product_id" @change="onProductChange(i)" required
+                                <input type="text" 
+                                       placeholder="🔍 Rechercher..." 
+                                       x-model="searchQuery" 
+                                       class="block w-full border-gray-300 rounded-md shadow-sm text-xs py-0.5 px-2">
+                                <select :name="`items[${i}][product_id]`" x-model="item.product_id" @change="onProductChange(i); searchQuery = ''" required
                                         class="block w-full border-gray-300 rounded-md shadow-sm text-xs">
                                     <option value="">— Sélectionner —</option>
-                                    <template x-for="p in products" :key="p.id">
+                                    <template x-for="p in products.filter(prod => !searchQuery || prod.name.toLowerCase().includes(searchQuery.toLowerCase()))" :key="p.id">
                                         <option :value="p.id" x-text="p.name" :selected="item.product_id == p.id"></option>
                                     </template>
                                 </select>
