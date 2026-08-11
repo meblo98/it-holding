@@ -13,7 +13,12 @@
             </div>
         </div>
         <div class="mt-5 md:mt-0 md:col-span-2">
-            <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data" x-data="{ is_pack: {{ old('is_pack') ? 'true' : 'false' }}, packItems: {{ json_encode(old('pack_items', [])) }} }">
+            <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data" x-data="{ 
+                is_pack: {{ old('is_pack') ? 'true' : 'false' }}, 
+                packItems: {{ json_encode(old('pack_items', [])) }},
+                products: {{ $allProducts->map(fn($p) => ['id' => $p->id, 'name' => $p->name, 'stock' => $p->stock])->toJson() }},
+                getProduct(id) { return this.products.find(p => p.id == id); }
+            }">
                 @csrf
                 <div class="shadow sm:rounded-md sm:overflow-hidden">
                     <div class="px-4 py-5 bg-white space-y-6 sm:p-6">
@@ -123,15 +128,59 @@
                                     <template x-for="(item, index) in packItems" :key="index">
                                         <div class="flex gap-4 items-center">
                                             <div class="flex-grow grid grid-cols-3 gap-4">
-                                                <div class="col-span-2">
-                                                    <select :name="'pack_items[' + index + '][product_id]'" x-model="item.product_id"
-                                                        class="focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-                                                        <option value="">-- Sélectionner un produit --</option>
-                                                        @foreach ($allProducts as $p)
-                                                            <option value="{{ $p->id }}">{{ $p->name }} (Stock: {{ $p->stock }})</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
+                                                    <div class="col-span-2 relative" x-data="{ open: false, searchQuery: '' }" @click.away="open = false">
+                                                        <!-- Trigger Button -->
+                                                        <button type="button" 
+                                                                @click="open = !open" 
+                                                                class="relative w-full bg-white border border-gray-300 rounded-md shadow-sm pl-3 pr-8 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-gold-500 focus:border-gold-500 text-xs sm:text-sm">
+                                                            <span class="block truncate text-gray-700" x-text="getProduct(item.product_id) ? `${getProduct(item.product_id).name} (Stock: ${getProduct(item.product_id).stock})` : '-- Sélectionner un produit --'"></span>
+                                                            <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                                                <svg class="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                                </svg>
+                                                            </span>
+                                                        </button>
+
+                                                        <!-- Dropdown Panel -->
+                                                        <div x-show="open" 
+                                                             x-transition:enter="transition ease-out duration-100"
+                                                             x-transition:enter-start="opacity-0 scale-95"
+                                                             x-transition:enter-end="opacity-100 scale-100"
+                                                             x-transition:leave="transition ease-in duration-75"
+                                                             x-transition:leave-start="opacity-100 scale-100"
+                                                             x-transition:leave-end="opacity-0 scale-95"
+                                                             class="absolute z-50 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-hidden flex flex-col text-xs sm:text-sm"
+                                                             style="display: none;">
+                                                            
+                                                            <!-- Search Input inside Dropdown -->
+                                                            <div class="p-2 border-b border-gray-100">
+                                                                <input type="text" 
+                                                                       placeholder="Rechercher..." 
+                                                                       x-model="searchQuery" 
+                                                                       @keydown.enter.prevent
+                                                                       class="block w-full border border-gray-300 rounded-md py-1 px-2 text-xs focus:outline-none focus:ring-1 focus:ring-gold-500 focus:border-gold-500">
+                                                            </div>
+                                                            
+                                                            <!-- Options List -->
+                                                            <div class="overflow-y-auto max-h-48 divide-y divide-gray-50">
+                                                                <!-- Products list -->
+                                                                <template x-for="p in products.filter(prod => !searchQuery || prod.name.toLowerCase().includes(searchQuery.toLowerCase()))" :key="p.id">
+                                                                    <button type="button"
+                                                                            @click="
+                                                                                item.product_id = p.id;
+                                                                                open = false;
+                                                                                searchQuery = '';
+                                                                            "
+                                                                            class="w-full text-left cursor-default select-none relative py-2 pl-3 pr-9 hover:bg-gold-500 hover:text-navy-955 text-gray-900 transition duration-150">
+                                                                        <span class="block truncate font-medium" x-text="p.name + ' (Stock: ' + p.stock + ')'"></span>
+                                                                    </button>
+                                                                </template>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <!-- Hidden Input to submit product_id -->
+                                                        <input type="hidden" :name="'pack_items[' + index + '][product_id]'" x-model="item.product_id" required>
+                                                    </div>
                                                 <div>
                                                     <input type="number" :name="'pack_items[' + index + '][quantity]'" x-model="item.quantity" min="1" placeholder="Quantité"
                                                         class="focus:ring-gold-500 focus:border-gold-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
