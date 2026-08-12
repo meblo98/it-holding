@@ -31,7 +31,7 @@ class PartnerMarketingController extends Controller
         $this->checkPartner();
 
         $user = Auth::user();
-        $products = Product::where('active', true)->orderBy('name', 'asc')->get();
+        $products = Product::with('images')->where('active', true)->orderBy('name', 'asc')->get();
         $assets = MarketingAsset::latest()->get();
         $scheduledPosts = $user->scheduledPosts()->orderBy('scheduled_at', 'asc')->get();
 
@@ -187,7 +187,7 @@ class PartnerMarketingController extends Controller
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
         try {
-            $response = Http::timeout(25)->post($url, [
+            $response = Http::timeout(60)->post($url, [
                 'contents' => [
                     [
                         'parts' => [
@@ -236,6 +236,117 @@ class PartnerMarketingController extends Controller
                 'success' => false,
                 'message' => "Impossible de contacter l'assistant vidéo IA.",
             ], 500);
+        }
+    }
+
+    /**
+     * Generate AI Image Prompt via Gemini and return Pollinations rendering URL.
+     */
+    public function generatePosterAI(Request $request)
+    {
+        $this->checkPartner();
+
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'theme' => 'nullable|string',
+        ]);
+
+        $apiKey = config('services.gemini.key');
+        if (empty($apiKey)) {
+            return response()->json([
+                'success' => false,
+                'message' => "La clé API Gemini n'est pas configurée dans l'application.",
+            ], 500);
+        }
+
+        $product = Product::find($request->product_id);
+        
+        $prompt = "You are an expert prompt engineer for AI image generators (like Imagen 3 or Midjourney).\n";
+        $prompt .= "Generate a highly detailed, premium, and visually stunning text-to-image prompt (in English) to generate a professional marketing product shot or banner for the following IT equipment:\n";
+        $prompt .= "PRODUCT: {$product->name}\n";
+        $prompt .= "DESCRIPTION: " . strip_tags($product->description) . "\n\n";
+        $prompt .= "Requirements:\n";
+        $prompt .= "- Describe a realistic, clean, commercial product advertisement.\n";
+        $prompt .= "- Include details about professional studio lighting, crisp details, high-end presentation, and modern tech backdrop.\n";
+        $prompt .= "- Do NOT put text in the generated image itself.\n";
+        $prompt .= "- Keep the prompt concise (40-60 words).\n";
+        $prompt .= "- Reply ONLY with the final prompt, nothing else. Do not use quotes, intro or markdown code fences.";
+
+        $model = config('services.gemini.model', 'gemini-1.5-flash');
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+        try {
+            $response = Http::timeout(60)->post($url, [
+                'contents' => [
+                    [
+                        'parts' => [
+                            ['text' => $prompt]
+                        ]
+                    ]
+                ]
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $rawText = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+                if ($rawText) {
+                    $aiPrompt = trim($rawText);
+                    $aiPrompt = trim($aiPrompt, '"\'');
+                    $imageUrl = "https://image.pollinations.ai/prompt/" . rawurlencode($aiPrompt) . "?width=800&height=800&nologo=true&private=true";
+
+                    return response()->json([
+                        'success' => true,
+                        'prompt' => $aiPrompt,
+                        'image_url' => $imageUrl,
+                    ]);
+                }
+            }
+
+            Log::error('Gemini API response failed for Poster AI: ' . $response->body());
+            return response()->json([
+                'success' => false,
+                'message' => "La génération du prompt par l'IA a échoué.",
+            ], 500);
+
+        } catch (\Exception $e) {
+            Log::error('Error calling Gemini for Poster AI: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => "Impossible de contacter l'IA de génération.",
+            ], 500);
+        }
+    }
+
+    /**
+     * Proxy image requests to prevent CORS and Cloudflare blocks in headless browsers.
+     */
+    public function proxyImage(Request $request)
+    {
+        $this->checkPartner();
+
+        $url = $request->query('url');
+        if (empty($url)) {
+            abort(400, 'Missing URL parameter');
+        }
+
+        // Validate host to prevent open proxy vulnerability
+        $host = parse_url($url, PHP_URL_HOST);
+        if ($host !== 'image.pollinations.ai') {
+            abort(403, 'Unauthorized proxy host');
+        }
+
+        try {
+            $response = Http::timeout(30)->get($url);
+            if ($response->successful()) {
+                return response($response->body())
+                    ->header('Content-Type', $response->header('Content-Type') ?: 'image/jpeg')
+                    ->header('Access-Control-Allow-Origin', '*')
+                    ->header('Cache-Control', 'public, max-age=86400');
+            }
+            abort($response->status(), 'Failed to retrieve remote image');
+        } catch (\Exception $e) {
+            Log::error('Error proxying image: ' . $e->getMessage());
+            abort(500, 'Internal Server Error');
         }
     }
 }

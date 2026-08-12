@@ -28,7 +28,7 @@
             @include('layouts.client_sidebar')
 
             <!-- Main Partner CRM Content -->
-            <main class="flex-1 space-y-8" x-data="{ 
+            <main class="flex-1 min-w-0 space-y-8" x-data="{ 
                 openCreateModal: false, 
                 openEditModal: false,
                 currentProspect: {
@@ -54,17 +54,17 @@
                 }
             }">
                 <!-- Sub navigation tabs -->
-                <div class="flex flex-wrap border-b border-gray-200 bg-white rounded-xl p-2 shadow-sm gap-2">
-                    <a href="{{ route('dashboard.partner') }}" class="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
+                <div class="flex overflow-x-auto border-b border-gray-200 bg-white rounded-xl p-2 shadow-sm gap-2 scrollbar-none whitespace-nowrap">
+                    <a href="{{ route('dashboard.partner') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
                         <span>📊</span> Tableau de bord
                     </a>
-                    <a href="{{ route('dashboard.partner.crm') }}" class="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors bg-navy-900 text-white flex items-center gap-2">
+                    <a href="{{ route('dashboard.partner.crm') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors bg-navy-900 text-white flex items-center gap-2">
                         <span>👥</span> CRM & Prospects
                     </a>
-                    <a href="{{ route('dashboard.partner.assistant') }}" class="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
+                    <a href="{{ route('dashboard.partner.assistant') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
                         <span>🤖</span> Assistant IA
                     </a>
-                    <a href="{{ route('dashboard.partner.marketing') }}" class="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
+                    <a href="{{ route('dashboard.partner.marketing') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
                         <span>📢</span> Studio Marketing
                     </a>
                 </div>
@@ -77,7 +77,7 @@
                 @endif
 
                 <!-- CRM Header & Summary Stats -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
                         <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-1">CA Gagné</span>
                         <span class="text-lg font-black text-navy-900 block tracking-tighter">{{ number_format($totalCA, 0, ',', ' ') }} FCFA</span>
@@ -114,7 +114,12 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h2 class="text-xl font-black text-navy-900 uppercase tracking-tight italic">Mon Pipeline Commercial</h2>
-                        <p class="text-xs text-gray-400 italic">Cliquez sur un prospect pour mettre à jour sa fiche ou modifier son statut.</p>
+                        <p class="text-xs text-gray-400 italic flex flex-wrap items-center gap-1.5">
+                            <span>Cliquez sur un prospect pour mettre à jour sa fiche.</span>
+                            <span class="inline-flex lg:hidden items-center text-gold-600 font-bold bg-gold-50/50 px-2 py-0.5 rounded border border-gold-200/30">
+                                ➔ Glissez horizontalement pour voir les étapes
+                            </span>
+                        </p>
                     </div>
                     <button @click="openCreateModal = true" class="text-xs font-black text-navy-900 bg-gold-500 hover:bg-navy-900 hover:text-white transition-colors uppercase tracking-widest px-5 py-3 rounded-lg flex items-center gap-2 shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -122,10 +127,11 @@
                     </button>
                 </div>
 
-                <!-- Kanban Board -->
-                <div class="overflow-x-auto flex gap-4 pb-6 select-none -mx-4 px-4 md:mx-0 md:px-0">
-                    @foreach($stages as $key => $stage)
-                        <div class="flex-shrink-0 w-80 bg-white border border-gray-200/60 rounded-xl p-4 flex flex-col h-[600px] shadow-sm">
+                <!-- Kanban Board Container -->
+                <div class="w-full overflow-hidden">
+                    <div class="overflow-x-auto flex gap-4 pb-6 select-none -mx-4 px-4 md:mx-0 md:px-0 scrollbar-thin">
+                        @foreach($stages as $key => $stage)
+                            <div class="flex-shrink-0 w-72 sm:w-80 bg-white border border-gray-200/60 rounded-xl p-4 flex flex-col h-[600px] shadow-sm">
                             <!-- Stage Header -->
                             <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-3">
                                 <div class="flex items-center gap-2">
@@ -175,18 +181,19 @@
                             </div>
                         </div>
                     @endforeach
+                    </div>
                 </div>
 
                 <!-- ==================== CREATE MODAL ==================== -->
                 <div x-show="openCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-900/60 backdrop-blur-sm" x-cloak>
                     <div @click.away="openCreateModal = false" class="bg-white rounded-xl shadow-xl border border-gray-150 w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
-                        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                        <div class="px-4 sm:px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                             <h3 class="text-xs font-black text-navy-900 uppercase tracking-widest italic">Créer un nouveau prospect</h3>
                             <button @click="openCreateModal = false" class="text-gray-400 hover:text-navy-900">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
-                        <form action="{{ route('dashboard.partner.crm.store') }}" method="POST" class="p-6 overflow-y-auto space-y-4 flex-1">
+                        <form action="{{ route('dashboard.partner.crm.store') }}" method="POST" class="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
                             @csrf
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="space-y-1">
@@ -260,7 +267,7 @@
                 <!-- ==================== EDIT/SHOW MODAL ==================== -->
                 <div x-show="openEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-900/60 backdrop-blur-sm" x-cloak>
                     <div @click.away="openEditModal = false" class="bg-white rounded-xl shadow-xl border border-gray-150 w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
-                        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                        <div class="px-4 sm:px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                             <h3 class="text-xs font-black text-navy-900 uppercase tracking-widest italic">Modifier la fiche prospect</h3>
                             <button @click="openEditModal = false" class="text-gray-400 hover:text-navy-900">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -268,7 +275,7 @@
                         </div>
                         
                         <!-- Actions panel inside show modal (WhatsApp, Call, SMS) -->
-                        <div class="px-6 py-3 bg-indigo-50/50 border-b border-gray-100 flex items-center gap-2 justify-center">
+                        <div class="px-4 sm:px-6 py-3 bg-indigo-50/50 border-b border-gray-100 flex items-center gap-2 justify-center">
                             <a :href="'https://wa.me/221' + currentProspect.phone" target="_blank" class="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded text-[10px] font-bold flex items-center gap-1.5 shadow-sm transition-colors">
                                 💬 WhatsApp
                             </a>
@@ -279,8 +286,8 @@
                                 ✉️ Email
                             </a>
                         </div>
-
-                        <form :action="'{{ route('dashboard.partner.crm.store') }}/' + currentProspect.id" method="POST" class="p-6 overflow-y-auto space-y-4 flex-1">
+ 
+                        <form :action="'{{ route('dashboard.partner.crm.store') }}/' + currentProspect.id" method="POST" class="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
                             @csrf
                             @method('PUT')
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -349,9 +356,10 @@
                                 <button type="submit" class="flex-1 bg-navy-900 text-white hover:bg-gold-500 hover:text-navy-900 text-[10px] font-black uppercase tracking-widest py-3 rounded-lg shadow-md transition-all">
                                     Mettre à jour
                                 </button>
+                            </div>
                         </form>
                         
-                        <form :action="'{{ route('dashboard.partner.crm.store') }}/' + currentProspect.id" method="POST" onsubmit="return confirm('Confirmez-vous la suppression définitive de ce prospect ?')" class="px-6 pb-6">
+                        <form :action="'{{ route('dashboard.partner.crm.store') }}/' + currentProspect.id" method="POST" onsubmit="return confirm('Confirmez-vous la suppression définitive de ce prospect ?')" class="px-4 sm:px-6 pb-4 sm:pb-6">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="w-full bg-red-650 hover:bg-red-750 text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-lg shadow-sm transition-all">

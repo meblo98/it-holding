@@ -55,6 +55,127 @@
 
     <style>
         [x-cloak] { display: none !important; }
+
+        /* ── Base field styling (input, textarea, select) ── */
+        .admin-input,
+        .admin-select,
+        .admin-textarea,
+        input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+        select,
+        textarea {
+            display: block;
+            width: 100%;
+            border-radius: 0.5rem !important;          /* rounded-lg */
+            border: 1.5px solid #cbd5e1 !important;    /* slate-300 */
+            background-color: #f8fafc !important;      /* slate-50 */
+            padding: 0.6rem 0.875rem !important;
+            font-size: 0.875rem !important;
+            line-height: 1.5 !important;
+            color: #0f172a !important;                 /* navy-600 */
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            outline: none !important;
+            box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.03) !important;
+        }
+
+        /* Focus state with gold border and premium glowing ring */
+        .admin-input:focus,
+        .admin-select:focus,
+        .admin-textarea:focus,
+        input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):focus,
+        select:focus,
+        textarea:focus {
+            border-color: #d97706 !important;          /* gold-600 */
+            background-color: #ffffff !important;
+            box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.15), 0 1px 2px 0 rgba(15, 23, 42, 0.05) !important;
+        }
+
+        /* Interactive hover state */
+        .admin-input:hover:not(:focus),
+        .admin-select:hover:not(:focus),
+        .admin-textarea:hover:not(:focus),
+        input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):hover:not(:focus),
+        select:hover:not(:focus),
+        textarea:hover:not(:focus) {
+            border-color: #94a3b8 !important;          /* slate-400 */
+            background-color: #ffffff !important;
+        }
+
+        /* Premium labels */
+        .admin-label,
+        label:not(.inline):not(.flex):not(.cursor-pointer):not(.sr-only) {
+            display: block !important;
+            font-size: 0.75rem !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.05em !important;
+            color: #475569 !important;                 /* slate-600 */
+            margin-bottom: 0.4rem !important;
+        }
+
+        /* Placeholders */
+        ::placeholder {
+            color: #94a3b8 !important;
+            font-style: normal !important;
+            opacity: 0.7 !important;
+        }
+
+        /* Select dropdowns with custom navy arrow */
+        .admin-select, select {
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%230f172a' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 0.75rem center !important;
+            background-size: 1rem 1rem !important;
+            padding-right: 2.5rem !important;
+        }
+        .admin-select:focus, select:focus {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23d97706' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E") !important;
+        }
+
+        /* Textarea vertical resize */
+        .admin-textarea, textarea {
+            resize: vertical !important;
+            min-height: 6rem !important;
+        }
+
+        /* Premium headers for sections */
+        .admin-section-title {
+            font-size: 0.75rem !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.08em !important;
+            color: #1e293b !important;
+            padding-bottom: 0.5rem !important;
+            border-bottom: 2px solid #f1f5f9 !important;
+            margin-bottom: 1.25rem !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+        }
+        .admin-section-title::before {
+            content: '' !important;
+            display: inline-block !important;
+            width: 4px !important;
+            height: 1.1em !important;
+            background: #d97706 !important;             /* gold-600 */
+            border-radius: 2px !important;
+        }
+
+        /* Checkbox & Radio customization */
+        input[type="checkbox"], input[type="radio"] {
+            accent-color: #d97706 !important;
+            cursor: pointer !important;
+        }
+
+        /* Modern card layout container */
+        .admin-card {
+            background: #ffffff !important;
+            border: 1px solid #f1f5f9 !important;
+            border-radius: 0.75rem !important;          /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+            padding: 1.5rem !important;
+        }
     </style>
 </head>
 <body class="font-sans antialiased bg-gray-100">

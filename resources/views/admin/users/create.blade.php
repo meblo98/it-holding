@@ -18,7 +18,7 @@
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <label class="admin-label">Nom complet <span class="text-red-500">*</span></label>
-                <input type="text" name="name" value="{{ old('name') }}" required class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-gold-500 focus:border-gold-500">
+                <input type="text" name="name" value="{{ old('name') }}" required class="admin-input">
             </div>
             <div>
                 <label class="admin-label">Téléphone</label>
@@ -27,11 +27,11 @@
         </div>
         <div>
             <label class="admin-label">Email <span class="text-red-500">*</span></label>
-            <input type="email" name="email" value="{{ old('email') }}" required class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-gold-500 focus:border-gold-500">
+            <input type="email" name="email" value="{{ old('email') }}" required class="admin-input">
         </div>
         <div>
             <label class="admin-label">Rôle <span class="text-red-500">*</span></label>
-            <select name="role" required class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-gold-500 focus:border-gold-500">
+            <select name="role" required class="admin-select">
                 <option value="">— Sélectionner un rôle —</option>
                 @foreach($roles as $key => $label)
                     @if($key !== 'client')

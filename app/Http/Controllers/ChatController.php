@@ -131,7 +131,7 @@ class ChatController extends Controller
         $context .= "Support IT-HOLDING :";
 
         try {
-            $response = Http::timeout(20)->post($url, [
+            $response = Http::timeout(60)->post($url, [
                 'contents' => [
                     [
                         'parts' => [

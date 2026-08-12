@@ -166,24 +166,24 @@
         }
 
         /* ── Custom Red Style overrides for client-side forms and selects ── */
-        select, 
-        textarea,
-        input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]) {
+        body:not(.partner-page) select, 
+        body:not(.partner-page) textarea,
+        body:not(.partner-page) input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]) {
             border: 1.5px solid #fca5a5 !important; /* solid 1.5px red-300 default border */
             transition: all 0.2s ease-in-out !important;
         }
 
         /* Border hover states: red-500 */
-        select:hover:not(:focus),
-        textarea:hover:not(:focus),
-        input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):hover:not(:focus) {
+        body:not(.partner-page) select:hover:not(:focus),
+        body:not(.partner-page) textarea:hover:not(:focus),
+        body:not(.partner-page) input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):hover:not(:focus) {
             border-color: #ef4444 !important; /* red-500 */
         }
 
         /* Focus states: premium crimson red border and glowing focus ring */
-        select:focus,
-        textarea:focus,
-        input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):focus {
+        body:not(.partner-page) select:focus,
+        body:not(.partner-page) textarea:focus,
+        body:not(.partner-page) input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):focus {
             border-color: #dc2626 !important; /* red-600 */
             --tw-ring-color: #ef4444 !important; /* red-500 */
             --tw-ring-opacity: 0.35 !important;
@@ -194,21 +194,62 @@
         }
 
         /* Checkbox & Radio inputs: red tint & accent-color */
-        input[type="checkbox"],
-        input[type="radio"] {
+        body:not(.partner-page) input[type="checkbox"],
+        body:not(.partner-page) input[type="radio"] {
             accent-color: #dc2626 !important;
         }
-        input[type="checkbox"]:focus,
-        input[type="radio"]:focus {
+
+        body:not(.partner-page) input[type="checkbox"]:focus,
+        body:not(.partner-page) input[type="radio"]:focus {
             --tw-ring-color: #ef4444 !important;
             box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
+        }
+
+        /* ── Espace Partenaire (Navy & Gold Theme) Inputs ── */
+        body.partner-page select,
+        body.partner-page textarea,
+        body.partner-page input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]) {
+            border: 1.5px solid #cbd5e1 !important; /* slate-300 */
+            background-color: #ffffff !important;
+            color: #0f172a !important; /* navy-600 */
+            border-radius: 0.5rem !important; /* rounded-lg */
+            transition: all 0.15s ease-in-out !important;
+        }
+
+        body.partner-page select:hover:not(:focus),
+        body.partner-page textarea:hover:not(:focus),
+        body.partner-page input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):hover:not(:focus) {
+            border-color: #94a3b8 !important; /* slate-400 */
+        }
+
+        body.partner-page select:focus,
+        body.partner-page textarea:focus,
+        body.partner-page input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):focus {
+            border-color: #d97706 !important; /* gold-600 */
+            --tw-ring-color: #fbbf24 !important; /* gold-400 */
+            --tw-ring-opacity: 0.35 !important;
+            --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color) !important;
+            --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important;
+            box-shadow: var(--tw-ring-offset-shadow) var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000) !important;
+            outline: none !important;
+        }
+
+        body.partner-page input[type="checkbox"],
+        body.partner-page input[type="radio"] {
+            accent-color: #d97706 !important; /* gold-600 */
+        }
+
+        body.partner-page input[type="checkbox"]:focus,
+        body.partner-page input[type="radio"]:focus {
+            --tw-ring-color: #fbbf24 !important;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3) !important;
         }
     </style>
     @stack('styles')
 </head>
 
 <body
-    class="antialiased bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-red-400 flex flex-col min-h-screen transition-colors duration-200">
+    class="antialiased bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-red-400 flex flex-col min-h-screen transition-colors duration-200 {{ request()->is('partner*') || request()->is('dashboard/partner*') ? 'partner-page' : '' }}">
 
     @include('layouts.navigation')
 

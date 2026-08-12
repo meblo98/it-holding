@@ -98,7 +98,7 @@
                 <td class="px-6 py-4 text-sm text-gray-500">{{ $user->created_at->format('d/m/Y') }}</td>
                 <td class="px-6 py-4 text-right">
                     <div class="flex items-center justify-end gap-1">
-                        @if($user->role === 'partner' && $user->partner_status === 'pending')
+                        @if($user->role === 'partner' && $user->partner_status !== 'approved')
                             <form action="{{ route('admin.users.approvePartner', $user->id) }}" method="POST" class="inline">
                                 @csrf
                                 <button type="submit" class="text-xs font-bold text-white bg-green-600 hover:bg-green-700 px-2.5 py-1 rounded transition">Approuver</button>

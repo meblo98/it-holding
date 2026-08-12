@@ -3,7 +3,7 @@
 @section('title', 'Studio Marketing Partenaire - ' . config('app.name'))
 
 @section('content')
-<div class="bg-gray-50 min-h-screen" x-data="{ mainTab: 'poster' }">
+<div class="bg-gray-50 min-h-screen" x-data="{ mainTab: 'poster', scheduleTitle: '', scheduleContent: '', scheduleProductId: '' }">
     <!-- Breadcrumb -->
     <div class="bg-white border-b border-gray-100 py-3">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,19 +28,19 @@
             @include('layouts.client_sidebar')
 
             <!-- Main Marketing Content -->
-            <main class="flex-1 space-y-8">
+            <main class="flex-1 min-w-0 space-y-8">
                 <!-- Sub navigation tabs -->
-                <div class="flex flex-wrap border-b border-gray-200 bg-white rounded-xl p-2 shadow-sm gap-2">
-                    <a href="{{ route('dashboard.partner') }}" class="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
+                <div class="flex overflow-x-auto border-b border-gray-200 bg-white rounded-xl p-2 shadow-sm gap-2 scrollbar-none whitespace-nowrap">
+                    <a href="{{ route('dashboard.partner') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
                         <span>📊</span> Tableau de bord
                     </a>
-                    <a href="{{ route('dashboard.partner.crm') }}" class="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
+                    <a href="{{ route('dashboard.partner.crm') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
                         <span>👥</span> CRM & Prospects
                     </a>
-                    <a href="{{ route('dashboard.partner.assistant') }}" class="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
+                    <a href="{{ route('dashboard.partner.assistant') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
                         <span>🤖</span> Assistant IA
                     </a>
-                    <a href="{{ route('dashboard.partner.marketing') }}" class="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors bg-navy-900 text-white flex items-center gap-2">
+                    <a href="{{ route('dashboard.partner.marketing') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors bg-navy-900 text-white flex items-center gap-2">
                         <span>📢</span> Studio Marketing
                     </a>
                 </div>
@@ -53,20 +53,20 @@
                 @endif
 
                 <!-- Unified Studio Sub-Tabs -->
-                <div class="flex flex-wrap border-b border-gray-200 bg-white rounded-xl p-2 shadow-sm gap-2">
-                    <button @click="mainTab = 'poster'" :class="mainTab === 'poster' ? 'bg-navy-900 text-white' : 'text-gray-500 hover:bg-gray-50'" class="px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5">
+                <div class="flex overflow-x-auto border-b border-gray-200 bg-white rounded-xl p-2 shadow-sm gap-2 scrollbar-none whitespace-nowrap">
+                    <button @click="mainTab = 'poster'" :class="mainTab === 'poster' ? 'bg-navy-900 text-white' : 'text-gray-500 hover:bg-gray-50'" class="flex-shrink-0 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5">
                         🎨 Affiches
                     </button>
-                    <button @click="mainTab = 'catalog'" :class="mainTab === 'catalog' ? 'bg-navy-900 text-white' : 'text-gray-500 hover:bg-gray-50'" class="px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5">
+                    <button @click="mainTab = 'catalog'" :class="mainTab === 'catalog' ? 'bg-navy-900 text-white' : 'text-gray-500 hover:bg-gray-50'" class="flex-shrink-0 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5">
                         📋 Catalogue PDF
                     </button>
-                    <button @click="mainTab = 'scheduler'" :class="mainTab === 'scheduler' ? 'bg-navy-900 text-white' : 'text-gray-500 hover:bg-gray-50'" class="px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5">
+                    <button @click="mainTab = 'scheduler'" :class="mainTab === 'scheduler' ? 'bg-navy-900 text-white' : 'text-gray-500 hover:bg-gray-50'" class="flex-shrink-0 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5">
                         📅 Planificateur Réseaux
                     </button>
-                    <button @click="mainTab = 'video'" :class="mainTab === 'video' ? 'bg-navy-900 text-white' : 'text-gray-500 hover:bg-gray-50'" class="px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5">
+                    <button @click="mainTab = 'video'" :class="mainTab === 'video' ? 'bg-navy-900 text-white' : 'text-gray-500 hover:bg-gray-50'" class="flex-shrink-0 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5">
                         🎬 Créateur Vidéo IA
                     </button>
-                    <button @click="mainTab = 'library'" :class="mainTab === 'library' ? 'bg-navy-900 text-white' : 'text-gray-500 hover:bg-gray-50'" class="px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5">
+                    <button @click="mainTab = 'library'" :class="mainTab === 'library' ? 'bg-navy-900 text-white' : 'text-gray-500 hover:bg-gray-50'" class="flex-shrink-0 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5">
                         📦 Bibliothèque Assets
                     </button>
                 </div>
@@ -83,13 +83,60 @@
                     showPhone: true,
                     partnerCode: '{{ $user->partner_code }}',
                     partnerPhone: '{{ $user->phone ?: '77 000 00 00' }}',
+                    useAIImage: false,
+                    aiImageUrl: '',
+                    aiImageLoading: false,
+                    aiImagePrompt: '',
                     updateProduct() {
                         this.selectedProduct = this.products.find(p => p.id == this.selectedProductId) || null;
+                        this.useAIImage = false;
+                        this.aiImageUrl = '';
                         if(this.selectedProduct) {
                             this.customPrice = this.selectedProduct.price;
                         } else {
                             this.customPrice = '';
                         }
+                    },
+                    async generateAIImage() {
+                        if (!this.selectedProductId) {
+                            alert('Veuillez d\'abord sélectionner un produit.');
+                            return;
+                        }
+                        this.aiImageLoading = true;
+                        this.aiImageUrl = '';
+                        try {
+                            const response = await fetch('{{ route("dashboard.partner.marketing.poster.ai") }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Accept': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    product_id: this.selectedProductId
+                                })
+                            });
+                            const data = await response.json();
+                            if (data.success) {
+                                this.aiImageUrl = '{{ route("dashboard.partner.marketing.proxy.image") }}?url=' + encodeURIComponent(data.image_url);
+                                this.aiImagePrompt = data.prompt;
+                                this.useAIImage = true;
+                            } else {
+                                alert(data.message || 'La génération de l\'image a échoué.');
+                            }
+                        } catch (err) {
+                            console.error(err);
+                            alert('Erreur lors de la génération de l\'image.');
+                        } finally {
+                            this.aiImageLoading = false;
+                        }
+                    },
+                    sendToPlanner() {
+                        this.$parent.scheduleTitle = 'Promo - ' + this.selectedProduct.name;
+                        this.$parent.scheduleContent = '🔥 Offre Spéciale chez IT Holding !\n\nDécouvrez le ' + this.selectedProduct.name + ' au tarif exclusif de ' + Number(this.customPrice).toLocaleString('fr-FR') + ' FCFA !\n\n👉 Commandez directement avec mon lien de recommandation :\n' + '{{ route('home') }}' + '?ref=' + this.partnerCode + '\n\n💡 Utilisez mon code promo *' + this.partnerCode + '* pour bénéficier de 5% de réduction supplémentaire !';
+                        this.$parent.scheduleProductId = this.selectedProductId;
+                        this.$parent.mainTab = 'scheduler';
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                 }" x-cloak>
                     <div class="border-b border-gray-100 pb-4">
@@ -108,6 +155,19 @@
                                         <option :value="p.id" x-text="p.name"></option>
                                     </template>
                                 </select>
+                            </div>
+
+                            <div class="space-y-1 pt-1" x-show="selectedProduct">
+                                <label class="text-[10px] font-black text-navy-900 uppercase tracking-wider block">Type d'image</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button @click="useAIImage = false" :class="!useAIImage ? 'bg-navy-900 text-white' : 'bg-gray-100 hover:bg-gray-200 text-navy-900'" class="text-[9px] font-black uppercase py-2 px-3 rounded-lg transition-all text-center">
+                                        📷 Photo Produit
+                                    </button>
+                                    <button @click="useAIImage = true; if(!aiImageUrl) generateAIImage()" :class="useAIImage ? 'bg-gold-500 text-navy-900 font-bold' : 'bg-gray-100 hover:bg-gray-200 text-navy-900'" class="text-[9px] font-black uppercase py-2 px-3 rounded-lg transition-all text-center flex items-center justify-center gap-1">
+                                        <span x-show="aiImageLoading" class="inline-block w-2.5 h-2.5 border-2 border-navy-950 border-t-transparent rounded-full animate-spin"></span>
+                                        <span x-text="aiImageLoading ? 'IA...' : '✨ Générer par IA'"></span>
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="space-y-1">
@@ -143,6 +203,47 @@
                             <button @click="downloadPoster()" :disabled="!selectedProduct" class="w-full bg-gold-500 hover:bg-navy-900 hover:text-white disabled:bg-gray-200 disabled:text-gray-400 text-navy-900 text-[10px] font-black uppercase tracking-widest py-3.5 rounded-lg shadow transition-colors flex items-center justify-center gap-2 mt-4">
                                 📥 Télécharger le visuel (PNG)
                             </button>
+
+                            <!-- Social Network Hub (visible only if product is selected) -->
+                            <div x-show="selectedProduct" class="border-t border-gray-150 pt-4 space-y-3 mt-4" x-transition>
+                                <h4 class="text-[10px] font-black text-navy-900 uppercase tracking-widest flex items-center gap-1.5">
+                                    <span>📢</span> Hub de Diffusion Réseaux
+                                </h4>
+                                <p class="text-[10px] text-gray-400 italic">
+                                    Partagez ou planifiez ce visuel sur vos réseaux sociaux.
+                                </p>
+                                
+                                <div class="grid grid-cols-2 gap-2">
+                                    <!-- WhatsApp -->
+                                    <a :href="'https://api.whatsapp.com/send?text=' + encodeURIComponent('🔥 Offre Spéciale chez IT Holding ! Découvrez le ' + selectedProduct.name + ' au prix spécial de ' + Number(customPrice).toLocaleString('fr-FR') + ' F ! Utilisez mon Code Promo *' + partnerCode + '* pour obtenir 5% de réduction immédiate. Commandez ici : ' + '{{ route('home') }}' + '?ref=' + partnerCode)" 
+                                       target="_blank" 
+                                       class="px-2.5 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-[9px] font-bold text-center flex items-center justify-center gap-1 transition-colors shadow-sm">
+                                        💬 WhatsApp
+                                    </a>
+                                    <!-- Facebook -->
+                                    <a :href="'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent('{{ route('home') }}' + '?ref=' + partnerCode)" 
+                                       target="_blank" 
+                                       class="px-2.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[9px] font-bold text-center flex items-center justify-center gap-1 transition-colors shadow-sm">
+                                        📘 Facebook
+                                    </a>
+                                    <!-- LinkedIn -->
+                                    <a :href="'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent('{{ route('home') }}' + '?ref=' + partnerCode)" 
+                                       target="_blank" 
+                                       class="px-2.5 py-2 bg-blue-800 hover:bg-blue-900 text-white rounded-lg text-[9px] font-bold text-center flex items-center justify-center gap-1 transition-colors shadow-sm">
+                                        💼 LinkedIn
+                                    </a>
+                                    <!-- X / Twitter -->
+                                    <a :href="'https://twitter.com/intent/tweet?text=' + encodeURIComponent('🔥 Offre Spéciale chez IT Holding ! Découvrez le ' + selectedProduct.name + ' au prix de ' + Number(customPrice).toLocaleString('fr-FR') + ' F ! Code Promo: ' + partnerCode) + '&url=' + encodeURIComponent('{{ route('home') }}' + '?ref=' + partnerCode)" 
+                                       target="_blank" 
+                                       class="px-2.5 py-2 bg-slate-900 hover:bg-black text-white rounded-lg text-[9px] font-bold text-center flex items-center justify-center gap-1 transition-colors shadow-sm">
+                                        🐦 X / Twitter
+                                    </a>
+                                </div>
+
+                                <button @click="sendToPlanner()" class="w-full bg-navy-900 hover:bg-gold-500 hover:text-navy-900 text-white text-[9px] font-black uppercase tracking-widest py-3 rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5 mt-2">
+                                    📅 Planifier dans le Calendrier
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Live Preview (Right) -->
@@ -184,10 +285,23 @@
                                         }" x-text="headline"></h3>
 
                                     <div class="w-32 h-32 rounded-lg bg-white/10 flex items-center justify-center p-2 relative overflow-hidden shadow-inner backdrop-blur-sm border border-white/10">
-                                        <template x-if="selectedProduct && selectedProduct.image">
-                                            <img :src="'/storage/' + selectedProduct.image" class="max-w-full max-h-full object-contain mix-blend-normal">
+                                        <!-- Case 1: AI Generated Image -->
+                                        <template x-if="useAIImage && aiImageUrl">
+                                            <img :src="aiImageUrl" class="max-w-full max-h-full object-cover rounded animate-fade-in" crossOrigin="anonymous">
                                         </template>
-                                        <template x-if="!selectedProduct || !selectedProduct.image">
+                                        <!-- Case 2: Loading State for AI Image -->
+                                        <template x-if="useAIImage && aiImageLoading">
+                                            <div class="flex flex-col items-center justify-center space-y-1.5">
+                                                <div class="w-5 h-5 border-2 border-gold-500 border-t-transparent rounded-full animate-spin"></div>
+                                                <span class="text-[8px] text-gray-400 animate-pulse uppercase font-black">IA en cours...</span>
+                                            </div>
+                                        </template>
+                                        <!-- Case 3: Standard Product Photo -->
+                                        <template x-if="!useAIImage && selectedProduct && (selectedProduct.image || (selectedProduct.images && selectedProduct.images.length > 0))">
+                                            <img :src="'/storage/' + (selectedProduct.image || selectedProduct.images[0].path)" class="max-w-full max-h-full object-contain mix-blend-normal">
+                                        </template>
+                                        <!-- Case 4: No image or no product -->
+                                        <template x-if="(!useAIImage && !selectedProduct) || (!useAIImage && !selectedProduct.image && (!selectedProduct.images || selectedProduct.images.length === 0))">
                                             <span class="text-xl">📦</span>
                                         </template>
                                     </div>
@@ -291,12 +405,12 @@
                                 @csrf
                                 <div class="space-y-1">
                                     <label class="text-[10px] font-black text-navy-900 uppercase tracking-wider block">Titre Interne *</label>
-                                    <input type="text" name="title" required class="w-full text-xs border border-gray-200 rounded-lg p-2.5 focus:ring-1 focus:ring-gold-500 outline-none" placeholder="ex: Relance Routeur Cisco">
+                                    <input type="text" name="title" x-model="scheduleTitle" required class="w-full text-xs border border-gray-200 rounded-lg p-2.5 focus:ring-1 focus:ring-gold-500 outline-none" placeholder="ex: Relance Routeur Cisco">
                                 </div>
 
                                 <div class="space-y-1">
                                     <label class="text-[10px] font-black text-navy-900 uppercase tracking-wider block">Texte de publication *</label>
-                                    <textarea name="content" required rows="4" class="w-full text-xs border border-gray-200 rounded-lg p-2.5 focus:ring-1 focus:ring-gold-500 outline-none" placeholder="Contenu de la publication (intégrez votre lien d'affiliation...)"></textarea>
+                                    <textarea name="content" x-model="scheduleContent" required rows="4" class="w-full text-xs border border-gray-200 rounded-lg p-2.5 focus:ring-1 focus:ring-gold-500 outline-none" placeholder="Contenu de la publication (intégrez votre lien d'affiliation...)"></textarea>
                                 </div>
 
                                 <div class="space-y-1">
@@ -328,7 +442,7 @@
 
                                 <div class="space-y-1">
                                     <label class="text-[10px] font-black text-navy-900 uppercase tracking-wider block">Produit Associé (Optionnel)</label>
-                                    <select name="product_id" class="w-full text-xs border border-gray-200 rounded-lg p-2.5 bg-white focus:ring-1 focus:ring-gold-500 outline-none">
+                                    <select name="product_id" x-model="scheduleProductId" class="w-full text-xs border border-gray-200 rounded-lg p-2.5 bg-white focus:ring-1 focus:ring-gold-500 outline-none">
                                         <option value="">-- Aucun --</option>
                                         @foreach($products as $p)
                                             <option value="{{ $p->id }}">{{ $p->name }}</option>
@@ -427,6 +541,7 @@
                 <div x-show="mainTab === 'video'" class="bg-white rounded-xl border border-gray-150 p-6 lg:p-8 shadow-sm space-y-6" x-data="{
                     products: {{ json_encode($products) }},
                     selectedProductId: '',
+                    selectedProduct: null,
                     tone: 'energetic',
                     duration: '30',
                     instructions: '',
@@ -434,6 +549,11 @@
                     scenes: [],
                     speechSynth: window.speechSynthesis,
                     speechUtterance: null,
+                    isPlayingPreview: false,
+                    currentPreviewScene: 0,
+                    updateProduct() {
+                        this.selectedProduct = this.products.find(p => p.id == this.selectedProductId) || null;
+                    },
                     async generateScript() {
                         if (!this.selectedProductId) {
                             alert('Veuillez choisir un produit.');
@@ -441,6 +561,7 @@
                         }
                         this.loading = true;
                         this.scenes = [];
+                        this.stopPreview();
                         try {
                             const response = await fetch('{{ route("dashboard.partner.marketing.video") }}', {
                                 method: 'POST',
@@ -479,6 +600,50 @@
                     },
                     stopSpeak() {
                         this.speechSynth.cancel();
+                    },
+                    startPreview() {
+                        if (this.scenes.length === 0) return;
+                        this.isPlayingPreview = true;
+                        this.currentPreviewScene = 0;
+                        this.playScene(0);
+                    },
+                    playScene(index) {
+                        if (index < 0 || index >= this.scenes.length) {
+                            this.stopPreview();
+                            return;
+                        }
+                        this.currentPreviewScene = index;
+                        if (this.speechSynth.speaking) {
+                            this.speechSynth.cancel();
+                        }
+                        const scene = this.scenes[index];
+                        this.speechUtterance = new SpeechSynthesisUtterance(scene.voiceover);
+                        this.speechUtterance.lang = 'fr-FR';
+                        this.speechUtterance.onend = () => {
+                            if (this.isPlayingPreview && this.currentPreviewScene === index) {
+                                this.playScene(index + 1);
+                            }
+                        };
+                        this.speechSynth.speak(this.speechUtterance);
+                    },
+                    stopPreview() {
+                        this.isPlayingPreview = false;
+                        this.speechSynth.cancel();
+                        this.currentPreviewScene = 0;
+                    },
+                    copyScriptToClipboard() {
+                        if (this.scenes.length === 0) return;
+                        let text = 'STORYBOARD DE CAMPAGNE VIDÉO\n\n';
+                        this.scenes.forEach(s => {
+                            text += 'SCÈNE ' + s.num + '\n';
+                            text += '• Visuel : ' + s.visual + '\n';
+                            text += '• Voix Off : ' + s.voiceover + '\n\n';
+                        });
+                        navigator.clipboard.writeText(text).then(() => {
+                            alert('Storyboard copié dans le presse-papiers ! Collez-le dans CapCut pour monter votre vidéo.');
+                        }).catch(err => {
+                            console.error('Erreur lors de la copie', err);
+                        });
                     }
                 }" x-cloak>
                     <div class="border-b border-gray-100 pb-4">
@@ -491,7 +656,7 @@
                         <div class="lg:col-span-5 space-y-4 bg-gray-50/50 border border-gray-150 p-5 rounded-xl self-start">
                             <div class="space-y-1">
                                 <label class="text-[10px] font-black text-navy-900 uppercase tracking-wider block">Produit à mettre en scène *</label>
-                                <select x-model="selectedProductId" class="w-full text-xs border border-gray-200 rounded-lg p-2.5 bg-white focus:ring-1 focus:ring-gold-500 outline-none">
+                                <select x-model="selectedProductId" @change="updateProduct()" class="w-full text-xs border border-gray-200 rounded-lg p-2.5 bg-white focus:ring-1 focus:ring-gold-500 outline-none">
                                     <option value="">-- Sélectionnez un produit --</option>
                                     <template x-for="p in products" :key="p.id">
                                         <option :value="p.id" x-text="p.name"></option>
@@ -531,12 +696,82 @@
 
                         <!-- Storyboard Output -->
                         <div class="lg:col-span-7 space-y-4">
-                            <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <div class="flex flex-wrap gap-2 items-center justify-between border-b border-gray-100 pb-2">
                                 <h3 class="text-xs font-black text-navy-900 uppercase tracking-wider">Aperçu du Storyboard</h3>
-                                <button @click="stopSpeak()" class="text-[9px] font-black text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1 rounded transition-colors uppercase">
-                                    ⏹️ Arrêter l'audio
-                                </button>
+                                <div class="flex gap-2">
+                                    <template x-if="scenes.length > 0">
+                                        <div class="flex gap-2">
+                                            <button @click="startPreview()" class="text-[9px] font-black text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded transition-colors uppercase flex items-center gap-1 shadow-sm">
+                                                ▶️ Simuler Vidéo
+                                            </button>
+                                            <button @click="copyScriptToClipboard()" class="text-[9px] font-black text-navy-900 bg-gold-100 hover:bg-gold-200 px-3 py-1 rounded transition-colors uppercase flex items-center gap-1">
+                                                📋 Copier pour CapCut
+                                            </button>
+                                        </div>
+                                    </template>
+                                    <button @click="stopSpeak()" class="text-[9px] font-black text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1 rounded transition-colors uppercase">
+                                        ⏹️ Arrêter l'audio
+                                    </button>
+                                </div>
                             </div>
+
+                            <!-- Simulated Video Player -->
+                            <div x-show="isPlayingPreview" class="bg-slate-950 rounded-xl overflow-hidden shadow-2xl relative border-2 border-gold-500/20 max-w-[320px] mx-auto flex flex-col justify-between p-4 h-[420px] transition-all duration-300" x-transition>
+                                <!-- Player Header -->
+                                <div class="flex justify-between items-center z-10 text-white">
+                                    <span class="text-[8px] font-black tracking-widest text-gold-400">LECTEUR SIMULATEUR IA (OMNI)</span>
+                                    <button @click="stopPreview()" class="text-[10px] text-gray-400 hover:text-white font-black bg-white/10 hover:bg-white/20 px-2 py-0.5 rounded transition-colors">✕ Fermer</button>
+                                </div>
+
+                                <!-- Dynamic Visual Area -->
+                                <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none overflow-hidden">
+                                    <!-- Zoom/Pan Visual Background -->
+                                    <div class="absolute inset-0 bg-gradient-to-b from-slate-900 via-navy-950 to-slate-900 opacity-60"></div>
+                                    
+                                    <!-- Product image with transition -->
+                                    <div class="w-32 h-32 rounded-xl bg-white/10 flex items-center justify-center p-3 relative overflow-hidden shadow-inner backdrop-blur-sm border border-white/10 z-10 transition-transform duration-1000 transform scale-110">
+                                        <template x-if="selectedProduct && (selectedProduct.image || (selectedProduct.images && selectedProduct.images.length > 0))">
+                                            <img :src="'/storage/' + (selectedProduct.image || selectedProduct.images[0].path)" class="max-w-full max-h-full object-contain">
+                                        </template>
+                                        <template x-if="!selectedProduct || (!selectedProduct.image && (!selectedProduct.images || selectedProduct.images.length === 0))">
+                                            <span class="text-4xl">📦</span>
+                                        </template>
+                                    </div>
+                                    
+                                    <!-- Visual instructions overview -->
+                                    <p class="text-[9px] text-gold-400 font-black uppercase tracking-widest mt-4 z-10 max-w-[200px]" x-text="'Scène ' + (currentPreviewScene + 1)"></p>
+                                    <p class="text-[10px] text-white italic leading-relaxed mt-1 z-10 max-w-[240px] font-medium" x-text="scenes[currentPreviewScene] ? scenes[currentPreviewScene].visual : ''"></p>
+                                </div>
+
+                                <!-- Captions / Voiceover subtitles overlay -->
+                                <div class="z-10 bg-black/75 backdrop-blur-md border border-white/10 p-3 rounded-lg text-center space-y-2 mt-auto">
+                                    <p class="text-xs text-white leading-relaxed font-black" x-text="scenes[currentPreviewScene] ? scenes[currentPreviewScene].voiceover : ''"></p>
+                                    
+                                    <!-- Playback Controls inside player -->
+                                    <div class="flex justify-center items-center gap-3 pt-1">
+                                        <button @click="playScene(Math.max(0, currentPreviewScene - 1))" class="text-xs hover:text-gold-500 text-gray-300">⏮️</button>
+                                        <button @click="stopPreview()" class="text-xs hover:text-red-500 text-gray-300">⏹️</button>
+                                        <button @click="playScene(Math.min(scenes.length - 1, currentPreviewScene + 1))" class="text-xs hover:text-gold-500 text-gray-300">⏭️</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CapCut Integration Helper -->
+                            <template x-if="scenes.length > 0">
+                                <div class="bg-gradient-to-r from-navy-900 to-slate-900 border border-gold-500/30 rounded-xl p-4 text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-md">
+                                    <div class="space-y-1">
+                                        <h4 class="text-xs font-black text-gold-400 uppercase tracking-wider flex items-center gap-1.5">
+                                            🎬 Monter votre vidéo avec CapCut
+                                        </h4>
+                                        <p class="text-[10px] text-gray-300 leading-relaxed max-w-md">
+                                            Copiez ce script et utilisez l'éditeur en ligne de <strong>CapCut</strong> pour assembler vos scènes, générer des sous-titres automatiques et appliquer une voix off professionnelle.
+                                        </p>
+                                    </div>
+                                    <a href="https://www.capcut.com/editor" target="_blank" class="bg-gold-500 hover:bg-white text-navy-950 text-[9px] font-black uppercase tracking-wider px-3.5 py-2.5 rounded-lg transition-colors flex items-center gap-1.5 self-stretch md:self-auto justify-center">
+                                        Créer sur CapCut ↗
+                                    </a>
+                                </div>
+                            </template>
 
                             <!-- Welcome state / Loader -->
                             <template x-if="loading">
@@ -691,7 +926,7 @@
 </div>
 
 <!-- html2canvas to convert div to png inside user browser -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfYLjYEXyyp8AM5tcJHUROms53S35UEMgiTXv7YRT5bGHC9WpfM1hCji5V85gWA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" referrerpolicy="no-referrer"></script>
 <script>
     function downloadPoster() {
         const preview = document.getElementById('poster-preview');

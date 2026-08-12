@@ -226,7 +226,7 @@ class PartnerCRMController extends Controller
         $prompt = "Consigne demandée par le partenaire commercial :\n" . $request->message;
 
         try {
-            $response = Http::timeout(25)->post($url, [
+            $response = Http::timeout(60)->post($url, [
                 'contents' => [
                     [
                         'parts' => [

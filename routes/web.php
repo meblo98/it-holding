@@ -92,6 +92,8 @@ Route::middleware(['auth', 'redirect.admin'])->group(function () {
     Route::post('/dashboard/partner/marketing/posts/{post}/publish', [\App\Http\Controllers\PartnerMarketingController::class, 'publishPost'])->name('dashboard.partner.marketing.posts.publish');
     Route::delete('/dashboard/partner/marketing/posts/{post}', [\App\Http\Controllers\PartnerMarketingController::class, 'destroyPost'])->name('dashboard.partner.marketing.posts.destroy');
     Route::post('/dashboard/partner/marketing/video-script', [\App\Http\Controllers\PartnerMarketingController::class, 'generateVideoScript'])->name('dashboard.partner.marketing.video');
+    Route::post('/dashboard/partner/marketing/poster-ai', [\App\Http\Controllers\PartnerMarketingController::class, 'generatePosterAI'])->name('dashboard.partner.marketing.poster.ai');
+    Route::get('/dashboard/partner/marketing/proxy-image', [\App\Http\Controllers\PartnerMarketingController::class, 'proxyImage'])->name('dashboard.partner.marketing.proxy.image');
     
     // Client Savings Routes
     Route::get('/dashboard/savings', [\App\Http\Controllers\DashboardController::class, 'savings'])->name('dashboard.savings');
