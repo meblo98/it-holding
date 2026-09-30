@@ -36,23 +36,7 @@
                 @endif
 
                 <!-- Sub navigation tabs -->
-                <div class="flex overflow-x-auto border-b border-gray-200 bg-white rounded-xl p-2 shadow-sm gap-2 scrollbar-none whitespace-nowrap">
-                    <a href="{{ route('dashboard.partner') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
-                        <span>📊</span> Tableau de bord
-                    </a>
-                    <a href="{{ route('dashboard.partner.crm') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
-                        <span>👥</span> CRM & Prospects
-                    </a>
-                    <a href="{{ route('dashboard.partner.opportunities') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors bg-navy-900 text-white flex items-center gap-2">
-                        <span>🎯</span> Opportunités
-                    </a>
-                    <a href="{{ route('dashboard.partner.assistant') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
-                        <span>🤖</span> Assistant IA
-                    </a>
-                    <a href="{{ route('dashboard.partner.marketing') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
-                        <span>📢</span> Studio Marketing
-                    </a>
-                </div>
+                @include('pages.shop.partner._tabs', ['active' => 'opportunities'])
 
                 <!-- Intro -->
                 <div class="bg-navy-900 text-white rounded-2xl p-8 relative overflow-hidden shadow-lg border-b-4 border-gold-500">

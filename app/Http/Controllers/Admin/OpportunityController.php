@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PartnerProspect;
+use App\Services\CommissionPayout;
 use App\Services\TaxEngine;
 use Illuminate\Http\Request;
 
@@ -88,6 +89,11 @@ class OpportunityController extends Controller
             'commission_value' => 'nullable|numeric|min:0',
         ]);
 
+        // Une commission déjà versée au portefeuille ne se modifie plus.
+        if ($opportunity->credited_at) {
+            return back()->with('error', 'Commission déjà versée au portefeuille de l\'apporteur le ' . $opportunity->credited_at->format('d/m/Y') . ' : cette opportunité ne peut plus être modifiée.');
+        }
+
         $opportunity->fill($validated);
 
         // Doc §21-22, §64 : la commission apporteur ne se finalise pas tant que
@@ -101,17 +107,15 @@ class OpportunityController extends Controller
             $opportunity->withholding_amount = 0;
             $opportunity->net_amount = null;
         } else {
+            // Aperçu brut / retenue / net, recalculé à chaque enregistrement
+            // tant que la commission n'est pas versée (moteur fiscal, doc §34-37).
             $opportunity->commission_amount = $opportunity->computeCommission();
 
-            // Moteur fiscal (doc §34-37) : la retenue apporteur est calculée dès que
-            // la commission brute est connue, avec la même règle configurable que
-            // les commissions de vente — jamais un taux figé dans le contrôleur.
             if ($opportunity->commission_amount !== null) {
-                $beneficiaryType = $partner?->professionalProfile?->beneficiary_type ?? 'individual';
                 $tax = app(TaxEngine::class)->calculate(
                     (float) $opportunity->commission_amount,
                     'commission_apporteur',
-                    $beneficiaryType
+                    $partner?->professionalProfile?->beneficiary_type ?? 'individual'
                 );
                 $opportunity->tax_rule_id = $tax['rule']?->id;
                 $opportunity->withholding_amount = $tax['withholding_amount'];
@@ -127,7 +131,9 @@ class OpportunityController extends Controller
 
         $message = 'Opportunité mise à jour.';
         if ($contractBlocked) {
-            $message .= " Commission non calculée : {$partner->name} n'a pas encore accepté son contrat.";
+            $message .= " Commission non calculée : {$partner->name} n'a pas encore accepté son contrat (elle sera versée automatiquement dès son acceptation).";
+        } elseif ($opportunity->status === 'won' && app(CommissionPayout::class)->payOpportunity($opportunity) === 'paid') {
+            $message .= ' Commission de ' . number_format($opportunity->net_amount, 0, ',', ' ') . ' FCFA nets versée au portefeuille de l\'apporteur.';
         }
 
         return back()->with('success', $message);

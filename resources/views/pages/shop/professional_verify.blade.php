@@ -47,6 +47,14 @@
                         <span class="text-sm font-bold text-navy-900">{{ $user->name }}</span>
                     </div>
 
+                    @if($profile->isStructure())
+                    <div>
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Structure</span>
+                        <span class="text-sm font-bold text-navy-900">{{ $profile->company_name }}</span>
+                        @if($profile->ninea)<span class="block text-xs text-gray-500">NINEA {{ $profile->ninea }}</span>@endif
+                    </div>
+                    @endif
+
                     @if($user->partner_type)
                     <div>
                         <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Catégorie</span>

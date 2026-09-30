@@ -95,9 +95,9 @@
                 </div>
 
                 <!-- Partner type field -->
-                <div>
+                <div x-data="{ type: @js(old('partner_type', '')), kind: @js(old('provider_kind', 'individual')) }">
                     <label for="partner_type" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Votre profil dans le réseau IT Holding</label>
-                    <select name="partner_type" id="partner_type" required
+                    <select name="partner_type" id="partner_type" required x-model="type"
                         class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-xs focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('partner_type') border-red-500 @enderror">
                         <option value="" disabled {{ old('partner_type') ? '' : 'selected' }}>Choisissez votre catégorie</option>
                         @foreach($partnerTypes as $key => $label)
@@ -108,6 +108,33 @@
                     @error('partner_type')
                         <p class="mt-1 text-[9px] text-red-500 font-bold uppercase italic">{{ $message }}</p>
                     @enderror
+
+                    <!-- Prestataire : personne ou structure (doc §7) -->
+                    <div x-show="type === 'prestataire'" x-cloak class="mt-4 space-y-3 border border-gray-100 rounded-lg p-4 bg-gray-50/50">
+                        <div class="flex gap-4 text-xs text-gray-600">
+                            <label class="flex items-center gap-2"><input type="radio" name="provider_kind" value="individual" x-model="kind" class="text-gold-500"> Personne physique</label>
+                            <label class="flex items-center gap-2"><input type="radio" name="provider_kind" value="structure" x-model="kind" class="text-gold-500"> Structure / entreprise</label>
+                        </div>
+                        <div x-show="kind === 'structure'" class="space-y-3">
+                            <div>
+                                <label for="company_name" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Raison sociale</label>
+                                <input type="text" name="company_name" id="company_name" value="{{ old('company_name') }}" :required="type === 'prestataire' && kind === 'structure'"
+                                    class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-xs" placeholder="Ex: Diallo Câblage SARL">
+                                @error('company_name')<p class="mt-1 text-[9px] text-red-500 font-bold uppercase italic">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label for="ninea" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">NINEA</label>
+                                    <input type="text" name="ninea" id="ninea" value="{{ old('ninea') }}" class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-xs">
+                                </div>
+                                <div>
+                                    <label for="rccm" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">RCCM</label>
+                                    <input type="text" name="rccm" id="rccm" value="{{ old('rccm') }}" class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-xs">
+                                </div>
+                            </div>
+                            <p class="text-[9px] text-gray-400">Ces informations seront vérifiées par IT Holding avant validation de votre compte.</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Password field -->

@@ -146,6 +146,10 @@
             font-family: 'Inter', sans-serif;
         }
 
+        [x-cloak] {
+            display: none !important;
+        }
+
         /* Cross-browser fixes for text gradients and color rendering (improves Firefox) */
         :root {
             color-scheme: light dark;

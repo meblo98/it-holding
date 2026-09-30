@@ -172,8 +172,9 @@ class DashboardController extends Controller
         $totalPending = $user->totalCommissionsPending();
 
         $client = \App\Models\Client::where('user_id', $user->id)->first();
+        $proAvailable = app(\App\Services\ProWallet::class)->available($user);
 
-        return view('pages.shop.partner', compact('user', 'promoCodes', 'commissions', 'totalEarned', 'totalPending', 'client'));
+        return view('pages.shop.partner', compact('user', 'promoCodes', 'commissions', 'totalEarned', 'totalPending', 'client', 'proAvailable'));
     }
 
     public function applyAsPartner(Request $request)

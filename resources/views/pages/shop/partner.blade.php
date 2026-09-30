@@ -139,26 +139,7 @@
                 @else
                     <!-- Approved Partner Dashboard (Original Active Screen) -->
                     <!-- Sub navigation tabs -->
-                    <div class="flex overflow-x-auto border-b border-gray-200 bg-white rounded-xl p-2 shadow-sm gap-2 mb-6 scrollbar-none whitespace-nowrap">
-                        <a href="{{ route('dashboard.partner') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors bg-navy-900 text-white flex items-center gap-2">
-                            <span>📊</span> Tableau de bord
-                        </a>
-                        <a href="{{ route('dashboard.partner.crm') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
-                            <span>👥</span> CRM & Prospects
-                        </a>
-                        <a href="{{ route('dashboard.partner.opportunities') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
-                            <span>🎯</span> Opportunités
-                        </a>
-                        <a href="{{ route('dashboard.partner.assistant') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
-                            <span>🤖</span> Assistant IA
-                        </a>
-                        <a href="{{ route('dashboard.partner.marketing') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
-                            <span>📢</span> Studio Marketing
-                        </a>
-                        <a href="{{ route('dashboard.partner.contract') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
-                            <span>📄</span> Contrat
-                        </a>
-                    </div>
+                    @include('pages.shop.partner._tabs', ['active' => 'dashboard', 'extraClass' => 'mb-6'])
 
                     @if($user->pendingContract())
                     <div class="bg-red-50 border border-red-200 rounded-xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -237,15 +218,18 @@
                                 <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest italic">Commissions En attente</span>
                             </div>
                         </div>
-                        <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
+                        <a href="{{ route('dashboard.partner.wallet') }}" class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
                             <div class="w-12 h-12 bg-gold-50 rounded flex items-center justify-center text-gold-600 shadow-inner">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V5a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             </div>
                             <div>
-                                <span class="text-xl font-black text-navy-900 block tracking-tighter">{{ number_format($client ? $client->wallet_balance : 0, 0, ',', ' ') }} FCFA</span>
-                                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest italic">Solde de votre Portefeuille</span>
+                                <span class="text-xl font-black text-navy-900 block tracking-tighter">{{ number_format($proAvailable, 0, ',', ' ') }} FCFA</span>
+                                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest italic">Portefeuille pro — disponible</span>
+                                @if($client && $client->wallet_balance > 0)
+                                    <span class="block text-[9px] text-gray-400">+ {{ number_format($client->wallet_balance, 0, ',', ' ') }} FCFA de crédit boutique</span>
+                                @endif
                             </div>
-                        </div>
+                        </a>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -309,7 +293,7 @@
                                             @forelse($commissions as $comm)
                                             <tr class="hover:bg-gray-50/30 transition-colors text-[11px] font-bold text-navy-700">
                                                 <td class="px-6 py-4 text-navy-900">#{{ str_pad($comm->order_id, 8, '0', STR_PAD_LEFT) }}</td>
-                                                <td class="px-6 py-4"><span class="bg-gray-100 px-2 py-0.5 rounded font-mono">{{ $comm->promoCode->code }}</span></td>
+                                                <td class="px-6 py-4"><span class="bg-gray-100 px-2 py-0.5 rounded font-mono">{{ $comm->promoCode?->code ?? 'Lien direct' }}</span></td>
                                                 <td class="px-6 py-4">{{ number_format($comm->order_amount, 0, ',', ' ') }} CFA</td>
                                                 <td class="px-6 py-4 text-gold-600 font-black">{{ number_format($comm->commission_amount, 0, ',', ' ') }} CFA</td>
                                                 <td class="px-6 py-4">
@@ -317,6 +301,8 @@
                                                     <span class="text-[9px] font-black bg-green-100 text-green-700 px-2 py-1 rounded uppercase tracking-widest italic">Validé</span>
                                                     @elseif($comm->status === 'cancelled')
                                                     <span class="text-[9px] font-black bg-red-100 text-red-700 px-2 py-1 rounded uppercase tracking-widest italic">Annulé</span>
+                                                    @elseif($comm->status === 'blocked_no_contract')
+                                                    <a href="{{ route('dashboard.partner.contract') }}" class="text-[9px] font-black bg-red-100 text-red-700 px-2 py-1 rounded uppercase tracking-widest italic">Bloqué — contrat à accepter</a>
                                                     @else
                                                     <span class="text-[9px] font-black bg-orange-100 text-orange-700 px-2 py-1 rounded uppercase tracking-widest italic">En attente</span>
                                                     @endif

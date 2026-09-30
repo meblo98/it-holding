@@ -109,6 +109,7 @@ class UserController extends Controller
             'clients'        => 'Clients CRM',
             'opportunities'  => 'Opportunités & Apporteurs',
             'network_contracts' => 'Contrats Réseau Pro',
+            'missions'       => 'Missions & Projets',
             'warranties'     => 'Garanties',
             'tickets'        => 'SAV & Tickets',
             'chat'           => 'Chat Support',

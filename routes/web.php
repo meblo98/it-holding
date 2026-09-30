@@ -13,7 +13,10 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('/about', [PageController::class, 'about'])->name('about');
-Route::get('/partner/{identifier}', [\App\Http\Controllers\PartnerReferralController::class, 'track'])->name('partner.referral');
+// « register » est exclu : sinon cette route intercepte le formulaire /partner/register déclaré plus bas.
+Route::get('/partner/{identifier}', [\App\Http\Controllers\PartnerReferralController::class, 'track'])
+    ->where('identifier', '(?!register$)[A-Za-z0-9_-]+')
+    ->name('partner.referral');
 
 Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
 Route::get('/services/{slug}', [ServiceController::class, 'show'])->name('services.show');
@@ -96,6 +99,25 @@ Route::middleware(['auth', 'redirect.admin'])->group(function () {
     // Partner Contract Routes
     Route::get('/dashboard/partner/contract', [\App\Http\Controllers\PartnerContractController::class, 'show'])->name('dashboard.partner.contract');
     Route::post('/dashboard/partner/contract/{contract}/accept', [\App\Http\Controllers\PartnerContractController::class, 'accept'])->name('dashboard.partner.contract.accept');
+
+    // Partner Professional Wallet (doc §37-38)
+    Route::get('/dashboard/partner/wallet', [\App\Http\Controllers\PartnerWalletController::class, 'index'])->name('dashboard.partner.wallet');
+    Route::post('/dashboard/partner/wallet/withdraw', [\App\Http\Controllers\PartnerWalletController::class, 'withdraw'])->middleware('throttle:5,1')->name('dashboard.partner.wallet.withdraw');
+    Route::post('/dashboard/partner/wallet/shop-credit', [\App\Http\Controllers\PartnerWalletController::class, 'transferToShopCredit'])->middleware('throttle:5,1')->name('dashboard.partner.wallet.shop-credit');
+    Route::get('/dashboard/partner/wallet/certificate/{type}/{id}', [\App\Http\Controllers\PartnerWalletController::class, 'certificate'])->name('dashboard.partner.wallet.certificate');
+
+    // Partner Professional Profile
+    Route::get('/dashboard/partner/profile', [\App\Http\Controllers\PartnerProfileController::class, 'edit'])->name('dashboard.partner.profile');
+    Route::put('/dashboard/partner/profile', [\App\Http\Controllers\PartnerProfileController::class, 'update'])->name('dashboard.partner.profile.update');
+
+    // Partner Missions Routes (freelances & prestataires)
+    Route::get('/dashboard/partner/missions', [\App\Http\Controllers\PartnerMissionController::class, 'index'])->name('dashboard.partner.missions');
+    Route::get('/dashboard/partner/missions/{mission}', [\App\Http\Controllers\PartnerMissionController::class, 'show'])->name('dashboard.partner.missions.show');
+    Route::post('/dashboard/partner/missions/{mission}/apply', [\App\Http\Controllers\PartnerMissionController::class, 'apply'])->name('dashboard.partner.missions.apply');
+    Route::get('/dashboard/partner/missions/{mission}/workspace', [\App\Http\Controllers\MissionWorkspaceController::class, 'show'])->name('dashboard.partner.missions.workspace');
+    Route::post('/dashboard/partner/missions/{mission}/workspace/messages', [\App\Http\Controllers\MissionWorkspaceController::class, 'storeMessage'])->name('dashboard.partner.missions.workspace.messages.store');
+    Route::put('/dashboard/partner/mission-tasks/{task}', [\App\Http\Controllers\MissionWorkspaceController::class, 'updateTask'])->name('dashboard.partner.missions.workspace.tasks.update');
+    Route::get('/dashboard/partner/mission-messages/{message}/download', [\App\Http\Controllers\MissionWorkspaceController::class, 'downloadAttachment'])->name('dashboard.partner.missions.workspace.messages.download');
 
     // Partner AI Assistant Routes
     Route::get('/dashboard/partner/assistant', [\App\Http\Controllers\PartnerCRMController::class, 'assistantIndex'])->name('dashboard.partner.assistant');
@@ -220,6 +242,24 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::delete('network-contracts/{contract}', [\App\Http\Controllers\Admin\ContractController::class, 'destroy'])->name('network-contracts.destroy');
     });
 
+    // Missions freelance / prestataires, candidatures et espaces projet (doc §14-20)
+    Route::middleware('permission:missions')->group(function () {
+        Route::get('missions', [\App\Http\Controllers\Admin\MissionController::class, 'index'])->name('missions.index');
+        Route::get('missions/create', [\App\Http\Controllers\Admin\MissionController::class, 'create'])->name('missions.create');
+        Route::post('missions', [\App\Http\Controllers\Admin\MissionController::class, 'store'])->name('missions.store');
+        Route::get('missions/{mission}', [\App\Http\Controllers\Admin\MissionController::class, 'show'])->name('missions.show');
+        Route::get('missions/{mission}/edit', [\App\Http\Controllers\Admin\MissionController::class, 'edit'])->name('missions.edit');
+        Route::put('missions/{mission}', [\App\Http\Controllers\Admin\MissionController::class, 'update'])->name('missions.update');
+        Route::put('mission-applications/{application}', [\App\Http\Controllers\Admin\MissionController::class, 'updateApplication'])->name('missions.applications.update');
+        Route::get('mission-applications/{application}/document', [\App\Http\Controllers\Admin\MissionController::class, 'downloadApplicationDocument'])->name('missions.applications.document');
+
+        Route::get('missions/{mission}/workspace', [\App\Http\Controllers\MissionWorkspaceController::class, 'show'])->name('missions.workspace');
+        Route::post('missions/{mission}/workspace/messages', [\App\Http\Controllers\MissionWorkspaceController::class, 'storeMessage'])->name('missions.workspace.messages.store');
+        Route::post('missions/{mission}/workspace/tasks', [\App\Http\Controllers\MissionWorkspaceController::class, 'storeTask'])->name('missions.workspace.tasks.store');
+        Route::put('mission-tasks/{task}', [\App\Http\Controllers\MissionWorkspaceController::class, 'updateTask'])->name('missions.workspace.tasks.update');
+        Route::get('mission-messages/{message}/download', [\App\Http\Controllers\MissionWorkspaceController::class, 'downloadAttachment'])->name('missions.workspace.messages.download');
+    });
+
     // Opportunités & Apporteurs d'affaires
     Route::middleware('permission:opportunities')->group(function () {
         Route::get('opportunities', [\App\Http\Controllers\Admin\OpportunityController::class, 'index'])->name('opportunities.index');
@@ -264,6 +304,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Finance & Bank
     Route::middleware('permission:finance')->group(function () {
+        // Retraits des portefeuilles professionnels (doc §37-38)
+        Route::get('withdrawals', [\App\Http\Controllers\Admin\WithdrawalController::class, 'index'])->name('withdrawals.index');
+        Route::get('withdrawals/export', [\App\Http\Controllers\Admin\WithdrawalController::class, 'export'])->name('withdrawals.export');
+        Route::post('withdrawals/{withdrawal}/approve', [\App\Http\Controllers\Admin\WithdrawalController::class, 'approve'])->name('withdrawals.approve');
+        Route::post('withdrawals/{withdrawal}/paid', [\App\Http\Controllers\Admin\WithdrawalController::class, 'markPaid'])->name('withdrawals.paid');
+        Route::post('withdrawals/{withdrawal}/reject', [\App\Http\Controllers\Admin\WithdrawalController::class, 'reject'])->name('withdrawals.reject');
+
         Route::get('finance', [\App\Http\Controllers\Admin\FinanceController::class, 'index'])->name('finance.index');
         Route::post('finance/bank-accounts', [\App\Http\Controllers\Admin\FinanceController::class, 'storeAccount'])->name('finance.bank-accounts.store');
         Route::post('finance/transactions', [\App\Http\Controllers\Admin\FinanceController::class, 'storeTransaction'])->name('finance.transactions.store');

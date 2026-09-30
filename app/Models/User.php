@@ -165,6 +165,11 @@ class User extends Authenticatable
         return $this->hasMany(UserBadge::class);
     }
 
+    public function missionApplications()
+    {
+        return $this->hasMany(MissionApplication::class);
+    }
+
     public function validBadges()
     {
         return $this->userBadges()->valid()->with('badge');
@@ -203,10 +208,26 @@ class User extends Authenticatable
      */
     public function getOrCreateProfessionalProfile(): ProfessionalProfile
     {
-        return $this->professionalProfile ?: $this->professionalProfile()->create([
-            'pro_id' => ProfessionalProfile::generateProId(),
-            'verification_level' => 1, // téléphone + email déjà vérifiés à l'inscription
-        ]);
+        $profile = $this->ensureProfessionalProfile();
+
+        if (!$profile->pro_id) {
+            $profile->update(['pro_id' => ProfessionalProfile::generateProId()]);
+        }
+
+        return $profile;
+    }
+
+    /**
+     * Profil pro sans ID public : l'ID ITH-PRO-… n'est attribué qu'à
+     * l'approbation (getOrCreateProfessionalProfile), pour qu'aucun profil
+     * non approuvé ne soit vérifiable publiquement.
+     */
+    public function ensureProfessionalProfile(): ProfessionalProfile
+    {
+        return $this->professionalProfile ?: $this->setRelation(
+            'professionalProfile',
+            $this->professionalProfile()->create(['verification_level' => 1]) // téléphone + email vérifiés à l'inscription
+        )->professionalProfile;
     }
 
     public function totalCommissionsEarned()

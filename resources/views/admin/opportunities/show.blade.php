@@ -18,6 +18,9 @@
 @if(session('success'))
 <div class="mb-4 bg-green-50 border-l-4 border-green-400 p-3 rounded text-sm text-green-800 font-medium">{{ session('success') }}</div>
 @endif
+@if(session('error'))
+<div class="mb-4 bg-red-50 border-l-4 border-red-400 p-3 rounded text-sm text-red-800 font-medium">{{ session('error') }}</div>
+@endif
 @if($errors->any())
 <div class="mb-4 bg-red-50 border-l-4 border-red-400 p-4 rounded">
     <ul class="list-disc list-inside text-sm text-red-700">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
@@ -141,12 +144,20 @@
 
                 @if($opportunity->commission_amount)
                 <div class="bg-gold-50 border border-gold-200 rounded-md p-3 text-sm">
-                    <span class="text-xs text-gold-700 font-bold uppercase block">Commission calculée</span>
+                    <span class="text-xs text-gold-700 font-bold uppercase block">{{ $opportunity->credited_at ? 'Commission versée le ' . $opportunity->credited_at->format('d/m/Y') : 'Commission calculée' }}</span>
                     <span class="text-lg font-black text-gold-800">{{ number_format($opportunity->commission_amount, 0, ',', ' ') }} FCFA</span>
+                    @if($opportunity->withholding_amount > 0)
+                        <span class="block text-xs text-gold-700">Retenue {{ number_format($opportunity->withholding_amount, 0, ',', ' ') }} FCFA — net {{ number_format($opportunity->net_amount, 0, ',', ' ') }} FCFA</span>
+                    @endif
                 </div>
                 @endif
 
-                <button type="submit" class="w-full bg-navy-600 text-white font-bold px-5 py-2.5 rounded-md hover:bg-navy-700 transition text-sm">Enregistrer</button>
+                @if($opportunity->credited_at)
+                    <p class="text-[11px] text-gray-500">Commission versée au portefeuille de l'apporteur : cette opportunité est verrouillée.</p>
+                @else
+                    <p class="text-[11px] text-gray-400">Passer au statut « Gagné » verse la commission nette au portefeuille de l'apporteur.</p>
+                    <button type="submit" class="w-full bg-navy-600 text-white font-bold px-5 py-2.5 rounded-md hover:bg-navy-700 transition text-sm">Enregistrer</button>
+                @endif
             </form>
         </div>
     </div>

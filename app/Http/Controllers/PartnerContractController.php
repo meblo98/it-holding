@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Contract;
 use App\Models\ContractAcceptance;
+use App\Services\CommissionPayout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -50,6 +51,14 @@ class PartnerContractController extends Controller
             ]
         );
 
-        return redirect()->route('dashboard.partner.contract')->with('success', 'Contrat accepté. Merci !');
+        // Les commissions bloquées faute de contrat sont versées dès maintenant.
+        $released = app(CommissionPayout::class)->releaseBlockedFor($user->fresh());
+
+        $message = 'Contrat accepté. Merci !';
+        if ($released > 0) {
+            $message .= " {$released} commission(s) en attente de votre contrat ont été versées sur votre portefeuille.";
+        }
+
+        return redirect()->route('dashboard.partner.contract')->with('success', $message);
     }
 }

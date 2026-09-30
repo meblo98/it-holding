@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\MissionApplication;
 use App\Models\PartnerCommission;
 use App\Models\PartnerProspect;
 use App\Models\TaxRule;
+use App\Services\WithholdingCertificate;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 
 class TaxRuleController extends Controller
@@ -100,7 +103,9 @@ class TaxRuleController extends Controller
                 'date' => $c->updated_at,
             ]);
 
+        // Seules les commissions réellement versées (pas les aperçus avant gain).
         $opportunities = PartnerProspect::opportunities()->with(['partner', 'taxRule'])
+            ->whereNotNull('credited_at')
             ->where('withholding_amount', '>', 0)
             ->when($request->filled('partner_id'), fn ($q) => $q->where('partner_id', $request->partner_id))
             ->orderByDesc('updated_at')
@@ -114,10 +119,28 @@ class TaxRuleController extends Controller
                 'withholding' => $o->withholding_amount,
                 'net' => $o->net_amount,
                 'tax_rule' => $o->taxRule,
-                'date' => $o->updated_at,
+                'date' => $o->credited_at,
             ]);
 
-        $items = $commissions->merge($opportunities)->sortByDesc('date')->values();
+        $missions = MissionApplication::with(['user', 'taxRule', 'mission'])
+            ->where('status', 'paid')
+            ->where('withholding_amount', '>', 0)
+            ->when($request->filled('partner_id'), fn ($q) => $q->where('user_id', $request->partner_id))
+            ->orderByDesc('paid_at')
+            ->get()
+            ->map(fn ($a) => (object) [
+                'type' => 'mission',
+                'id' => $a->id,
+                'ref' => $a->mission->reference . '-' . $a->id,
+                'partner' => $a->user,
+                'gross' => $a->agreed_amount,
+                'withholding' => $a->withholding_amount,
+                'net' => $a->net_amount,
+                'tax_rule' => $a->taxRule,
+                'date' => $a->paid_at,
+            ]);
+
+        $items = $commissions->merge($opportunities)->merge($missions)->sortByDesc('date')->values();
 
         return view('admin.tax-rules.withholdings', compact('items'));
     }
@@ -127,18 +150,14 @@ class TaxRuleController extends Controller
      */
     public function certificate(string $type, int $id)
     {
-        abort_unless(in_array($type, ['commission', 'opportunity']), 404);
+        abort_unless(in_array($type, WithholdingCertificate::TYPES, true), 404);
 
-        if ($type === 'commission') {
-            $entry = PartnerCommission::with(['partner.professionalProfile', 'taxRule'])->findOrFail($id);
-            $ref = 'COMM-' . str_pad($entry->id, 6, '0', STR_PAD_LEFT);
-        } else {
-            $entry = PartnerProspect::opportunities()->with(['partner.professionalProfile', 'taxRule'])->findOrFail($id);
-            $ref = $entry->opportunity_ref;
+        try {
+            $cert = app(WithholdingCertificate::class)->resolve($type, $id);
+        } catch (ModelNotFoundException) {
+            abort(404);
         }
 
-        abort_if((float) $entry->withholding_amount <= 0, 404);
-
-        return view('admin.tax-rules.certificate', compact('entry', 'ref', 'type'));
+        return view('admin.tax-rules.certificate', compact('cert'));
     }
 }

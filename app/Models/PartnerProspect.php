@@ -33,6 +33,7 @@ class PartnerProspect extends Model
         'tax_rule_id',
         'withholding_amount',
         'net_amount',
+        'credited_at',
     ];
 
     protected $casts = [
@@ -44,6 +45,7 @@ class PartnerProspect extends Model
         'net_amount' => 'decimal:2',
         'next_action_at' => 'datetime',
         'arbitration_history' => 'array',
+        'credited_at' => 'datetime',
     ];
 
     /**

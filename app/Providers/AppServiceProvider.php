@@ -27,6 +27,13 @@ class AppServiceProvider extends ServiceProvider
                 $count = \App\Models\PartnerProspect::opportunities()->where('duplicate_status', 'flagged')->count();
             }
             $view->with('flaggedOpportunitiesCount', $count);
+
+            // Sidebar badge : demandes de retrait des portefeuilles pro à traiter (doc §37-38)
+            $withdrawals = 0;
+            if (auth()->check() && auth()->user()->hasPermission('finance')) {
+                $withdrawals = \App\Models\WithdrawalRequest::whereIn('status', ['requested', 'approved'])->count();
+            }
+            $view->with('pendingWithdrawalsCount', $withdrawals);
         });
     }
 }

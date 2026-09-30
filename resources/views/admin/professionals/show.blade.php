@@ -6,7 +6,7 @@
     <div class="flex items-center gap-3">
         <a href="{{ route('admin.users.index') }}" class="text-gray-400 hover:text-gray-700"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg></a>
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">{{ $user->name }}</h1>
+            <h1 class="text-2xl font-bold text-gray-900">{{ $user->name }}@if($profile?->isStructure()) <span class="text-base font-semibold text-gray-500">— {{ $profile->company_name }}</span>@endif</h1>
             <p class="text-sm text-gray-500 mt-0.5">
                 {{ $user->partner_type_label ?? 'Catégorie non définie' }}
                 · {{ ['approved' => 'Actif', 'pending' => 'En attente', 'rejected' => 'Rejeté'][$user->partner_status] ?? $user->partner_status }}
@@ -37,6 +37,34 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     {{-- Badges --}}
     <div class="lg:col-span-2 space-y-6">
+        {{-- Portefeuille pro (doc §38) --}}
+        @php $fcfa = fn ($v) => number_format((float) $v, 0, ',', ' '); @endphp
+        <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h2 class="text-sm font-black text-gray-700 uppercase tracking-wide">Portefeuille pro</h2>
+                <span class="text-xs text-gray-400">montants en FCFA</span>
+            </div>
+            <div class="grid grid-cols-3 sm:grid-cols-6 divide-x divide-gray-100 text-center">
+                @foreach(['available' => 'Disponible', 'pending' => 'En attente', 'blocked' => 'Bloqué', 'earned' => 'Total gagné', 'paid_out' => 'Total versé', 'withheld' => 'Retenues'] as $key => $label)
+                    <div class="p-3">
+                        <div class="text-[10px] font-bold text-gray-400 uppercase">{{ $label }}</div>
+                        <div class="text-sm font-black {{ $key === 'available' ? 'text-green-700' : ($key === 'blocked' && $walletBalances[$key] > 0 ? 'text-red-600' : 'text-gray-900') }}">{{ $fcfa($walletBalances[$key]) }}</div>
+                    </div>
+                @endforeach
+            </div>
+            @if($walletEntries->isNotEmpty())
+                <ul class="border-t border-gray-100 divide-y divide-gray-50 text-xs">
+                    @foreach($walletEntries as $e)
+                        <li class="px-6 py-2 flex justify-between gap-3">
+                            <span class="text-gray-500 whitespace-nowrap">{{ $e->created_at->format('d/m/Y') }}</span>
+                            <span class="flex-1 min-w-0 truncate text-gray-700"><strong>{{ $e->source_label }}</strong> — {{ $e->description }}</span>
+                            <span class="font-bold whitespace-nowrap {{ $e->isCredit() ? 'text-green-600' : 'text-gray-900' }}">{{ $e->isCredit() ? '+' : '−' }}{{ $fcfa($e->amount) }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </div>
+
         <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100">
                 <h2 class="text-sm font-black text-gray-700 uppercase tracking-wide">Badges</h2>
@@ -154,6 +182,32 @@
             <div>
                 <label class="admin-label">NINEA</label>
                 <input type="text" name="ninea" value="{{ old('ninea', $profile->ninea ?? '') }}" class="admin-input">
+            </div>
+
+            <div class="border-t border-gray-100 pt-4 space-y-4">
+                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wide">Structure (prestataires)</p>
+                <div>
+                    <label class="admin-label">Raison sociale</label>
+                    <input type="text" name="company_name" value="{{ old('company_name', $profile->company_name ?? '') }}" class="admin-input" placeholder="Vide si personne physique">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="admin-label">RCCM</label>
+                        <input type="text" name="rccm" value="{{ old('rccm', $profile->rccm ?? '') }}" class="admin-input">
+                    </div>
+                    <div>
+                        <label class="admin-label">Effectif</label>
+                        <input type="number" min="1" name="team_size" value="{{ old('team_size', $profile->team_size ?? '') }}" class="admin-input">
+                    </div>
+                </div>
+                <div>
+                    <label class="admin-label">Représentant légal</label>
+                    <input type="text" name="legal_representative" value="{{ old('legal_representative', $profile->legal_representative ?? '') }}" class="admin-input">
+                </div>
+                <div>
+                    <label class="admin-label">Site web</label>
+                    <input type="url" name="website" value="{{ old('website', $profile->website ?? '') }}" class="admin-input" placeholder="https://">
+                </div>
             </div>
 
             <div class="grid grid-cols-2 gap-3">

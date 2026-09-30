@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
-use App\Services\TaxEngine;
+use App\Services\CommissionPayout;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -50,84 +50,30 @@ class OrderController extends Controller
 
             $blockedByContract = 0;
 
+            // Contrat, retenue à la source et crédit du portefeuille pro (doc §21-22, §34-37).
             foreach ($commissions as $commission) {
-                $partner = $commission->partner;
-
-                // Doc §21-22, §64 : pas de versement tant que le contrat en
-                // vigueur pour la catégorie du partenaire n'est pas accepté.
-                if ($partner && !$partner->hasAcceptedCurrentContract()) {
-                    $commission->update(['status' => 'blocked_no_contract']);
+                if (app(CommissionPayout::class)->payOrderCommission($commission) === 'blocked') {
                     $blockedByContract++;
-                    continue;
-                }
-
-                $beneficiaryType = $partner?->professionalProfile?->beneficiary_type ?? 'individual';
-
-                // Moteur fiscal (doc §34-37) : la retenue à la source, si elle
-                // s'applique, est calculée au moment précis où la commission
-                // devient payable — jamais un taux figé dans ce contrôleur.
-                $tax = app(TaxEngine::class)->calculate(
-                    (float) $commission->commission_amount,
-                    'commission_vente',
-                    $beneficiaryType
-                );
-
-                $commission->update([
-                    'status' => 'paid',
-                    'tax_rule_id' => $tax['rule']?->id,
-                    'withholding_amount' => $tax['withholding_amount'],
-                    'net_amount' => $tax['net_amount'],
-                ]);
-
-                if ($partner) {
-                    $partnerClient = \App\Models\Client::where('user_id', $partner->id)->first();
-                    if (!$partnerClient) {
-                        $names = explode(' ', $partner->name, 2);
-                        $partnerClient = \App\Models\Client::create([
-                            'user_id' => $partner->id,
-                            'first_name' => $names[0] ?? 'Partner',
-                            'last_name' => $names[1] ?? 'Partner',
-                            'email' => $partner->email,
-                            'phone' => $partner->phone ?? '770000000',
-                            'wallet_balance' => 0,
-                            'current_balance' => 0,
-                        ]);
-                    }
-
-                    // Seul le net (après retenue éventuelle) est crédité au partenaire.
-                    $partnerClient->increment('wallet_balance', $tax['net_amount']);
-
-                    $desc = "Commission de la commande #" . $order->id;
-                    if ($commission->promoCode) {
-                        $desc .= " (Code: " . $commission->promoCode->code . ")";
-                    } else {
-                        $desc .= " (Lien direct)";
-                    }
-                    if ($tax['applied']) {
-                        $desc .= " — retenue à la source de " . number_format($tax['withholding_amount'], 0, ',', ' ') . " FCFA appliquée";
-                    }
-
-                    \App\Models\WalletTransaction::create([
-                        'client_id' => $partnerClient->id,
-                        'type' => 'deposit',
-                        'amount' => $tax['net_amount'],
-                        'description' => $desc,
-                        'transaction_date' => now(),
-                        'order_id' => $order->id,
-                    ]);
                 }
             }
         }
 
         if ($order->status === 'cancelled' && $oldStatus !== 'cancelled') {
+            // Une commission bloquée faute de contrat ne doit pas être versée
+            // plus tard si la commande a été annulée entre-temps.
             \App\Models\PartnerCommission::where('order_id', $order->id)
-                ->where('status', 'pending')
+                ->whereIn('status', ['pending', 'blocked_no_contract'])
                 ->update(['status' => 'cancelled']);
+
+            $alreadyPaid = \App\Models\PartnerCommission::where('order_id', $order->id)->where('status', 'paid')->count();
         }
 
         $message = 'Commande mise à jour avec succès.';
         if (!empty($blockedByContract)) {
             $message .= " {$blockedByContract} commission(s) non versée(s) : le partenaire n'a pas encore accepté son contrat.";
+        }
+        if (!empty($alreadyPaid)) {
+            $message .= " Attention : {$alreadyPaid} commission(s) avaient déjà été versées au portefeuille du partenaire pour cette commande — à régulariser manuellement.";
         }
 
         return redirect()->route('admin.orders.show', $order->id)->with('success', $message);
