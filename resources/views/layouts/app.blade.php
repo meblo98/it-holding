@@ -81,28 +81,28 @@
                     },
                     colors: {
                         navy: {
-                            50: '#f1f5f9',
-                            100: '#e2e8f0',
-                            200: '#cbd5e1',
-                            300: '#94a3b8',
-                            400: '#64748b',
-                            500: '#1e293b',
-                            600: '#0f172a',
-                            700: '#020617',
-                            800: '#000000',
+                            50: '#fafafa',
+                            100: '#f4f4f5',
+                            200: '#e4e4e7',
+                            300: '#a1a1aa',
+                            400: '#71717a',
+                            500: '#3f3f46',
+                            600: '#27272a',
+                            700: '#18181b',
+                            800: '#0a0a0a',
                             900: '#000000',
                         },
                         gold: {
-                            50: '#fffbeb',
-                            100: '#fef3c7',
-                            200: '#fde68a',
-                            300: '#fcd34d',
-                            400: '#fbbf24',
-                            500: '#f59e0b',
-                            600: '#d97706',
-                            700: '#b45309',
-                            800: '#92400e',
-                            900: '#78350f',
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            200: '#fecaca',
+                            300: '#fca5a5',
+                            400: '#f87171',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                            800: '#991b1b',
+                            900: '#7f1d1d',
                         },
                         gray: {
                             50: '#fafafa',
@@ -205,13 +205,13 @@
             box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
         }
 
-        /* ── Espace Partenaire (Navy & Gold Theme) Inputs ── */
+        /* ── Espace Partenaire Inputs ── */
         body.partner-page select,
         body.partner-page textarea,
         body.partner-page input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]) {
             border: 1.5px solid #cbd5e1 !important; /* slate-300 */
             background-color: #ffffff !important;
-            color: #0f172a !important; /* navy-600 */
+            color: #27272a !important; /* navy-600 (neutre) */
             border-radius: 0.5rem !important; /* rounded-lg */
             transition: all 0.15s ease-in-out !important;
         }
@@ -225,8 +225,8 @@
         body.partner-page select:focus,
         body.partner-page textarea:focus,
         body.partner-page input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):focus {
-            border-color: #d97706 !important; /* gold-600 */
-            --tw-ring-color: #fbbf24 !important; /* gold-400 */
+            border-color: #dc2626 !important; /* red-600 */
+            --tw-ring-color: #ef4444 !important; /* red-500 */
             --tw-ring-opacity: 0.35 !important;
             --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color) !important;
             --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important;
@@ -236,13 +236,13 @@
 
         body.partner-page input[type="checkbox"],
         body.partner-page input[type="radio"] {
-            accent-color: #d97706 !important; /* gold-600 */
+            accent-color: #dc2626 !important; /* red-600 */
         }
 
         body.partner-page input[type="checkbox"]:focus,
         body.partner-page input[type="radio"]:focus {
-            --tw-ring-color: #fbbf24 !important;
-            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3) !important;
+            --tw-ring-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
         }
     </style>
     @stack('styles')
@@ -252,6 +252,26 @@
     class="antialiased bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-red-400 flex flex-col min-h-screen transition-colors duration-200 {{ request()->is('partner*') || request()->is('dashboard/partner*') ? 'partner-page' : '' }}">
 
     @include('layouts.navigation')
+
+    @if (session('success') || session('error'))
+        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 8000)" x-transition
+            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+            @if (session('success'))
+                <div class="flex items-start gap-3 p-4 bg-green-50 border border-green-100 rounded-xl text-green-700 text-sm font-semibold">
+                    <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span class="flex-1">{{ session('success') }}</span>
+                    <button @click="show = false" class="text-green-400 hover:text-green-600">&times;</button>
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="flex items-start gap-3 p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm font-semibold">
+                    <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span class="flex-1">{{ session('error') }}</span>
+                    <button @click="show = false" class="text-red-400 hover:text-red-600">&times;</button>
+                </div>
+            @endif
+        </div>
+    @endif
 
     <main class="flex-grow">
         @yield('content')

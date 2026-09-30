@@ -16,12 +16,22 @@ class PartnerCommission extends Model
         'order_amount',
         'commission_amount',
         'status', // pending, paid, cancelled
+        'tax_rule_id',
+        'withholding_amount',
+        'net_amount',
     ];
 
     protected $casts = [
         'order_amount' => 'decimal:2',
         'commission_amount' => 'decimal:2',
+        'withholding_amount' => 'decimal:2',
+        'net_amount' => 'decimal:2',
     ];
+
+    public function taxRule()
+    {
+        return $this->belongsTo(TaxRule::class);
+    }
 
     public function partner()
     {

@@ -15,6 +15,8 @@ use App\Models\Quote;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\URL;
 
 class ShopController extends Controller
 {
@@ -26,11 +28,14 @@ class ShopController extends Controller
 
         $request->validate([
             'category_id' => 'nullable|integer|exists:categories,id',
-            'brand_id'    => 'nullable|integer|exists:brands,id',
+            'brand_id'    => 'nullable|array',
+            'brand_id.*'  => 'integer|exists:brands,id',
             'condition'   => 'nullable|string|max:50',
             'blackfriday' => 'nullable|boolean',
             'search'      => 'nullable|string|max:255',
             'q'           => 'nullable|string|max:255',
+            'price_min'   => 'nullable|numeric|min:0',
+            'price_max'   => 'nullable|numeric|min:0|gte:price_min',
         ]);
 
         $query = Product::where('active', true)->where(function ($q) {
@@ -45,13 +50,19 @@ class ShopController extends Controller
             }
         }
         if ($request->filled('brand_id')) {
-            $query->where('brand_id', (int) $request->brand_id);
+            $query->whereIn('brand_id', (array) $request->input('brand_id'));
         }
         if ($request->filled('condition')) {
             $query->where('condition', $request->condition);
         }
         if ($request->filled('blackfriday')) {
             $query->where('blackfriday', true);
+        }
+        if ($request->filled('price_min')) {
+            $query->where('price', '>=', (float) $request->price_min);
+        }
+        if ($request->filled('price_max')) {
+            $query->where('price', '<=', (float) $request->price_max);
         }
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -397,7 +408,7 @@ class ShopController extends Controller
             'city' => 'required|string|max:255',
             'country' => 'required|string|max:255',
             'zip' => 'required|string|max:20',
-            'payment_method' => 'required|string',
+            'payment_method' => 'required|string|in:bictorys,cod,wallet,credit',
         ]);
 
         // calculate total with dynamic wholesale pricing recalculation
@@ -609,28 +620,6 @@ class ShopController extends Controller
             }
 
             DB::commit();
-
-            try {
-                \App\Services\WhatsAppService::notifyAdminForOrder($order);
-            } catch (\Exception $e) {
-                Log::error("Error sending WhatsApp notification: " . $e->getMessage());
-            }
-
-            // clear cart and promo code
-            Session::forget('cart');
-            Session::forget('promo_code');
-            Session::forget('apply_tva');
-
-            $successMsg = 'Commande passée.';
-            if ($validated['payment_method'] === 'wallet') {
-                $successMsg .= ' Payée via votre portefeuille.';
-            } elseif ($validated['payment_method'] === 'credit') {
-                $successMsg .= ' Facturée à terme sur votre crédit professionnel.';
-            } else {
-                $successMsg .= ' Paiement à la livraison.';
-            }
-
-            return redirect()->route('shop.thanks', $order->id)->with('success', $successMsg);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Erreur création commande', [
@@ -638,7 +627,143 @@ class ShopController extends Controller
                 'user_id' => Auth::id(),
                 'cart'    => $cart,
             ]);
+
             return redirect()->back()->with('error', 'Erreur lors de la création de la commande.');
+        }
+
+        // The order (and its stock decrements) is committed at this point. The Bictorys API call is a
+        // blocking network request, so it is deliberately made outside the DB transaction to avoid
+        // holding the stock row locks for as long as the external call takes. If it fails, the order
+        // is compensated (cancelled + stock restored) rather than rolled back.
+        $redirectUrl = null;
+        if ($validated['payment_method'] === 'bictorys') {
+            try {
+                $redirectUrl = $this->initiateBictorysPayment($order, $grandTotal);
+            } catch (\Exception $e) {
+                Log::error('Erreur initiation paiement Bictorys', [
+                    'order_id' => $order->id,
+                    'message'  => $e->getMessage(),
+                ]);
+                $this->cancelOrderAndRestoreStock($order, "Échec initiation paiement Bictorys - Commande #" . $order->id);
+                return redirect()->back()->with('error', 'Impossible d\'initier le paiement en ligne Bictorys. Veuillez réessayer ou choisir un autre mode de paiement.');
+            }
+        }
+
+        try {
+            \App\Services\WhatsAppService::notifyAdminForOrder($order);
+        } catch (\Exception $e) {
+            Log::error("Error sending WhatsApp notification: " . $e->getMessage());
+        }
+
+        if ($redirectUrl) {
+            return redirect()->away($redirectUrl);
+        }
+
+        // clear cart and promo code for non-bictorys orders
+        Session::forget('cart');
+        Session::forget('promo_code');
+        Session::forget('apply_tva');
+
+        $successMsg = 'Commande passée.';
+        if ($validated['payment_method'] === 'wallet') {
+            $successMsg .= ' Payée via votre portefeuille.';
+        } elseif ($validated['payment_method'] === 'credit') {
+            $successMsg .= ' Facturée à terme sur votre crédit professionnel.';
+        } else {
+            $successMsg .= ' Paiement à la livraison.';
+        }
+
+        return redirect()->route('shop.thanks', $order->id)->with('success', $successMsg);
+    }
+
+    /**
+     * Build the Bictorys "charges" endpoint from the configured base URL, regardless of whether
+     * that base URL already ends with a trailing slash and/or already includes "/pay/v1".
+     */
+    private function bictorysChargesEndpoint(): string
+    {
+        $baseUrl = rtrim(config('services.bictorys.base_url'), '/');
+        if (!str_contains($baseUrl, '/pay/v1')) {
+            $baseUrl .= '/pay/v1';
+        }
+
+        return $baseUrl . '/charges';
+    }
+
+    /**
+     * Create a Bictorys payment session for the given order and return the checkout URL to redirect to.
+     * The success/error redirect URLs are signed so that only Bictorys' redirect back to this app (and
+     * not an arbitrary visitor guessing order ids) can trigger the success/cancellation handling.
+     *
+     * @throws \Exception if the API call fails or doesn't return a checkout URL.
+     */
+    private function initiateBictorysPayment(Order $order, float $amount): string
+    {
+        $response = Http::withHeaders([
+            'X-Api-Key' => config('services.bictorys.key'),
+            'Content-Type' => 'application/json',
+        ])->post($this->bictorysChargesEndpoint(), [
+            'amount' => (int) $amount,
+            'currency' => 'XOF',
+            'paymentReference' => (string) $order->id,
+            'merchantReference' => (string) $order->id,
+            'successRedirectUrl' => URL::signedRoute('shop.bictorys.success', ['order_id' => $order->id]),
+            'errorRedirectUrl' => URL::signedRoute('shop.bictorys.error', ['order_id' => $order->id]),
+            'customerObject' => [
+                'name' => $order->customer_name,
+                'phone' => $order->customer_phone ?? '770000000',
+                'email' => $order->customer_email,
+            ],
+        ]);
+
+        // The Bictorys API returns the checkout URL in the "link" field (older/other integrations may
+        // use "redirectUrl"), so support both.
+        $redirectUrl = $response->successful()
+            ? ($response->json('link') ?? $response->json('redirectUrl'))
+            : null;
+
+        if (!$redirectUrl) {
+            throw new \Exception('Bictorys payment session creation failed: ' . $response->body());
+        }
+
+        return $redirectUrl;
+    }
+
+    /**
+     * Cancel an order and restore the stock for its items. Shared by the Bictorys error redirect,
+     * the failure webhook, and the compensating rollback used when payment initiation itself fails.
+     */
+    private function cancelOrderAndRestoreStock(Order $order, string $source): void
+    {
+        if ($order->payment_status === 'failed' || $order->status === 'cancelled') {
+            return;
+        }
+
+        DB::beginTransaction();
+        try {
+            $order->update([
+                'status' => 'cancelled',
+                'payment_status' => 'failed',
+            ]);
+
+            foreach ($order->items as $item) {
+                $product = $item->product;
+                if ($product) {
+                    $product->increment('stock', $item->quantity);
+
+                    \App\Models\StockMovement::create([
+                        'product_id' => $product->id,
+                        'quantity'   => $item->quantity,
+                        'type'       => 'in',
+                        'source'     => $source,
+                        'notes'      => "Retour de stock suite à un échec de paiement Bictorys",
+                    ]);
+                }
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Failed to cancel order and restore stock #{$order->id}: " . $e->getMessage());
         }
     }
 
@@ -647,6 +772,11 @@ class ShopController extends Controller
      */
     public function thanks(Order $order)
     {
+        $user = Auth::user();
+        if ($order->user_id !== Auth::id() && !($user && $user->isAdmin())) {
+            abort(403);
+        }
+
         $order->load('items.product');
         return view('pages.shop.thanks', compact('order'));
     }
@@ -754,5 +884,97 @@ class ShopController extends Controller
             Log::error('Erreur demande devis personnalisé', ['message' => $e->getMessage()]);
             return redirect()->back()->with('error', 'Erreur lors de la création de la demande de devis.');
         }
+    }
+
+    public function bictorysSuccess(Request $request)
+    {
+        $orderId = $request->query('order_id');
+        $order = Order::findOrFail($orderId);
+
+        // Clear cart
+        Session::forget('cart');
+        Session::forget('promo_code');
+        Session::forget('apply_tva');
+
+        return redirect()->route('shop.thanks', $order->id)->with('success', 'Votre paiement a été initié ou traité avec succès via Bictorys.');
+    }
+
+    public function bictorysError(Request $request)
+    {
+        $orderId = $request->query('order_id');
+        $order = Order::find($orderId);
+
+        if ($order) {
+            $this->cancelOrderAndRestoreStock($order, "Annulation Commande #" . $order->id);
+        }
+
+        return redirect()->route('shop.checkout')->with('error', 'Le paiement en ligne via Bictorys a échoué ou a été annulé.');
+    }
+
+    public function bictorysWebhook(Request $request)
+    {
+        $secret = (string) $request->header('X-Secret-Key', '');
+        $expectedSecret = (string) config('services.bictorys.webhook_secret');
+
+        // hash_equals() guards against timing attacks on the shared secret comparison. An empty
+        // configured secret must never match an empty header, hence the explicit length check.
+        if ($expectedSecret === '' || !hash_equals($expectedSecret, $secret)) {
+            Log::warning('Unauthorized Bictorys Webhook attempt', [
+                'ip' => $request->ip(),
+            ]);
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $payload = $request->all();
+        Log::info('Bictorys Webhook received', $payload);
+
+        $orderId = $payload['merchantReference'] ?? $payload['paymentReference'] ?? null;
+        if (!$orderId) {
+            return response()->json(['error' => 'No order reference found'], 400);
+        }
+
+        $order = Order::find($orderId);
+        if (!$order) {
+            return response()->json(['error' => 'Order not found'], 404);
+        }
+
+        $status = $payload['status'] ?? '';
+        $event = $payload['event'] ?? '';
+
+        $isSuccessful = ($status === 'succeeded' || $status === 'successful' || $event === 'charge.successful');
+
+        if ($isSuccessful) {
+            // Cross-check the amount reported by the webhook against the order's actual total before
+            // trusting it, so a mismatched/forged payload can't mark an order paid for the wrong amount.
+            $payloadAmount = $payload['amount'] ?? null;
+            if ($payloadAmount !== null && (int) $payloadAmount !== (int) round($order->total_amount)) {
+                Log::warning("Bictorys webhook amount mismatch for order #{$order->id}", [
+                    'expected' => $order->total_amount,
+                    'received' => $payloadAmount,
+                ]);
+                return response()->json(['error' => 'Amount mismatch'], 422);
+            }
+
+            if ($order->payment_status !== 'paid') {
+                DB::beginTransaction();
+                try {
+                    $order->update([
+                        'payment_status' => 'paid',
+                        'status' => 'processing',
+                    ]);
+
+                    Log::info("Order #{$order->id} successfully paid via Bictorys webhook.");
+                    DB::commit();
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    Log::error("Failed to update order #{$order->id} to paid in webhook: " . $e->getMessage());
+                    return response()->json(['error' => 'Internal server error'], 500);
+                }
+            }
+        } elseif ($status === 'failed' || $event === 'charge.failed') {
+            $this->cancelOrderAndRestoreStock($order, "Annulation Commande #" . $order->id . " (Webhook Bictorys)");
+        }
+
+        return response()->json(['status' => 'ok']);
     }
 }

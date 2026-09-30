@@ -183,6 +183,10 @@ class DashboardController extends Controller
             return back()->with('error', 'Vous êtes déjà partenaire ou votre candidature est en cours.');
         }
 
+        $request->validate([
+            'partner_type' => ['required', 'in:' . implode(',', array_keys(\App\Models\User::PARTNER_TYPES))],
+        ]);
+
         $username = $user->username;
         if (!$username) {
             $baseUsername = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $user->name));
@@ -197,6 +201,7 @@ class DashboardController extends Controller
         $user->update([
             'role' => 'partner',
             'partner_status' => 'pending',
+            'partner_type' => $request->partner_type,
             'partner_code' => 'PART-' . str_pad($user->id, 6, '0', STR_PAD_LEFT),
             'username' => $username,
         ]);

@@ -77,6 +77,7 @@ class OrderController extends Controller
                 $product = Product::findOrFail($itemData['product_id']);
 
                 if ($product->stock < $itemData['quantity']) {
+                    DB::rollBack();
                     return response()->json([
                         'message' => "Le stock pour le produit '{$product->name}' est insuffisant."
                     ], 422);

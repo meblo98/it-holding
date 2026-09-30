@@ -112,19 +112,25 @@ class ReportController extends Controller
 
     public function suppliers()
     {
-        $suppliers = Supplier::withCount('products')->get();
-        
-        // Sum total stock value supplied per supplier
-        $supplierData = [];
-        foreach ($suppliers as $supplier) {
-            $products = Product::where('brand_id', $supplier->id)->get(); // Assuming Brand relates to Supplier, or Supplier has products relation
-            $stockVal = $products->sum(fn($p) => $p->stock * $p->price);
-            $supplierData[] = [
+        // Suppliers have no direct relation to products; a product is only linked to a supplier
+        // through the "reception" (incoming) delivery notes recorded for it.
+        $suppliers = Supplier::with(['deliveryNotes' => function ($query) {
+            $query->where('type', 'reception')->with('items.product');
+        }])->get();
+
+        $supplierData = $suppliers->map(function ($supplier) {
+            $products = $supplier->deliveryNotes
+                ->flatMap(fn ($note) => $note->items)
+                ->pluck('product')
+                ->filter()
+                ->unique('id');
+
+            return [
                 'supplier' => $supplier,
-                'stock_value' => $stockVal,
-                'products_count' => $products->count()
+                'stock_value' => $products->sum(fn ($p) => $p->stock * $p->price),
+                'products_count' => $products->count(),
             ];
-        }
+        });
 
         return view('admin.reports.suppliers', compact('supplierData'));
     }

@@ -62,19 +62,21 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email,' . $user->id,
-            'role'     => 'required|in:' . implode(',', array_keys(User::ROLES)),
-            'phone'    => 'nullable|string|max:50',
-            'password' => 'nullable|string|min:8|confirmed',
+            'name'         => 'required|string|max:255',
+            'email'        => 'required|email|unique:users,email,' . $user->id,
+            'role'         => 'required|in:' . implode(',', array_keys(User::ROLES)),
+            'partner_type' => 'nullable|in:' . implode(',', array_keys(User::PARTNER_TYPES)),
+            'phone'        => 'nullable|string|max:50',
+            'password'     => 'nullable|string|min:8|confirmed',
         ]);
 
         $data = [
-            'name'     => $validated['name'],
-            'email'    => $validated['email'],
-            'role'     => $validated['role'],
-            'phone'    => $validated['phone'] ?? null,
-            'is_admin' => $validated['role'] === 'admin',
+            'name'         => $validated['name'],
+            'email'        => $validated['email'],
+            'role'         => $validated['role'],
+            'partner_type' => $validated['role'] === 'partner' ? ($validated['partner_type'] ?? null) : null,
+            'phone'        => $validated['phone'] ?? null,
+            'is_admin'     => $validated['role'] === 'admin',
         ];
 
         if (!empty($validated['password'])) {
@@ -105,6 +107,7 @@ class UserController extends Controller
             'suppliers'      => 'Fournisseurs',
             'stock'          => 'Gestion de stock',
             'clients'        => 'Clients CRM',
+            'opportunities'  => 'Opportunités & Apporteurs',
             'warranties'     => 'Garanties',
             'tickets'        => 'SAV & Tickets',
             'chat'           => 'Chat Support',
@@ -112,8 +115,10 @@ class UserController extends Controller
             'care'           => 'IT HOLDING CARE+',
             'expenses'       => 'Gestion des Dépenses',
             'finance'        => 'Finance & Trésorerie',
+            'tax_engine'     => 'Moteur fiscal (retenues)',
             'reports'        => 'Rapports & Stats',
             'users'          => 'Équipe & Accès',
+            'marketing'      => 'Ressources Marketing',
         ];
 
         // Fetch existing permissions
@@ -153,7 +158,9 @@ class UserController extends Controller
             'partner_code' => $user->partner_code ?: 'PART-' . str_pad($user->id, 6, '0', STR_PAD_LEFT),
         ]);
 
-        return back()->with('success', "Le partenaire {$user->name} a été approuvé avec succès. Code : {$user->partner_code}");
+        $profile = $user->getOrCreateProfessionalProfile();
+
+        return back()->with('success', "Le partenaire {$user->name} a été approuvé avec succès. Code : {$user->partner_code} — ID pro : {$profile->pro_id}");
     }
 
     public function rejectPartner(User $user)

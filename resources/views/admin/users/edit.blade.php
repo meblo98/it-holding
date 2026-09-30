@@ -31,11 +31,20 @@
         </div>
         <div>
             <label class="admin-label">Rôle</label>
-            <select name="role" required class="admin-select">
+            <select name="role" id="role" required class="admin-select" onchange="document.getElementById('partner-type-field').classList.toggle('hidden', this.value !== 'partner')">
                 @foreach($roles as $key => $label)
                     @if($key !== 'client')
                     <option value="{{ $key }}" {{ $user->role === $key ? 'selected' : '' }}>{{ $label }}</option>
                     @endif
+                @endforeach
+            </select>
+        </div>
+        <div id="partner-type-field" class="{{ $user->role === 'partner' ? '' : 'hidden' }}">
+            <label class="admin-label">Catégorie du réseau professionnel</label>
+            <select name="partner_type" class="admin-select">
+                <option value="">— Non défini —</option>
+                @foreach(\App\Models\User::PARTNER_TYPES as $key => $label)
+                    <option value="{{ $key }}" {{ $user->partner_type === $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>
         </div>

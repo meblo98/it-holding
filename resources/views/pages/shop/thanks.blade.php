@@ -33,11 +33,21 @@
                 <div class="space-y-4 text-sm">
                     <div class="flex justify-between">
                         <span class="text-gray-400">Total payé:</span>
-                        <span class="font-black text-navy-900 text-lg">{{ number_format($order->total_amount * 1.18, 0, ',', ' ') }} CFA</span>
+                        <span class="font-black text-navy-900 text-lg">{{ number_format($order->total_amount, 0, ',', ' ') }} CFA</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-400">Mode de paiement:</span>
-                        <span class="font-bold text-gold-600 uppercase">{{ $order->payment_method }} (À la livraison)</span>
+                        <span class="font-bold text-gold-600 uppercase">
+                            @if($order->payment_method === 'bictorys')
+                                Paiement en ligne (Bictorys)
+                            @elseif($order->payment_method === 'wallet')
+                                Portefeuille
+                            @elseif($order->payment_method === 'credit')
+                                Crédit Pro
+                            @else
+                                {{ $order->payment_method }} (À la livraison)
+                            @endif
+                        </span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-400">Destinataire:</span>

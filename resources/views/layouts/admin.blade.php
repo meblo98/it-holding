@@ -296,6 +296,18 @@
                      </a>
                     @endif
 
+                     @if(auth()->user()?->hasPermission('opportunities'))
+                     <a href="{{ route('admin.opportunities.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.opportunities*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                         <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.opportunities*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                         </svg>
+                         Opportunités
+                         @if($flaggedOpportunitiesCount ?? 0)
+                             <span class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ $flaggedOpportunitiesCount }}</span>
+                         @endif
+                     </a>
+                     @endif
+
                      @if(auth()->user()?->hasPermission('warranties'))
                      <a href="{{ route('admin.warranties.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.warranties*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
                          <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.warranties*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -355,6 +367,16 @@
                       </a>
                      @endif
 
+                      {{-- Moteur fiscal --}}
+                      @if(auth()->user()?->hasPermission('tax_engine'))
+                     <a href="{{ route('admin.tax-rules.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.tax-rules*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                          <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.tax-rules*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/>
+                          </svg>
+                          Moteur fiscal
+                      </a>
+                     @endif
+
                       {{-- Gestion des Dépenses --}}
                       @if(auth()->user()?->hasPermission('expenses'))
                      <a href="{{ route('admin.expenses.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.expenses*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
@@ -384,12 +406,14 @@
                      </a>
                      @endif
 
+                     @if(auth()->user()?->hasPermission('marketing'))
                      <a href="{{ route('admin.marketing-assets.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.marketing-assets*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
                          <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.marketing-assets*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                          </svg>
                          Ressources Marketing
                      </a>
+                     @endif
                 </nav>
             </div>
             

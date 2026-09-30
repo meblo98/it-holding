@@ -40,4 +40,12 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-flash-latest'),
     ],
 
+    'bictorys' => [
+        'key' => env('BICTORYS_API_KEY'),
+        'public_key' => env('BICTORYS_PUBLIC_KEY'),
+        'base_url' => env('BICTORYS_BASE_URL', 'https://api.test.bictorys.com/pay/v1'),
+        'webhook_secret' => env('BICTORYS_WEBHOOK_SECRET'),
+        'merchant_secret_code' => env('BICTORYS_MERCHANT_SECRET_CODE'),
+    ],
+
 ];

@@ -82,12 +82,24 @@
                                 </div>
                             </div>
                             
-                            <div class="pt-6 border-t flex justify-center">
-                                <form action="{{ route('dashboard.partner.apply') }}" method="POST">
+                            <div class="pt-6 border-t max-w-md mx-auto space-y-4">
+                                <form action="{{ route('dashboard.partner.apply') }}" method="POST" class="space-y-4">
                                     @csrf
-                                    <button type="submit" class="btn-primary-gold px-8 py-3.5 text-xs font-black uppercase tracking-widest shadow-md">
-                                        Activer mon espace partenaire
-                                    </button>
+                                    <div class="text-left">
+                                        <label for="partner_type" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Votre profil dans le réseau IT Holding</label>
+                                        <select name="partner_type" id="partner_type" required
+                                            class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-xs focus:ring-gold-500 focus:border-gold-500">
+                                            <option value="" disabled selected>Choisissez votre catégorie</option>
+                                            @foreach(\App\Models\User::PARTNER_TYPES as $key => $label)
+                                                <option value="{{ $key }}">{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="flex justify-center">
+                                        <button type="submit" class="btn-primary-gold px-8 py-3.5 text-xs font-black uppercase tracking-widest shadow-md">
+                                            Activer mon espace partenaire
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -134,6 +146,9 @@
                         <a href="{{ route('dashboard.partner.crm') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
                             <span>👥</span> CRM & Prospects
                         </a>
+                        <a href="{{ route('dashboard.partner.opportunities') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
+                            <span>🎯</span> Opportunités
+                        </a>
                         <a href="{{ route('dashboard.partner.assistant') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
                             <span>🤖</span> Assistant IA
                         </a>
@@ -148,7 +163,15 @@
                             <svg class="w-80 h-80 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M13 7H7v6h6V7z"/><path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 110-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd"/></svg>
                         </div>
                         <div class="relative z-10 space-y-4">
-                            <span class="bg-gold-500 text-navy-900 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded">Partenariat Privilégié</span>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="bg-gold-500 text-navy-900 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded">Partenariat Privilégié</span>
+                                @if($user->partner_type)
+                                    <span class="bg-navy-800/80 border border-gold-500/40 text-gold-400 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded">{{ $user->partner_type_label }}</span>
+                                @endif
+                                @if($user->professionalProfile?->pro_id)
+                                    <span class="text-[9px] font-mono text-gray-400 tracking-wider">{{ $user->professionalProfile->pro_id }}</span>
+                                @endif
+                            </div>
                             <h2 class="text-2xl lg:text-3xl font-black uppercase italic tracking-tight">Programme d'Affiliation & Codes Promo</h2>
                             <p class="text-xs text-gray-300 max-w-xl font-medium leading-relaxed italic">
                                 Partagez votre code promo unique ou votre lien commercial personnel avec votre audience, vos amis ou vos clients. Pour chaque achat effectué via votre lien ou avec votre code : vos contacts bénéficient de <b>5% de réduction immédiate</b> (avec code promo), et vous recevez une commission de <b>10% du montant de leur commande</b> directement versée sur votre portefeuille.

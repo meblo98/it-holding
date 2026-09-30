@@ -83,13 +83,16 @@
                         {{ $user->role_label }}
                     </span>
                     @if($user->role === 'partner')
-                        <div class="mt-1">
+                        <div class="mt-1 flex flex-wrap gap-1">
                             @if($user->partner_status === 'approved')
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-50 text-green-700 border border-green-200">Actif ({{ $user->partner_code }})</span>
                             @elseif($user->partner_status === 'rejected')
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-50 text-red-700 border border-red-200">Rejeté</span>
                             @else
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-50 text-yellow-700 border border-yellow-200">En attente</span>
+                            @endif
+                            @if($user->partner_type)
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">{{ $user->partner_type_label }}</span>
                             @endif
                         </div>
                     @endif

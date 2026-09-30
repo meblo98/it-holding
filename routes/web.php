@@ -29,7 +29,10 @@ Route::get('/shop/{slug}', [ShopController::class, 'show'])->name('shop.show');
 Route::get('/cart', [ShopController::class, 'cart'])->name('shop.cart');
 Route::get('/checkout', [ShopController::class, 'checkout'])->name('shop.checkout')->middleware('auth');
 Route::post('/checkout', [ShopController::class, 'placeOrder'])->name('shop.placeOrder')->middleware('auth');
-Route::get('/thanks/{order}', [ShopController::class, 'thanks'])->name('shop.thanks');
+Route::get('/checkout/bictorys/success', [ShopController::class, 'bictorysSuccess'])->name('shop.bictorys.success')->middleware('signed');
+Route::get('/checkout/bictorys/error', [ShopController::class, 'bictorysError'])->name('shop.bictorys.error')->middleware('signed');
+Route::post('/webhook/bictorys', [ShopController::class, 'bictorysWebhook'])->name('webhook.bictorys');
+Route::get('/thanks/{order}', [ShopController::class, 'thanks'])->name('shop.thanks')->middleware('auth');
 Route::post('/cart/add/{id}', [ShopController::class, 'addToCart'])->name('shop.addToCart');
 Route::post('/cart/update', [ShopController::class, 'updateCart'])->name('shop.updateCart');
 Route::get('/remove-from-cart/{id}', [ShopController::class, 'removeFromCart'])->name('shop.removeFromCart');
@@ -45,6 +48,10 @@ Route::post('/chat/send', [\App\Http\Controllers\ChatController::class, 'sendMes
 // Public Warranty Verification & QR Code Download
 Route::get('/warranty/verify/{number}', [\App\Http\Controllers\WarrantyVerificationController::class, 'verify'])->name('warranty.verify');
 Route::get('/warranty/{number}/qrcode/download', [\App\Http\Controllers\WarrantyVerificationController::class, 'downloadQrCode'])->name('warranty.qrcode.download');
+
+// Public Professional Profile Verification (badge QR code) & QR Code Download
+Route::get('/pro/verify/{proId}', [\App\Http\Controllers\ProfessionalVerificationController::class, 'verify'])->name('professional.verify');
+Route::get('/pro/{proId}/qrcode/download', [\App\Http\Controllers\ProfessionalVerificationController::class, 'downloadQrCode'])->name('professional.qrcode.download');
 
 
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
@@ -80,6 +87,10 @@ Route::middleware(['auth', 'redirect.admin'])->group(function () {
     Route::post('/dashboard/partner/crm', [\App\Http\Controllers\PartnerCRMController::class, 'store'])->name('dashboard.partner.crm.store');
     Route::put('/dashboard/partner/crm/{prospect}', [\App\Http\Controllers\PartnerCRMController::class, 'update'])->name('dashboard.partner.crm.update');
     Route::delete('/dashboard/partner/crm/{prospect}', [\App\Http\Controllers\PartnerCRMController::class, 'destroy'])->name('dashboard.partner.crm.destroy');
+
+    // Partner Opportunities Routes (apporteurs d'affaires)
+    Route::get('/dashboard/partner/opportunities', [\App\Http\Controllers\PartnerOpportunityController::class, 'index'])->name('dashboard.partner.opportunities');
+    Route::post('/dashboard/partner/opportunities', [\App\Http\Controllers\PartnerOpportunityController::class, 'store'])->name('dashboard.partner.opportunities.store');
 
     // Partner AI Assistant Routes
     Route::get('/dashboard/partner/assistant', [\App\Http\Controllers\PartnerCRMController::class, 'assistantIndex'])->name('dashboard.partner.assistant');
@@ -148,7 +159,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     });
     
     // Marketing Assets
-    Route::resource('marketing-assets', \App\Http\Controllers\Admin\MarketingAssetController::class);
+    Route::middleware('permission:marketing')->group(function () {
+        Route::resource('marketing-assets', \App\Http\Controllers\Admin\MarketingAssetController::class);
+    });
 
     // Devis (Quotes)
     Route::middleware('permission:quotes')->group(function () {
@@ -191,6 +204,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('clients/{client}/pay-debt', [\App\Http\Controllers\Admin\ClientController::class, 'payDebt'])->name('clients.pay-debt');
     });
 
+    // Opportunités & Apporteurs d'affaires
+    Route::middleware('permission:opportunities')->group(function () {
+        Route::get('opportunities', [\App\Http\Controllers\Admin\OpportunityController::class, 'index'])->name('opportunities.index');
+        Route::get('opportunities/{opportunity}', [\App\Http\Controllers\Admin\OpportunityController::class, 'show'])->name('opportunities.show');
+        Route::put('opportunities/{opportunity}', [\App\Http\Controllers\Admin\OpportunityController::class, 'update'])->name('opportunities.update');
+        Route::post('opportunities/{opportunity}/arbitrate', [\App\Http\Controllers\Admin\OpportunityController::class, 'arbitrate'])->name('opportunities.arbitrate');
+    });
+
     // Garanties
     Route::middleware('permission:warranties')->group(function () {
         Route::get('warranties/scanner', [\App\Http\Controllers\Admin\WarrantyController::class, 'scanner'])->name('warranties.scanner');
@@ -216,6 +237,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Expenses (Gestion des Dépenses)
     Route::middleware('permission:expenses')->group(function () {
         Route::resource('expenses', \App\Http\Controllers\Admin\ExpenseController::class);
+    });
+
+    // Moteur fiscal (TAX ENGINE) — retenues à la source configurables, réservé au comptable
+    Route::middleware('permission:tax_engine')->group(function () {
+        Route::get('tax-rules/withholdings', [\App\Http\Controllers\Admin\TaxRuleController::class, 'withholdings'])->name('tax-rules.withholdings');
+        Route::get('tax-rules/certificate/{type}/{id}', [\App\Http\Controllers\Admin\TaxRuleController::class, 'certificate'])->name('tax-rules.certificate');
+        Route::resource('tax-rules', \App\Http\Controllers\Admin\TaxRuleController::class)->except(['show']);
     });
 
     // Finance & Bank

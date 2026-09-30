@@ -123,10 +123,13 @@
 
                 <!-- Payment Options -->
                 @php
+                    // Bictorys is the only online payment gateway integrated in this app (it handles
+                    // card/Wave/OM itself on its hosted checkout page), so those aren't separate
+                    // payment_method options here — offering them would create orders that look paid
+                    // online but never actually get charged.
                     $methods = [
+                        ['id' => 'bictorys', 'label' => 'Paiement en ligne', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
                         ['id' => 'cod', 'label' => 'Espèces', 'icon' => 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z'],
-                        ['id' => 'wave', 'label' => 'Wave/OM', 'icon' => 'M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z'],
-                        ['id' => 'card', 'label' => 'Carte', 'icon' => 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z']
                     ];
 
                     if (isset($client) && $client) {
@@ -149,8 +152,8 @@
                 <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden p-8">
                     <h2 class="text-xl font-bold text-navy-900 uppercase tracking-tighter italic mb-8 border-b border-gray-50 pb-4">Mode de Paiement</h2>
                     
-                    <div x-data="{ method: 'cod' }" class="space-y-6">
-                        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div x-data="{ method: 'bictorys' }" class="space-y-6">
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                             <!-- Payment Method Buttons -->
                             <template x-for="item in {{ json_encode($methods) }}">
                                 <label :class="method === item.id ? 'border-gold-500 bg-gold-50/30' : 'border-gray-100 bg-white'" class="cursor-pointer border-2 rounded-xl p-4 flex flex-col items-center justify-center gap-3 transition-all">
@@ -162,28 +165,6 @@
                                     </div>
                                 </label>
                             </template>
-                        </div>
-
-                        <!-- Card Details (shown only if card is selected) -->
-                        <div x-show="method === 'card'" x-transition class="space-y-6 pt-6 border-t border-gray-50">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="md:col-span-2">
-                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Nom sur la Carte</label>
-                                    <input type="text" class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30">
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Numéro de Carte</label>
-                                    <input type="text" placeholder="0000 0000 0000 0000" class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Date d'Expiration</label>
-                                    <input type="text" placeholder="MM/YY" class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">CVC</label>
-                                    <input type="text" placeholder="***" class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30">
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>

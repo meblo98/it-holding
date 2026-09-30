@@ -28,13 +28,10 @@
                 @forelse($supplierData as $data)
                 <tr class="hover:bg-gray-50/50">
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="text-sm font-bold text-navy-900 block">{{ $data['supplier']->company_name }}</span>
-                        @if($data['supplier']->code)
-                        <span class="text-[9px] text-gold-600 font-bold uppercase tracking-widest">{{ $data['supplier']->code }}</span>
-                        @endif
+                        <span class="text-sm font-bold text-navy-900 block">{{ $data['supplier']->name }}</span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-navy-950 font-medium">
-                        {{ $data['supplier']->contact_name }}
+                        {{ $data['supplier']->contact_person }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div>{{ $data['supplier']->phone }}</div>

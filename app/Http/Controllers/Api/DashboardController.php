@@ -21,9 +21,13 @@ class DashboardController extends Controller
             return $this->clientDashboard($user);
         } elseif ($user->role === 'technicien') {
             return $this->technicianDashboard($user);
-        } else {
+        } elseif ($user->isStaff()) {
             return $this->staffDashboard($user);
         }
+
+        // Any other role (e.g. partner) has no dashboard defined here and must not fall through
+        // to internal staff KPIs (sales totals, client counts, stock levels, etc.).
+        return response()->json(['message' => 'Aucun tableau de bord disponible pour ce rôle.'], 403);
     }
 
     private function clientDashboard($user)

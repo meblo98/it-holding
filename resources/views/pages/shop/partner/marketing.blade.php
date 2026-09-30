@@ -261,11 +261,14 @@
                                          'bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.2),transparent_60%)]': theme === 'clean-minimal'
                                      }"></div>
 
-                                <div class="flex justify-between items-center z-10">
-                                    <span class="text-[9px] font-black uppercase tracking-widest"
-                                          :class="theme === 'clean-minimal' ? 'text-navy-900' : 'text-gold-400'">
-                                          IT HOLDING
-                                    </span>
+                                <div class="flex justify-between items-center z-10 w-full">
+                                    <div class="flex items-center gap-1.5">
+                                        <img src="{{ asset('logo.jpeg') }}" alt="Logo" class="h-6 w-auto object-contain rounded bg-white p-0.5">
+                                        <span class="text-[9px] font-black uppercase tracking-widest"
+                                              :class="theme === 'clean-minimal' ? 'text-navy-900' : 'text-gold-400'">
+                                              IT HOLDING
+                                        </span>
+                                    </div>
                                     <span class="text-[8px] font-bold px-2 py-0.5 rounded-full uppercase"
                                           :class="{
                                               'bg-gold-500 text-navy-900': theme === 'navy-gold',

@@ -26,7 +26,7 @@ class MarketingAssetController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category' => 'required|string|in:image,pdf,document,template,other',
-            'file' => 'required|file|max:10240', // 10MB max
+            'file' => 'required|file|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,ppt,pptx,zip|max:10240', // 10MB max
         ]);
 
         if ($request->hasFile('file')) {
@@ -50,7 +50,7 @@ class MarketingAssetController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category' => 'required|string|in:image,pdf,document,template,other',
-            'file' => 'nullable|file|max:10240', // 10MB max
+            'file' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,ppt,pptx,zip|max:10240', // 10MB max
         ]);
 
         if ($request->hasFile('file')) {

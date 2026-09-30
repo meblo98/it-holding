@@ -94,6 +94,22 @@
                     @enderror
                 </div>
 
+                <!-- Partner type field -->
+                <div>
+                    <label for="partner_type" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Votre profil dans le réseau IT Holding</label>
+                    <select name="partner_type" id="partner_type" required
+                        class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-xs focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('partner_type') border-red-500 @enderror">
+                        <option value="" disabled {{ old('partner_type') ? '' : 'selected' }}>Choisissez votre catégorie</option>
+                        @foreach($partnerTypes as $key => $label)
+                            <option value="{{ $key }}" {{ old('partner_type') === $key ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <p class="mt-1 text-[9px] text-gray-400">Détermine votre badge, votre tableau de bord et votre grille de commission.</p>
+                    @error('partner_type')
+                        <p class="mt-1 text-[9px] text-red-500 font-bold uppercase italic">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Password field -->
                 <div>
                     <label for="password" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Mot de passe</label>

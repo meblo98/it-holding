@@ -13,7 +13,9 @@ class PartnerRegisterController extends Controller
 {
     public function showRegistrationForm()
     {
-        return view('auth.partner-register');
+        $partnerTypes = User::PARTNER_TYPES;
+
+        return view('auth.partner-register', compact('partnerTypes'));
     }
 
     public function register(Request $request)
@@ -23,6 +25,7 @@ class PartnerRegisterController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'username' => ['required', 'string', 'alpha_num', 'min:3', 'max:30', 'unique:users,username'],
             'phone' => ['required', 'string', 'max:20'],
+            'partner_type' => ['required', 'in:' . implode(',', array_keys(User::PARTNER_TYPES))],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -34,6 +37,7 @@ class PartnerRegisterController extends Controller
             'password' => Hash::make($request->password),
             'role' => 'partner',
             'partner_status' => 'pending',
+            'partner_type' => $request->partner_type,
         ]);
 
         // Generate temporary code based on ID

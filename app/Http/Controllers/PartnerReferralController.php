@@ -25,13 +25,23 @@ class PartnerReferralController extends Controller
         }
 
         // Get redirect path or default to shop or home
-        $redirectUrl = $request->query('redirect', '/shop');
-        
-        // Ensure redirect is safe (local path)
-        if (str_starts_with($redirectUrl, 'http') && !str_contains($redirectUrl, $request->getHost())) {
-            $redirectUrl = '/shop';
-        }
+        $redirectUrl = $this->sanitizeRedirect($request->query('redirect'));
 
         return redirect($redirectUrl);
+    }
+
+    /**
+     * Only allow same-site relative paths. Rejects anything else (absolute URLs, and
+     * protocol-relative paths like "//evil.com" or "/\evil.com" that browsers resolve as
+     * off-site), which a naive "starts with http" check would miss, to prevent this public,
+     * unauthenticated endpoint from being used as an open redirect for phishing.
+     */
+    private function sanitizeRedirect(?string $url): string
+    {
+        if (!is_string($url) || $url === '' || !str_starts_with($url, '/') || str_starts_with($url, '//') || str_starts_with($url, '/\\')) {
+            return '/shop';
+        }
+
+        return $url;
     }
 }

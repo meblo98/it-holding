@@ -6,14 +6,14 @@
     <style>
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            color: #0f172a;
+            color: #27272a;
             font-size: 11px;
             line-height: 1.5;
             margin: 0;
             padding: 0;
         }
         .header {
-            border-bottom: 2px solid #f59e0b;
+            border-bottom: 2px solid #ef4444;
             padding-bottom: 15px;
             margin-bottom: 25px;
         }
@@ -24,7 +24,7 @@
         .header .logo {
             font-size: 20px;
             font-weight: bold;
-            color: #0f172a;
+            color: #27272a;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -34,8 +34,8 @@
             color: #4b5563;
         }
         .partner-badge {
-            background-color: #0f172a;
-            color: #f59e0b;
+            background-color: #27272a;
+            color: #ef4444;
             padding: 2px 8px;
             border-radius: 3px;
             font-weight: bold;
@@ -46,7 +46,7 @@
         h1 {
             font-size: 18px;
             font-weight: bold;
-            color: #0f172a;
+            color: #27272a;
             text-transform: uppercase;
             margin: 0 0 10px 0;
             font-style: italic;
@@ -88,12 +88,12 @@
         .product-name {
             font-size: 13px;
             font-weight: bold;
-            color: #0f172a;
+            color: #27272a;
             margin: 0 0 4px 0;
         }
         .product-meta {
             font-size: 9px;
-            color: #f59e0b;
+            color: #ef4444;
             text-transform: uppercase;
             font-weight: bold;
             margin-bottom: 8px;
@@ -109,11 +109,11 @@
         .product-price {
             font-size: 14px;
             font-weight: bold;
-            color: #0f172a;
+            color: #27272a;
         }
         .buy-button {
-            background-color: #f59e0b;
-            color: #0f172a;
+            background-color: #ef4444;
+            color: #27272a;
             text-decoration: none;
             padding: 5px 12px;
             font-weight: bold;
@@ -141,7 +141,10 @@
     <div class="header">
         <table>
             <tr>
-                <td class="logo">
+                <td class="logo" style="vertical-align: middle;">
+                    @if(file_exists(public_path('logo.jpeg')))
+                        <img src="{{ public_path('logo.jpeg') }}" alt="Logo" style="height: 30px; width: auto; object-fit: contain; vertical-align: middle; margin-right: 8px;">
+                    @endif
                     IT HOLDING
                 </td>
                 <td class="partner-info">
@@ -161,9 +164,9 @@
     </p>
 
     @if($partner->partner_code)
-    <div style="background-color: #fef3c7; border: 1px solid #fde68a; border-radius: 6px; padding: 10px; margin-bottom: 25px; text-align: center;">
-        <span style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #b45309; display: block; margin-bottom: 2px;">Votre code de réduction partenaire (-5%)</span>
-        <strong style="font-size: 16px; color: #78350f; letter-spacing: 1px;">{{ $partner->partner_code }}</strong>
+    <div style="background-color: #fee2e2; border: 1px solid #fecaca; border-radius: 6px; padding: 10px; margin-bottom: 25px; text-align: center;">
+        <span style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #b91c1c; display: block; margin-bottom: 2px;">Votre code de réduction partenaire (-5%)</span>
+        <strong style="font-size: 16px; color: #7f1d1d; letter-spacing: 1px;">{{ $partner->partner_code }}</strong>
     </div>
     @endif
 

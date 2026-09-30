@@ -24,6 +24,17 @@ class User extends Authenticatable
         'partner'     => 'Partenaire',
     ];
 
+    // Catégories du réseau professionnel, voir cahier des charges §3-9.
+    // Un utilisateur avec role=partner se décline en l'une de ces catégories.
+    const PARTNER_TYPES = [
+        'commercial'  => 'Partenaire commercial',
+        'apporteur'   => 'Apporteur d\'affaires',
+        'revendeur'   => 'Revendeur',
+        'freelance'   => 'Freelance',
+        'prestataire' => 'Prestataire / Expert',
+        'createur'    => 'Créateur / Affilié',
+    ];
+
     protected $fillable = [
         'name', 'email', 'password', 'photo', 'is_admin', 'role',
         'username', 'phone', 'country', 'state', 'zip_code', 'address',
@@ -31,7 +42,7 @@ class User extends Authenticatable
         'billing_city', 'billing_zip',
         'shipping_first_name', 'shipping_last_name', 'shipping_address',
         'shipping_city', 'shipping_zip',
-        'partner_code', 'partner_status',
+        'partner_code', 'partner_status', 'partner_type',
     ];
 
     protected $hidden = [
@@ -100,6 +111,14 @@ class User extends Authenticatable
         return self::ROLES[$this->role] ?? ucfirst($this->role);
     }
 
+    public function getPartnerTypeLabelAttribute(): ?string
+    {
+        if (!$this->partner_type) {
+            return null;
+        }
+        return self::PARTNER_TYPES[$this->partner_type] ?? ucfirst($this->partner_type);
+    }
+
     // ── Relations ────────────────────────────────────────────────────────────
     public function orders()
     {
@@ -129,6 +148,23 @@ class User extends Authenticatable
     public function scheduledPosts()
     {
         return $this->hasMany(PartnerScheduledPost::class, 'user_id');
+    }
+
+    public function professionalProfile()
+    {
+        return $this->hasOne(ProfessionalProfile::class);
+    }
+
+    /**
+     * Get the user's professional profile, creating it if it doesn't exist yet.
+     * Used when a partner/apporteur/freelance... candidacy is approved.
+     */
+    public function getOrCreateProfessionalProfile(): ProfessionalProfile
+    {
+        return $this->professionalProfile ?: $this->professionalProfile()->create([
+            'pro_id' => ProfessionalProfile::generateProId(),
+            'verification_level' => 1, // téléphone + email déjà vérifiés à l'inscription
+        ]);
     }
 
     public function totalCommissionsEarned()

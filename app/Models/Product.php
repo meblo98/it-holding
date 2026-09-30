@@ -112,7 +112,7 @@ class Product extends Model
             }
             $stocks = [];
             foreach ($this->packItems as $item) {
-                if ($item->product) {
+                if ($item->product && $item->quantity > 0) {
                     $stocks[] = floor($item->product->stock / $item->quantity);
                 }
             }

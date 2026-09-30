@@ -29,7 +29,7 @@ class PartnerCRMController extends Controller
         $this->checkPartner();
 
         $user = Auth::user();
-        $prospects = $user->prospects()->orderBy('updated_at', 'desc')->get();
+        $prospects = $user->prospects()->standardProspects()->orderBy('updated_at', 'desc')->get();
 
         // Group prospects by status
         $stages = [
@@ -59,6 +59,7 @@ class PartnerCRMController extends Controller
 
         // Get upcoming tasks/actions
         $upcomingActions = $user->prospects()
+            ->standardProspects()
             ->whereNotNull('next_action_at')
             ->where('next_action_at', '>=', now())
             ->orderBy('next_action_at', 'asc')
