@@ -89,29 +89,47 @@ class OpportunityController extends Controller
         ]);
 
         $opportunity->fill($validated);
-        $opportunity->commission_amount = $opportunity->computeCommission();
 
-        // Moteur fiscal (doc §34-37) : la retenue apporteur est calculée dès que
-        // la commission brute est connue, avec la même règle configurable que
-        // les commissions de vente — jamais un taux figé dans le contrôleur.
-        if ($opportunity->commission_amount !== null) {
-            $beneficiaryType = $opportunity->partner?->professionalProfile?->beneficiary_type ?? 'individual';
-            $tax = app(TaxEngine::class)->calculate(
-                (float) $opportunity->commission_amount,
-                'commission_apporteur',
-                $beneficiaryType
-            );
-            $opportunity->tax_rule_id = $tax['rule']?->id;
-            $opportunity->withholding_amount = $tax['withholding_amount'];
-            $opportunity->net_amount = $tax['net_amount'];
-        } else {
+        // Doc §21-22, §64 : la commission apporteur ne se finalise pas tant que
+        // le contrat en vigueur pour sa catégorie n'a pas été accepté.
+        $partner = $opportunity->partner;
+        $contractBlocked = $partner && !$partner->hasAcceptedCurrentContract();
+
+        if ($contractBlocked) {
+            $opportunity->commission_amount = null;
             $opportunity->tax_rule_id = null;
             $opportunity->withholding_amount = 0;
             $opportunity->net_amount = null;
+        } else {
+            $opportunity->commission_amount = $opportunity->computeCommission();
+
+            // Moteur fiscal (doc §34-37) : la retenue apporteur est calculée dès que
+            // la commission brute est connue, avec la même règle configurable que
+            // les commissions de vente — jamais un taux figé dans le contrôleur.
+            if ($opportunity->commission_amount !== null) {
+                $beneficiaryType = $partner?->professionalProfile?->beneficiary_type ?? 'individual';
+                $tax = app(TaxEngine::class)->calculate(
+                    (float) $opportunity->commission_amount,
+                    'commission_apporteur',
+                    $beneficiaryType
+                );
+                $opportunity->tax_rule_id = $tax['rule']?->id;
+                $opportunity->withholding_amount = $tax['withholding_amount'];
+                $opportunity->net_amount = $tax['net_amount'];
+            } else {
+                $opportunity->tax_rule_id = null;
+                $opportunity->withholding_amount = 0;
+                $opportunity->net_amount = null;
+            }
         }
 
         $opportunity->save();
 
-        return back()->with('success', 'Opportunité mise à jour.');
+        $message = 'Opportunité mise à jour.';
+        if ($contractBlocked) {
+            $message .= " Commission non calculée : {$partner->name} n'a pas encore accepté son contrat.";
+        }
+
+        return back()->with('success', $message);
     }
 }

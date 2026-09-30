@@ -155,6 +155,48 @@ class User extends Authenticatable
         return $this->hasOne(ProfessionalProfile::class);
     }
 
+    public function contractAcceptances()
+    {
+        return $this->hasMany(ContractAcceptance::class);
+    }
+
+    public function userBadges()
+    {
+        return $this->hasMany(UserBadge::class);
+    }
+
+    public function validBadges()
+    {
+        return $this->userBadges()->valid()->with('badge');
+    }
+
+    /**
+     * The contract currently in force for this user's category that they
+     * have not yet accepted, or null if none applies / already accepted
+     * (doc §21-22, §64 — blocage du versement de commission tant que le
+     * contrat en vigueur n'est pas accepté).
+     */
+    public function pendingContract(): ?Contract
+    {
+        if (!$this->partner_type) {
+            return null;
+        }
+
+        $contract = Contract::currentFor($this->partner_type);
+        if (!$contract) {
+            return null;
+        }
+
+        $accepted = $this->contractAcceptances()->where('contract_id', $contract->id)->exists();
+
+        return $accepted ? null : $contract;
+    }
+
+    public function hasAcceptedCurrentContract(): bool
+    {
+        return $this->pendingContract() === null;
+    }
+
     /**
      * Get the user's professional profile, creating it if it doesn't exist yet.
      * Used when a partner/apporteur/freelance... candidacy is approved.

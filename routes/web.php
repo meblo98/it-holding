@@ -52,6 +52,7 @@ Route::get('/warranty/{number}/qrcode/download', [\App\Http\Controllers\Warranty
 // Public Professional Profile Verification (badge QR code) & QR Code Download
 Route::get('/pro/verify/{proId}', [\App\Http\Controllers\ProfessionalVerificationController::class, 'verify'])->name('professional.verify');
 Route::get('/pro/{proId}/qrcode/download', [\App\Http\Controllers\ProfessionalVerificationController::class, 'downloadQrCode'])->name('professional.qrcode.download');
+Route::get('/badge/verify/{number}', [\App\Http\Controllers\ProfessionalVerificationController::class, 'verifyBadge'])->name('badge.verify');
 
 
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
@@ -91,6 +92,10 @@ Route::middleware(['auth', 'redirect.admin'])->group(function () {
     // Partner Opportunities Routes (apporteurs d'affaires)
     Route::get('/dashboard/partner/opportunities', [\App\Http\Controllers\PartnerOpportunityController::class, 'index'])->name('dashboard.partner.opportunities');
     Route::post('/dashboard/partner/opportunities', [\App\Http\Controllers\PartnerOpportunityController::class, 'store'])->name('dashboard.partner.opportunities.store');
+
+    // Partner Contract Routes
+    Route::get('/dashboard/partner/contract', [\App\Http\Controllers\PartnerContractController::class, 'show'])->name('dashboard.partner.contract');
+    Route::post('/dashboard/partner/contract/{contract}/accept', [\App\Http\Controllers\PartnerContractController::class, 'accept'])->name('dashboard.partner.contract.accept');
 
     // Partner AI Assistant Routes
     Route::get('/dashboard/partner/assistant', [\App\Http\Controllers\PartnerCRMController::class, 'assistantIndex'])->name('dashboard.partner.assistant');
@@ -204,6 +209,17 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('clients/{client}/pay-debt', [\App\Http\Controllers\Admin\ClientController::class, 'payDebt'])->name('clients.pay-debt');
     });
 
+    // Contrats numériques du réseau pro (partenaires, apporteurs, freelances...)
+    Route::middleware('permission:network_contracts')->group(function () {
+        Route::get('network-contracts', [\App\Http\Controllers\Admin\ContractController::class, 'index'])->name('network-contracts.index');
+        Route::get('network-contracts/create', [\App\Http\Controllers\Admin\ContractController::class, 'create'])->name('network-contracts.create');
+        Route::post('network-contracts', [\App\Http\Controllers\Admin\ContractController::class, 'store'])->name('network-contracts.store');
+        Route::get('network-contracts/{contract}', [\App\Http\Controllers\Admin\ContractController::class, 'show'])->name('network-contracts.show');
+        Route::get('network-contracts/{contract}/edit', [\App\Http\Controllers\Admin\ContractController::class, 'edit'])->name('network-contracts.edit');
+        Route::put('network-contracts/{contract}', [\App\Http\Controllers\Admin\ContractController::class, 'update'])->name('network-contracts.update');
+        Route::delete('network-contracts/{contract}', [\App\Http\Controllers\Admin\ContractController::class, 'destroy'])->name('network-contracts.destroy');
+    });
+
     // Opportunités & Apporteurs d'affaires
     Route::middleware('permission:opportunities')->group(function () {
         Route::get('opportunities', [\App\Http\Controllers\Admin\OpportunityController::class, 'index'])->name('opportunities.index');
@@ -278,6 +294,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('users/permissions', [\App\Http\Controllers\Admin\UserController::class, 'updatePermissions'])->name('users.permissions.update');
         Route::post('users/{user}/approve-partner', [\App\Http\Controllers\Admin\UserController::class, 'approvePartner'])->name('users.approvePartner');
         Route::post('users/{user}/reject-partner', [\App\Http\Controllers\Admin\UserController::class, 'rejectPartner'])->name('users.rejectPartner');
+
+        // Profil pro, niveau de vérification et badges (doc §10-13)
+        Route::get('professionals/{user}', [\App\Http\Controllers\Admin\ProfessionalController::class, 'show'])->name('professionals.show');
+        Route::put('professionals/{user}', [\App\Http\Controllers\Admin\ProfessionalController::class, 'updateProfile'])->name('professionals.update');
+        Route::post('professionals/{user}/badges', [\App\Http\Controllers\Admin\ProfessionalController::class, 'assignBadge'])->name('professionals.badges.assign');
+        Route::post('user-badges/{userBadge}/revoke', [\App\Http\Controllers\Admin\ProfessionalController::class, 'revokeBadge'])->name('professionals.badges.revoke');
         Route::resource('users', \App\Http\Controllers\Admin\UserController::class)->except(['show']);
     });
 });

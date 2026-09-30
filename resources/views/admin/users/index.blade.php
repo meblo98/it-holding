@@ -111,6 +111,9 @@
                                 <button type="submit" class="text-xs font-bold text-white bg-red-600 hover:bg-red-700 px-2.5 py-1 rounded transition">Rejeter</button>
                             </form>
                         @endif
+                        @if($user->role === 'partner')
+                            <a href="{{ route('admin.professionals.show', $user->id) }}" class="text-xs font-bold text-gold-700 bg-gold-50 hover:bg-gold-100 px-2.5 py-1 rounded transition">Profil pro & badges</a>
+                        @endif
                         <a href="{{ route('admin.users.edit', $user->id) }}" class="text-xs font-bold text-navy-600 bg-navy-50 hover:bg-navy-100 px-2.5 py-1 rounded transition">Modifier</a>
                         <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="inline" onsubmit="return confirm('Supprimer cet utilisateur ?')">
                             @csrf @method('DELETE')

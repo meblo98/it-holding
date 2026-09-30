@@ -48,8 +48,19 @@ class OrderController extends Controller
                 ->where('status', 'pending')
                 ->get();
 
+            $blockedByContract = 0;
+
             foreach ($commissions as $commission) {
                 $partner = $commission->partner;
+
+                // Doc §21-22, §64 : pas de versement tant que le contrat en
+                // vigueur pour la catégorie du partenaire n'est pas accepté.
+                if ($partner && !$partner->hasAcceptedCurrentContract()) {
+                    $commission->update(['status' => 'blocked_no_contract']);
+                    $blockedByContract++;
+                    continue;
+                }
+
                 $beneficiaryType = $partner?->professionalProfile?->beneficiary_type ?? 'individual';
 
                 // Moteur fiscal (doc §34-37) : la retenue à la source, si elle
@@ -114,6 +125,11 @@ class OrderController extends Controller
                 ->update(['status' => 'cancelled']);
         }
 
-        return redirect()->route('admin.orders.show', $order->id)->with('success', 'Commande mise à jour avec succès.');
+        $message = 'Commande mise à jour avec succès.';
+        if (!empty($blockedByContract)) {
+            $message .= " {$blockedByContract} commission(s) non versée(s) : le partenaire n'a pas encore accepté son contrat.";
+        }
+
+        return redirect()->route('admin.orders.show', $order->id)->with('success', $message);
     }
 }

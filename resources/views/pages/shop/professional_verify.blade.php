@@ -15,16 +15,28 @@
 
         <div class="bg-white py-8 px-6 shadow-xl rounded-2xl border border-gray-100 sm:px-10">
             @if($profile && $profile->user)
-                @php $user = $profile->user; @endphp
+                @php
+                    $user = $profile->user;
+                    $isActive = $user->role === 'partner' && $user->partner_status === 'approved';
+                @endphp
 
                 <!-- Status Banner -->
                 <div class="text-center mb-6">
-                    <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-50 text-green-500 border-2 border-green-200 mb-4">
-                        <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04c0 4.835 1.355 9.347 3.718 13.191A11.96 11.96 0 0012 21.481c2.901 0 5.537-.94 7.653-2.545a11.959 11.959 0 013.718-13.191z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-black text-green-700 uppercase tracking-tight italic">Professionnel Vérifié IT Holding</h3>
+                    @if($isActive)
+                        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-50 text-green-500 border-2 border-green-200 mb-4">
+                            <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04c0 4.835 1.355 9.347 3.718 13.191A11.96 11.96 0 0012 21.481c2.901 0 5.537-.94 7.653-2.545a11.959 11.959 0 013.718-13.191z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-black text-green-700 uppercase tracking-tight italic">Professionnel enregistré IT Holding</h3>
+                    @else
+                        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-50 text-red-500 border-2 border-red-200 mb-4">
+                            <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-black text-red-700 uppercase tracking-tight italic">Profil non actif</h3>
+                    @endif
                     <p class="text-xs text-gray-400 font-bold mt-1 font-mono">{{ $profile->pro_id }}</p>
                 </div>
 
@@ -58,12 +70,29 @@
 
                     <div>
                         <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Niveau de vérification</span>
-                        <span class="text-sm font-bold text-navy-900">{{ $profile->verification_label }}</span>
+                        <span class="text-sm font-bold text-navy-900">Niveau {{ $profile->verification_level }}/5 — {{ $profile->verification_label }}</span>
                     </div>
+
+                    @if($isActive && $badges->isNotEmpty())
+                    <div>
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Badges en cours de validité</span>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($badges as $ub)
+                                <a href="{{ route('badge.verify', $ub->number) }}" class="px-2.5 py-1 rounded-full text-[11px] font-bold border {{ $ub->badge->color_classes }}">
+                                    {{ $ub->badge->icon }} {{ $ub->badge->name }}
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
                 </div>
 
                 <div class="text-center text-[10px] text-gray-400 leading-normal">
-                    Ce QR Code certifie que ce professionnel est réellement enregistré dans le réseau officiel IT HOLDING SÉNÉGAL.
+                    @if($isActive)
+                        Ce QR Code certifie que ce professionnel est réellement enregistré dans le réseau officiel IT HOLDING SÉNÉGAL.
+                    @else
+                        Ce profil existe mais n'est pas (ou plus) actif dans le réseau IT HOLDING SÉNÉGAL.
+                    @endif
                 </div>
             @else
                 <div class="text-center py-6">

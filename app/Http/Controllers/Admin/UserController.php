@@ -108,6 +108,7 @@ class UserController extends Controller
             'stock'          => 'Gestion de stock',
             'clients'        => 'Clients CRM',
             'opportunities'  => 'Opportunités & Apporteurs',
+            'network_contracts' => 'Contrats Réseau Pro',
             'warranties'     => 'Garanties',
             'tickets'        => 'SAV & Tickets',
             'chat'           => 'Chat Support',

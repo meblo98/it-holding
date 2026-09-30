@@ -155,7 +155,23 @@
                         <a href="{{ route('dashboard.partner.marketing') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
                             <span>📢</span> Studio Marketing
                         </a>
+                        <a href="{{ route('dashboard.partner.contract') }}" class="flex-shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors text-gray-500 hover:text-navy-900 hover:bg-gray-50 flex items-center gap-2">
+                            <span>📄</span> Contrat
+                        </a>
                     </div>
+
+                    @if($user->pendingContract())
+                    <div class="bg-red-50 border border-red-200 rounded-xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-6 h-6 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <div>
+                                <p class="text-sm font-black text-red-800 uppercase italic">Contrat à accepter</p>
+                                <p class="text-xs text-red-600 mt-1">Vos commissions ne pourront pas être versées tant que vous n'avez pas accepté le contrat en vigueur pour votre catégorie.</p>
+                            </div>
+                        </div>
+                        <a href="{{ route('dashboard.partner.contract') }}" class="shrink-0 bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest px-5 py-2.5 rounded-lg transition-colors">Consulter et accepter</a>
+                    </div>
+                    @endif
 
                     <!-- Welcome Section -->
                     <div class="bg-navy-900 text-white rounded-2xl p-8 relative overflow-hidden shadow-lg border-b-4 border-gold-500">
@@ -169,9 +185,18 @@
                                     <span class="bg-navy-800/80 border border-gold-500/40 text-gold-400 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded">{{ $user->partner_type_label }}</span>
                                 @endif
                                 @if($user->professionalProfile?->pro_id)
-                                    <span class="text-[9px] font-mono text-gray-400 tracking-wider">{{ $user->professionalProfile->pro_id }}</span>
+                                    <a href="{{ route('professional.verify', $user->professionalProfile->pro_id) }}" target="_blank" class="text-[9px] font-mono text-gray-400 tracking-wider hover:text-gold-400" title="Voir mon profil public vérifiable">{{ $user->professionalProfile->pro_id }}</a>
+                                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">· Vérification niveau {{ $user->professionalProfile->verification_level }}/5</span>
                                 @endif
                             </div>
+                            @php $myBadges = $user->validBadges()->get(); @endphp
+                            @if($myBadges->isNotEmpty())
+                            <div class="flex flex-wrap gap-2">
+                                @foreach($myBadges as $ub)
+                                    <a href="{{ route('badge.verify', $ub->number) }}" target="_blank" class="px-2.5 py-1 rounded-full text-[10px] font-bold border {{ $ub->badge->color_classes }}">{{ $ub->badge->icon }} {{ $ub->badge->name }}</a>
+                                @endforeach
+                            </div>
+                            @endif
                             <h2 class="text-2xl lg:text-3xl font-black uppercase italic tracking-tight">Programme d'Affiliation & Codes Promo</h2>
                             <p class="text-xs text-gray-300 max-w-xl font-medium leading-relaxed italic">
                                 Partagez votre code promo unique ou votre lien commercial personnel avec votre audience, vos amis ou vos clients. Pour chaque achat effectué via votre lien ou avec votre code : vos contacts bénéficient de <b>5% de réduction immédiate</b> (avec code promo), et vous recevez une commission de <b>10% du montant de leur commande</b> directement versée sur votre portefeuille.

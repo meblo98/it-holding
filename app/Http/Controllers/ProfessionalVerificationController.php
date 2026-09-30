@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProfessionalProfile;
+use App\Models\UserBadge;
 
 class ProfessionalVerificationController extends Controller
 {
@@ -16,7 +17,21 @@ class ProfessionalVerificationController extends Controller
             ->with('user')
             ->first();
 
-        return view('pages.shop.professional_verify', compact('profile', 'proId'));
+        $badges = $profile?->user ? $profile->user->validBadges()->get() : collect();
+
+        return view('pages.shop.professional_verify', compact('profile', 'proId', 'badges'));
+    }
+
+    /**
+     * Public verification of a single issued badge by its number (doc §11).
+     */
+    public function verifyBadge(string $number)
+    {
+        $userBadge = UserBadge::where('number', $number)
+            ->with(['badge', 'user.professionalProfile'])
+            ->first();
+
+        return view('pages.shop.badge_verify', compact('userBadge', 'number'));
     }
 
     public function downloadQrCode(string $proId)
