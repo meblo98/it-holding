@@ -21,9 +21,22 @@
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div class="flex flex-col lg:flex-row gap-8">
+        <div x-data="{ showFilters: false }" class="flex flex-col lg:flex-row gap-8">
+            <!-- Mobile Filters Toggle -->
+            <button @click="showFilters = !showFilters" type="button"
+                class="lg:hidden w-full flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-xs font-bold text-navy-900 uppercase tracking-widest">
+                <span class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 01.8 1.6l-6.3 8.4v5.6a1 1 0 01-1.45.9l-4-2A1 1 0 019 16.8V13L2.7 5.6A1 1 0 013 4z"/></svg>
+                    Filtres
+                    @if(request()->anyFilled(['category_id', 'brand_id', 'condition', 'price_min', 'price_max']))
+                        <span class="w-1.5 h-1.5 rounded-full bg-gold-500"></span>
+                    @endif
+                </span>
+                <svg class="w-4 h-4 transition-transform duration-200" :class="{'rotate-180': showFilters}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+
             <!-- Sidebar Filters -->
-            <aside class="w-full lg:w-64 flex-shrink-0 space-y-8">
+            <aside :class="showFilters ? 'block' : 'hidden'" class="lg:block w-full lg:w-64 flex-shrink-0 space-y-8">
                 <form action="{{ route('shop.index') }}" method="GET" class="space-y-8">
                     @if(request('search'))<input type="hidden" name="search" value="{{ request('search') }}">@endif
                     @if(request('blackfriday'))<input type="hidden" name="blackfriday" value="{{ request('blackfriday') }}">@endif

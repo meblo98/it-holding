@@ -20,7 +20,7 @@
     </div>
 
     <!-- Main Header -->
-    <div class="bg-navy-600 border-b border-navy-500 py-4">
+    <div class="bg-navy-600 border-b border-navy-500 py-4 hidden md:block">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-8">
             <!-- Logo -->
             <div class="shrink-0">

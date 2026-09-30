@@ -392,8 +392,8 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
                 <!-- Left Laptop Workspace Image -->
                 <div class="lg:col-span-3 hidden lg:block">
-                    <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80" 
-                         alt="IT Workspace" class="rounded-2xl shadow-md border border-white">
+                    <img src="https://images.unsplash.com/photo-1573164574001-518958d9baa2?auto=format&fit=crop&w=600&q=80"
+                         alt="Professionnelle travaillant sur un projet informatique" class="rounded-2xl shadow-md border border-white">
                 </div>
 
                 <!-- Center Text + Action -->
@@ -415,8 +415,8 @@
 
                 <!-- Right Discussion Image -->
                 <div class="lg:col-span-3 hidden lg:block">
-                    <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=600&q=80" 
-                         alt="Partners discussion" class="rounded-2xl shadow-md border border-white">
+                    <img src="https://images.unsplash.com/photo-1573164574572-cb89e39749b4?auto=format&fit=crop&w=600&q=80"
+                         alt="Équipe en réunion de projet" class="rounded-2xl shadow-md border border-white">
                 </div>
             </div>
         </div>
