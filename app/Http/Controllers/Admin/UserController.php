@@ -107,6 +107,7 @@ class UserController extends Controller
             'suppliers'      => 'Fournisseurs',
             'stock'          => 'Gestion de stock',
             'clients'        => 'Clients CRM',
+            'crm'            => 'Pipeline commercial & Assistant IA',
             'opportunities'  => 'Opportunités & Apporteurs',
             'network_contracts' => 'Contrats Réseau Pro',
             'missions'       => 'Missions & Projets',

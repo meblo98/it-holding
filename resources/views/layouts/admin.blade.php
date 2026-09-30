@@ -56,6 +56,16 @@
     <style>
         [x-cloak] { display: none !important; }
 
+        /* Réponses de l'assistant IA (Markdown rendu, HTML brut supprimé) */
+        .ai-md { font-size: 0.875rem; line-height: 1.6; color: #1f2937; }
+        .ai-md > * + * { margin-top: 0.6rem; }
+        .ai-md h1, .ai-md h2, .ai-md h3, .ai-md h4 { font-weight: 700; color: #111827; }
+        .ai-md h3 { font-size: 0.95rem; }
+        .ai-md ul { list-style: disc; padding-left: 1.25rem; }
+        .ai-md ol { list-style: decimal; padding-left: 1.25rem; }
+        .ai-md strong { font-weight: 700; }
+        .ai-md hr { border-color: #e5e7eb; }
+
         /* ── Base field styling (input, textarea, select) ── */
         .admin-input,
         .admin-select,
@@ -304,6 +314,18 @@
                          Opportunités
                          @if($flaggedOpportunitiesCount ?? 0)
                              <span class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ $flaggedOpportunitiesCount }}</span>
+                         @endif
+                     </a>
+                     @endif
+
+                     @if(auth()->user()?->hasPermission('crm'))
+                     <a href="{{ route('admin.crm.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.crm*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                         <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.crm*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
+                         </svg>
+                         Pipeline commercial
+                         @if($lateFollowUpsCount ?? 0)
+                             <span class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full" title="Relances en retard">{{ $lateFollowUpsCount }}</span>
                          @endif
                      </a>
                      @endif

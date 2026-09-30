@@ -242,6 +242,27 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::delete('network-contracts/{contract}', [\App\Http\Controllers\Admin\ContractController::class, 'destroy'])->name('network-contracts.destroy');
     });
 
+    // CRM global et assistant commercial IA (doc §43-45)
+    Route::middleware('permission:crm')->group(function () {
+        Route::get('crm', [\App\Http\Controllers\Admin\CrmDealController::class, 'index'])->name('crm.index');
+        Route::get('crm/create', [\App\Http\Controllers\Admin\CrmDealController::class, 'create'])->name('crm.create');
+        Route::post('crm', [\App\Http\Controllers\Admin\CrmDealController::class, 'store'])->name('crm.store');
+        Route::get('crm/partner-prospects', [\App\Http\Controllers\Admin\CrmDealController::class, 'partnerProspects'])->name('crm.partner-prospects');
+        Route::post('crm/partner-prospects/{prospect}/import', [\App\Http\Controllers\Admin\CrmDealController::class, 'importPartnerProspect'])->name('crm.partner-prospects.import');
+        Route::get('crm/assistant', [\App\Http\Controllers\Admin\SalesAssistantController::class, 'index'])->name('crm.assistant');
+        Route::post('crm/assistant/promote', [\App\Http\Controllers\Admin\SalesAssistantController::class, 'promote'])->middleware('throttle:10,1')->name('crm.assistant.promote');
+        Route::post('crm/assistant/partners', [\App\Http\Controllers\Admin\SalesAssistantController::class, 'partners'])->middleware('throttle:10,1')->name('crm.assistant.partners');
+        Route::get('crm/{deal}', [\App\Http\Controllers\Admin\CrmDealController::class, 'show'])->name('crm.show');
+        Route::get('crm/{deal}/edit', [\App\Http\Controllers\Admin\CrmDealController::class, 'edit'])->name('crm.edit');
+        Route::put('crm/{deal}', [\App\Http\Controllers\Admin\CrmDealController::class, 'update'])->name('crm.update');
+        Route::post('crm/{deal}/stage', [\App\Http\Controllers\Admin\CrmDealController::class, 'moveStage'])->name('crm.stage');
+        Route::post('crm/{deal}/activities', [\App\Http\Controllers\Admin\CrmDealController::class, 'storeActivity'])->name('crm.activities.store');
+        Route::post('crm/{deal}/quote', [\App\Http\Controllers\Admin\CrmDealController::class, 'linkQuote'])->name('crm.quote.link');
+        Route::post('crm/{deal}/ai/follow-up', [\App\Http\Controllers\Admin\CrmDealController::class, 'aiFollowUp'])->middleware('throttle:10,1')->name('crm.ai.follow-up');
+        Route::post('crm/{deal}/ai/analyze', [\App\Http\Controllers\Admin\CrmDealController::class, 'aiAnalyze'])->middleware('throttle:10,1')->name('crm.ai.analyze');
+        Route::post('crm/{deal}/ai/quote', [\App\Http\Controllers\Admin\CrmDealController::class, 'aiQuote'])->middleware('throttle:10,1')->name('crm.ai.quote');
+    });
+
     // Missions freelance / prestataires, candidatures et espaces projet (doc §14-20)
     Route::middleware('permission:missions')->group(function () {
         Route::get('missions', [\App\Http\Controllers\Admin\MissionController::class, 'index'])->name('missions.index');

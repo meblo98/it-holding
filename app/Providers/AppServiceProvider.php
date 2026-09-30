@@ -34,6 +34,14 @@ class AppServiceProvider extends ServiceProvider
                 $withdrawals = \App\Models\WithdrawalRequest::whereIn('status', ['requested', 'approved'])->count();
             }
             $view->with('pendingWithdrawalsCount', $withdrawals);
+
+            // Sidebar badge : relances commerciales en retard (doc §43)
+            $late = 0;
+            if (auth()->check() && auth()->user()->hasPermission('crm')) {
+                $late = \App\Models\CrmDeal::whereNotNull('next_action_at')->where('next_action_at', '<', now())
+                    ->whereNotIn('stage', ['lost', 'loyalty'])->count();
+            }
+            $view->with('lateFollowUpsCount', $late);
         });
     }
 }

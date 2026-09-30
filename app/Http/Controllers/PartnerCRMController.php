@@ -182,16 +182,24 @@ class PartnerCRMController extends Controller
         // Build the system instructions
         $systemInstruction = "Tu es l'assistant commercial IA privé d'un partenaire d'IT Holding.\n";
         $systemInstruction .= "Ton rôle est de l'aider à prospecter, vendre, fidéliser ses clients et créer du contenu marketing exceptionnel pour la promotion de la boutique IT Holding.\n";
-        $systemInstruction .= "Sois persuasif, structuré, professionnel et utilise un ton chaleureux, adapté au public sénégalais.\n\n";
+        $systemInstruction .= "Sois persuasif, structuré, professionnel et utilise un ton chaleureux, adapté au public sénégalais.\n";
+        // Doc §45 : l'IA ne doit jamais inventer prix, stock, garantie, taux, commissions ou conditions.
+        $systemInstruction .= "RÈGLES ABSOLUES : n'invente jamais un prix, un stock, une garantie, une réduction, une commission, une caractéristique technique ou une condition. "
+            . "Utilise uniquement les données officielles fournies ci-dessous. Si une information n'est pas fournie, ne la mentionne pas ou invite le client à consulter la fiche produit.\n\n";
+
+        // Codes promo réellement actifs du partenaire (remise officielle).
+        $activeCodes = Auth::user()->promoCodes()->where('is_active', true)->get(['code', 'discount_percent']);
+        if ($activeCodes->isNotEmpty()) {
+            $systemInstruction .= "CODES PROMO OFFICIELS DU PARTENAIRE : " . $activeCodes->map(fn ($c) => "{$c->code} (-" . rtrim(rtrim(number_format($c->discount_percent, 2, ',', ''), '0'), ',') . " %)")->implode(', ') . "\n\n";
+        }
 
         if ($request->product_id) {
             $product = Product::find($request->product_id);
             $refCode = Auth::user()->partner_code;
             $refUrl = url('/partner/' . (Auth::user()->username ?: $refCode));
-            
-            $systemInstruction .= "PRODUIT À PROMOUVOIR :\n";
-            $systemInstruction .= "- Nom : {$product->name}\n";
-            $systemInstruction .= "- Prix : " . number_format($product->price, 0, ',', ' ') . " FCFA\n";
+
+            $systemInstruction .= "PRODUIT À PROMOUVOIR (données officielles) :\n";
+            $systemInstruction .= "- " . app(\App\Services\SalesAssistant::class)->productFacts($product) . "\n";
             if ($product->condition) {
                 $systemInstruction .= "- État : " . ($product->condition === 'new' ? 'Neuf' : ($product->condition === 'refurbished' ? 'Reconditionné' : 'Venu d\'ailleurs')) . "\n";
             }
@@ -204,7 +212,9 @@ class PartnerCRMController extends Controller
                 'sell' => "Rédiger un argumentaire de vente direct et convaincant, avec accroche forte et appel à l'action.",
                 'inform' => "Donner des conseils informatifs ou astuces techniques liés au produit pour intéresser les clients.",
                 'promote' => "Créer un message promotionnel mettant en valeur les bénéfices clés du produit.",
-                'discount' => "Annoncer une offre spéciale ou une réduction (les clients ont -5% en utilisant le code promo du partenaire).",
+                'discount' => $activeCodes->isNotEmpty()
+                    ? "Annoncer une offre avec le code promo officiel du partenaire indiqué ci-dessus (utilise exactement cette remise, aucune autre)."
+                    : "Mettre en avant le produit sans annoncer de réduction chiffrée : le partenaire n'a aucun code promo actif.",
                 'lead' => "Créer un post pour susciter la curiosité et inviter le prospect à laisser ses coordonnées.",
                 'objection' => "Aider à formuler une réponse commerciale à une objection client (ex: tarif trop cher, doute sur la garantie).",
                 'whatsapp_followup' => "Rédiger un message de relance WhatsApp poli, amical et vendeur.",
