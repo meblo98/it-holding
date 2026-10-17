@@ -36,6 +36,7 @@ class ShopController extends Controller
             'q'           => 'nullable|string|max:255',
             'price_min'   => 'nullable|numeric|min:0',
             'price_max'   => 'nullable|numeric|min:0|gte:price_min',
+            'sort'        => 'nullable|in:newest,price_asc,price_desc',
         ]);
 
         $query = Product::where('active', true)->where(function ($q) {
@@ -70,6 +71,18 @@ class ShopController extends Controller
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%");
             });
+        }
+
+        switch ($request->input('sort')) {
+            case 'price_asc':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'price_desc':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'newest':
+                $query->orderBy('created_at', 'desc');
+                break;
         }
 
         $products = $query->with('images', 'category', 'brand')->paginate(12)->withQueryString();

@@ -14,8 +14,8 @@
                 <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
                 <div class="absolute bottom-0 left-0 w-24 h-24 bg-gold-500/10 rounded-full -ml-12 -mb-12 blur-2xl"></div>
 
-                <h1 class="text-3xl font-black text-white uppercase tracking-tighter italic mb-4">Contactez-nous</h1>
-                <p class="text-gray-400 text-sm italic font-medium max-w-md mx-auto">
+                <h1 class="text-3xl font-semibold text-white tracking-tight mb-4">Contactez-nous</h1>
+                <p class="text-white/75 text-base max-w-md mx-auto">
                     Une question ? Un projet ? Notre équipe d'experts est à votre entière disposition.
                 </p>
             </div>
@@ -33,7 +33,7 @@
                 @endif
 
                 @if($errors->any())
-                <div class="mb-8 p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-xs font-bold uppercase tracking-widest italic space-y-1">
+                <div class="mb-8 p-4 bg-red-50 border border-red-100 rounded-xl text-red-700 text-sm font-medium space-y-1">
                     @foreach($errors->all() as $error)
                     <div class="flex items-center gap-3">
                         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,52 +51,52 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <!-- Name field -->
                         <div class="space-y-2">
-                            <label for="name" class="block text-xs font-bold text-gray-500 uppercase tracking-widest">Nom complet</label>
+                            <label for="name" class="block text-sm font-semibold text-navy-900">Nom complet</label>
                             <input type="text" name="name" id="name" required
-                                class="w-full border-gray-200 rounded-lg py-3.5 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 transition-all placeholder-gray-300 @error('name') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
+                                class="w-full border-navy-300 border rounded-lg py-3.5 px-4 text-base text-black bg-white focus:ring-2 focus:ring-gold-500 focus:border-navy-600 placeholder-gray-500 @error('name') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
                                 placeholder="Ex: Amadou Diop" value="{{ old('name') }}">
                             @error('name')
-                            <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <!-- Email field -->
                         <div class="space-y-2">
-                            <label for="email" class="block text-xs font-bold text-gray-500 uppercase tracking-widest">Adresse Email</label>
+                            <label for="email" class="block text-sm font-semibold text-navy-900">Adresse Email</label>
                             <input type="email" name="email" id="email" required
-                                class="w-full border-gray-200 rounded-lg py-3.5 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 transition-all placeholder-gray-300 @error('email') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
+                                class="w-full border-navy-300 border rounded-lg py-3.5 px-4 text-base text-black bg-white focus:ring-2 focus:ring-gold-500 focus:border-navy-600 placeholder-gray-500 @error('email') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
                                 placeholder="contact@exemple.com" value="{{ old('email') }}">
                             @error('email')
-                            <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
 
                     <!-- Subject field -->
                     <div class="space-y-2">
-                        <label for="subject" class="block text-xs font-bold text-gray-500 uppercase tracking-widest">Sujet de votre message</label>
+                        <label for="subject" class="block text-sm font-semibold text-navy-900">Sujet de votre message</label>
                         <input type="text" name="subject" id="subject" value="{{ old('subject', $subject ?? '') }}"
-                            class="w-full border-gray-200 rounded-lg py-3.5 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 transition-all placeholder-gray-300 @error('subject') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
+                            class="w-full border-navy-300 border rounded-lg py-3.5 px-4 text-base text-black bg-white focus:ring-2 focus:ring-gold-500 focus:border-navy-600 placeholder-gray-500 @error('subject') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
                             placeholder="En quoi pouvons-nous vous aider ?">
                         @error('subject')
-                        <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <!-- Message field -->
                     <div class="space-y-2">
-                        <label for="message" class="block text-xs font-bold text-gray-500 uppercase tracking-widest">Votre Message</label>
+                        <label for="message" class="block text-sm font-semibold text-navy-900">Votre Message</label>
                         <textarea name="message" id="message" rows="5" required
-                            class="w-full border-gray-200 rounded-lg py-3.5 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 transition-all placeholder-gray-300 @error('message') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
+                            class="w-full border-navy-300 border rounded-lg py-3.5 px-4 text-base text-black bg-white focus:ring-2 focus:ring-gold-500 focus:border-navy-600 placeholder-gray-500 @error('message') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror"
                             placeholder="Décrivez votre demande en détail...">{{ old('message') }}</textarea>
                         @error('message')
-                        <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div class="pt-4">
-                        <button type="submit" class="w-full btn-primary-gold py-5 text-xs uppercase tracking-[0.2em] font-black flex items-center justify-center gap-4 group shadow-xl shadow-gold-500/10">
-                            ENVOYER LE MESSAGE
+                        <button type="submit" class="w-full btn-primary-gold py-4 text-base font-semibold flex items-center justify-center gap-4 group shadow-xl shadow-gold-500/10">
+                            Envoyer le message
                             <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                             </svg>
@@ -111,7 +111,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
                         </div>
-                        <p class="text-[9px] font-black text-navy-900 uppercase tracking-widest italic">+221 77 351 87 16</p>
+                        <p class="text-sm font-medium text-navy-900">+221 77 351 87 16</p>
                     </div>
                     <div class="text-center">
                         <div class="w-10 h-10 bg-gold-50 text-gold-700 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -120,7 +120,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                         </div>
-                        <p class="text-[9px] font-black text-navy-900 uppercase tracking-widest italic truncate">Dakar, Sénégal</p>
+                        <p class="text-sm font-medium text-navy-900 truncate">Dakar, Sénégal</p>
                     </div>
                     <div class="text-center">
                         <div class="w-10 h-10 bg-navy-50 text-navy-900 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -128,13 +128,13 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
                         </div>
-                        <p class="text-[9px] font-black text-navy-900 uppercase tracking-widest italic truncate">contact@itholding.sn</p>
+                        <p class="text-sm font-medium text-navy-900 truncate">contact@itholding.sn</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <p class="text-center mt-10 text-[10px] text-gray-400 uppercase tracking-widest flex items-center justify-center gap-2">
+        <p class="text-center mt-10 text-sm text-gray-500 flex items-center justify-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
