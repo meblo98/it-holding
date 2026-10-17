@@ -7,7 +7,7 @@
     <!-- Breadcrumb -->
     <div class="bg-white border-b border-gray-100 py-3 mb-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav class="flex text-xs text-gray-400 gap-2 items-center">
+            <nav class="flex text-sm text-gray-600 gap-2 items-center">
                 <a href="{{ route('home') }}" class="hover:text-navy-900 flex items-center gap-1">
                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
                     Accueil
@@ -158,8 +158,8 @@
                             <template x-for="item in {{ json_encode($methods) }}">
                                 <label :class="method === item.id ? 'border-gold-500 bg-gold-50/30' : 'border-gray-100 bg-white'" class="cursor-pointer border-2 rounded-xl p-4 flex flex-col items-center justify-center gap-3 transition-all">
                                     <input type="radio" name="payment_method" :value="item.id" x-model="method" class="sr-only">
-                                    <svg class="w-6 h-6" :class="method === item.id ? 'text-gold-600' : 'text-gray-300'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="item.icon"/></svg>
-                                    <span class="text-[10px] font-bold uppercase tracking-widest text-center" :class="method === item.id ? 'text-navy-900' : 'text-gray-400'" x-text="item.label"></span>
+                                    <svg class="w-6 h-6" :class="method === item.id ? 'text-gold-600' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="item.icon"/></svg>
+                                    <span class="text-[10px] font-bold uppercase tracking-widest text-center" :class="method === item.id ? 'text-navy-900' : 'text-gray-600'" x-text="item.label"></span>
                                     <div class="w-4 h-4 rounded-full border-2 flex items-center justify-center" :class="method === item.id ? 'border-gold-500' : 'border-gray-200'">
                                         <div x-show="method === item.id" class="w-2 h-2 rounded-full bg-gold-500"></div>
                                     </div>
@@ -213,7 +213,7 @@
                                         @endforeach
                                     </div>
                                 @endif
-                                <p class="text-[10px] text-gray-400 mt-1">
+                                <p class="text-[10px] text-gray-600 mt-1">
                                     {{ $item['quantity'] }} x <span class="text-gold-600 font-bold">{{ number_format($item['price'], 0, ',', ' ') }} CFA</span>
                                     @if($itemProduct && $itemProduct->isPreorderable())
                                         <span class="text-amber-600 font-bold ml-1">(Précommande)</span>
@@ -227,11 +227,11 @@
                     <!-- Calculation -->
                     <div class="space-y-4 border-t border-gray-50 pt-6 mb-8 text-sm">
                         <div class="flex justify-between">
-                            <span class="text-gray-400">Sous-total</span>
+                            <span class="text-gray-600">Sous-total</span>
                             <span class="font-bold text-navy-900">{{ number_format($total, 0, ',', ' ') }} CFA</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-400">Livraison</span>
+                            <span class="text-gray-600">Livraison</span>
                             <span class="font-bold text-green-600">Gratuit</span>
                         </div>
                         @if(isset($promoCode) && $promoCode)
@@ -241,7 +241,7 @@
                         </div>
                         @else
                         <div class="flex justify-between">
-                            <span class="text-gray-400">Remise</span>
+                            <span class="text-gray-600">Remise</span>
                             <span class="font-bold text-red-500">0 CFA</span>
                         </div>
                         @endif
@@ -253,17 +253,17 @@
                         </div>
                         @if(Session::get('apply_tva', false))
                         <div class="flex justify-between">
-                            <span class="text-gray-400 text-xs">Taxe / TVA (18%)</span>
+                            <span class="text-gray-600 text-xs">Taxe / TVA (18%)</span>
                             <span class="font-bold text-navy-900 text-xs">{{ number_format($discountedTotal * 0.18, 0, ',', ' ') }} CFA</span>
                         </div>
                         <div class="border-t border-gray-50 pt-4 mt-4 flex justify-between items-end">
-                            <span class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Total TTC</span>
-                            <span class="text-2xl font-black text-gold-500">{{ number_format($discountedTotal * 1.18, 0, ',', ' ') }} <span class="text-xs">CFA</span></span>
+                            <span class="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Total TTC</span>
+                            <span class="text-2xl font-semibold text-navy-900">{{ number_format($discountedTotal * 1.18, 0, ',', ' ') }} <span class="text-xs">CFA</span></span>
                         </div>
                         @else
                         <div class="border-t border-gray-50 pt-4 mt-4 flex justify-between items-end">
-                            <span class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Total</span>
-                            <span class="text-2xl font-black text-gold-500">{{ number_format($discountedTotal, 0, ',', ' ') }} <span class="text-xs">CFA</span></span>
+                            <span class="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Total</span>
+                            <span class="text-2xl font-semibold text-navy-900">{{ number_format($discountedTotal, 0, ',', ' ') }} <span class="text-xs">CFA</span></span>
                         </div>
                         @endif
                     </div>
@@ -273,7 +273,7 @@
                         <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </button>
                     
-                    <p class="mt-4 text-[9px] text-gray-400 text-center leading-relaxed italic">
+                    <p class="mt-4 text-[9px] text-gray-600 text-center leading-relaxed italic">
                         En confirmant la commande, vous acceptez nos <a href="#" class="underline">Conditions Générales de Vente</a> et notre <a href="#" class="underline">Politique de Confidentialité</a>.
                     </p>
                 </div>
