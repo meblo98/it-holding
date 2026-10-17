@@ -67,7 +67,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -77,32 +77,32 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Public Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
                     },
                     colors: {
                         navy: {
-                            50: '#fafafa',
-                            100: '#f4f4f5',
-                            200: '#e4e4e7',
-                            300: '#a1a1aa',
-                            400: '#71717a',
-                            500: '#3f3f46',
-                            600: '#27272a',
-                            700: '#18181b',
-                            800: '#0a0a0a',
-                            900: '#000000',
+                            50: '#f3f6f9',
+                            100: '#e3eaf1',
+                            200: '#c7d4e0',
+                            300: '#94a9bd',
+                            400: '#627d96',
+                            500: '#3b5873',
+                            600: '#1d3b57',
+                            700: '#152c43',
+                            800: '#0e1f30',
+                            900: '#0a1724',
                         },
                         gold: {
-                            50: '#fef2f2',
-                            100: '#fee2e2',
-                            200: '#fecaca',
-                            300: '#fca5a5',
-                            400: '#f87171',
-                            500: '#ef4444',
-                            600: '#dc2626',
-                            700: '#b91c1c',
-                            800: '#991b1b',
-                            900: '#7f1d1d',
+                            50: '#fdf6e7',
+                            100: '#faeac2',
+                            200: '#f4d58a',
+                            300: '#ecbd55',
+                            400: '#e3a62f',
+                            500: '#e0a526',
+                            600: '#a56a0c',
+                            700: '#85540a',
+                            800: '#664108',
+                            900: '#4d3106',
                         },
                         gray: {
                             50: '#fafafa',
@@ -143,8 +143,37 @@
 
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
         }
+
+
+        /* Boutons partagés */
+        .btn-primary-gold {
+            background-color: #e0a526;
+            color: #0a1724;
+            padding: 0.7rem 1.4rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.15s ease;
+        }
+        .btn-primary-gold:hover { background-color: #cf951a; }
+        .btn-outline-navy {
+            border: 1.5px solid #1d3b57;
+            color: #1d3b57;
+            padding: 0.7rem 1.4rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+        .btn-outline-navy:hover { background-color: #1d3b57; color: #fff; }
+        :focus-visible { outline: 2px solid #1d3b57; outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 
         [x-cloak] {
             display: none !important;
@@ -169,11 +198,11 @@
             color: inherit;
         }
 
-        /* ── Custom Red Style overrides for client-side forms and selects ── */
+        /* ── Style des champs de formulaire for client-side forms and selects ── */
         body:not(.partner-page) select, 
         body:not(.partner-page) textarea,
         body:not(.partner-page) input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]) {
-            border: 1.5px solid #fca5a5 !important; /* solid 1.5px red-300 default border */
+            border: 1.5px solid #c7d4e0 !important; /* bordure par défaut */
             transition: all 0.2s ease-in-out !important;
         }
 
@@ -181,32 +210,32 @@
         body:not(.partner-page) select:hover:not(:focus),
         body:not(.partner-page) textarea:hover:not(:focus),
         body:not(.partner-page) input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):hover:not(:focus) {
-            border-color: #ef4444 !important; /* red-500 */
+            border-color: #94a9bd !important; /* survol */
         }
 
-        /* Focus states: premium crimson red border and glowing focus ring */
+        /* Focus states: bordure marine et anneau de focus */
         body:not(.partner-page) select:focus,
         body:not(.partner-page) textarea:focus,
         body:not(.partner-page) input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):focus {
-            border-color: #dc2626 !important; /* red-600 */
-            --tw-ring-color: #ef4444 !important; /* red-500 */
-            --tw-ring-opacity: 0.35 !important;
+            border-color: #1d3b57 !important; /* focus */
+            --tw-ring-color: #94a9bd !important; /* survol */
+            --tw-ring-opacity: 0.25 !important;
             --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color) !important;
             --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important;
             box-shadow: var(--tw-ring-offset-shadow) var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000) !important;
             outline: none !important;
         }
 
-        /* Checkbox & Radio inputs: red tint & accent-color */
+        /* Checkbox & Radio inputs: couleur d'accent */
         body:not(.partner-page) input[type="checkbox"],
         body:not(.partner-page) input[type="radio"] {
-            accent-color: #dc2626 !important;
+            accent-color: #1d3b57 !important;
         }
 
         body:not(.partner-page) input[type="checkbox"]:focus,
         body:not(.partner-page) input[type="radio"]:focus {
-            --tw-ring-color: #ef4444 !important;
-            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
+            --tw-ring-color: #94a9bd !important;
+            box-shadow: 0 0 0 3px rgba(29, 59, 87, 0.25) !important;
         }
 
         /* ── Espace Partenaire Inputs ── */
@@ -229,9 +258,9 @@
         body.partner-page select:focus,
         body.partner-page textarea:focus,
         body.partner-page input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):focus {
-            border-color: #dc2626 !important; /* red-600 */
-            --tw-ring-color: #ef4444 !important; /* red-500 */
-            --tw-ring-opacity: 0.35 !important;
+            border-color: #1d3b57 !important; /* focus */
+            --tw-ring-color: #94a9bd !important; /* survol */
+            --tw-ring-opacity: 0.25 !important;
             --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color) !important;
             --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important;
             box-shadow: var(--tw-ring-offset-shadow) var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000) !important;
@@ -240,20 +269,20 @@
 
         body.partner-page input[type="checkbox"],
         body.partner-page input[type="radio"] {
-            accent-color: #dc2626 !important; /* red-600 */
+            accent-color: #1d3b57 !important; /* focus */
         }
 
         body.partner-page input[type="checkbox"]:focus,
         body.partner-page input[type="radio"]:focus {
-            --tw-ring-color: #ef4444 !important;
-            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
+            --tw-ring-color: #94a9bd !important;
+            box-shadow: 0 0 0 3px rgba(29, 59, 87, 0.25) !important;
         }
     </style>
     @stack('styles')
 </head>
 
 <body
-    class="antialiased bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-red-400 flex flex-col min-h-screen transition-colors duration-200 {{ request()->is('partner*') || request()->is('dashboard/partner*') ? 'partner-page' : '' }}">
+    class="antialiased bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-200 flex flex-col min-h-screen transition-colors duration-200 {{ request()->is('partner*') || request()->is('dashboard/partner*') ? 'partner-page' : '' }}">
 
     @include('layouts.navigation')
 
