@@ -21,7 +21,7 @@
     <!-- Breadcrumb -->
     <div class="bg-gray-50 border-b border-gray-100 py-3">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav class="flex text-xs text-gray-400 gap-2 items-center">
+            <nav class="flex text-sm text-gray-600 gap-2 items-center">
                 <a href="{{ route('home') }}" class="hover:text-navy-900 flex items-center gap-1">
                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
                     Accueil
@@ -75,16 +75,6 @@
 
             <!-- Right: Product Info -->
             <div class="flex flex-col">
-                <!-- Rating & Feedback -->
-                <div class="flex items-center gap-4 mb-4">
-                    <div class="flex text-gold-500">
-                        @for($i=0; $i<5; $i++)
-                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                        @endfor
-                    </div>
-                    <span class="text-xs font-bold text-navy-900 uppercase tracking-widest">4.7 Star Rating</span>
-                    <span class="text-xs text-gray-400 whitespace-nowrap">(2,350 Retours utilisateurs)</span>
-                </div>
 
                 <!-- Title -->
                 <h1 class="text-2xl lg:text-3xl font-bold text-navy-900 mb-6 leading-tight">{{ $product->name }}</h1>
@@ -92,11 +82,11 @@
                 <!-- Meta Details -->
                 <div class="grid grid-cols-2 gap-y-4 mb-8 text-sm">
                     <div>
-                        <span class="text-gray-400 block mb-1">REF:</span>
+                        <span class="text-gray-600 block mb-1">REF:</span>
                         <span class="font-bold text-navy-900">{{ $product->sku ?: 'IT-'.str_pad($product->id, 5, '0', STR_PAD_LEFT) }}</span>
                     </div>
                     <div>
-                        <span class="text-gray-400 block mb-1">Disponibilité:</span>
+                        <span class="text-gray-600 block mb-1">Disponibilité:</span>
                         @if($product->isPreorderable())
                             <span class="font-bold text-amber-600">En précommande (Disponible le {{ $product->available_at->format('d/m/Y') }})</span>
                         @else
@@ -104,16 +94,16 @@
                         @endif
                     </div>
                     <div>
-                        <span class="text-gray-400 block mb-1">Marque:</span>
+                        <span class="text-gray-600 block mb-1">Marque:</span>
                         <span class="font-bold text-navy-900">{{ $product->brand->name ?? 'IT-HOLDING' }}</span>
                     </div>
                     <div>
-                        <span class="text-gray-400 block mb-1">Catégorie:</span>
+                        <span class="text-gray-600 block mb-1">Catégorie:</span>
                         <span class="font-bold text-navy-900">{{ $product->category->name ?? 'Informatique' }}</span>
                     </div>
                     @if($product->condition)
                     <div>
-                        <span class="text-gray-400 block mb-1">État:</span>
+                        <span class="text-gray-600 block mb-1">État:</span>
                         <span class="font-bold text-navy-900">
                             @switch($product->condition)
                                 @case('new') Neuf @break
@@ -125,7 +115,7 @@
                     </div>
                     @endif
                     <div>
-                        <span class="text-gray-400 block mb-1">Garantie:</span>
+                        <span class="text-gray-600 block mb-1">Garantie:</span>
                         <span class="font-bold text-navy-900">
                             @if($product->warranty_duration_months)
                                 {{ $product->warranty_duration_months }} mois ({{ $product->warranty_duration_months % 12 === 0 ? ($product->warranty_duration_months / 12) . ' an(s)' : $product->warranty_duration_months . ' mois' }})
@@ -153,11 +143,11 @@
             }">
                 <!-- Price -->
                 <div class="flex items-center gap-4 mb-10">
-                    <span class="text-3xl font-black text-gold-500">
+                    <span class="text-3xl font-semibold text-navy-900">
                         <span x-text="totalPrice.toLocaleString('fr-FR')"></span> <span class="text-sm font-bold">CFA</span>
                     </span>
                     @if($product->promo_price && $product->promo_price < $product->price)
-                        <span class="text-xl text-gray-300 line-through">{{ number_format($product->price, 0, ',', ' ') }} CFA</span>
+                        <span class="text-xl text-gray-500 line-through">{{ number_format($product->price, 0, ',', ' ') }} CFA</span>
                         @php
                             $discount = round((($product->price - $product->promo_price) / $product->price) * 100);
                         @endphp
@@ -193,7 +183,7 @@
                         <label class="text-xs font-black text-navy-900 uppercase tracking-widest block italic">
                             Personnalisation de la configuration (Optionnel)
                         </label>
-                        <p class="text-[10px] text-gray-400 font-medium">Spécifiez vos exigences sur mesure (ex: RAM de 32GB, disque de 1To, etc.)</p>
+                        <p class="text-[10px] text-gray-600 font-medium">Spécifiez vos exigences sur mesure (ex: RAM de 32GB, disque de 1To, etc.)</p>
                         <textarea name="customization" rows="2" 
                             placeholder="Ex: Je souhaite ce produit avec 32 Go de RAM et un disque de 1 To SSD." 
                             class="mt-1 w-full border-gray-200 rounded-lg text-xs focus:ring-gold-500 focus:border-gold-500 bg-white placeholder-gray-300"></textarea>
@@ -266,7 +256,7 @@
                     </span>
                     <span class="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
                         <svg class="w-4 h-4 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-                        Expédition 24H
+                        Expédition sous 24 à 48 h
                     </span>
                     @if($product->warranty_duration_months)
                     <span class="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
@@ -281,14 +271,13 @@
         <!-- Tabs Section -->
         <div x-data="{ tab: 'description' }" class="border border-gray-100 rounded-2xl overflow-hidden mb-16">
             <div class="flex bg-gray-50 border-b border-gray-100 overflow-x-auto">
-                <button @click="tab = 'description'" :class="tab === 'description' ? 'bg-white border-b-2 border-gold-500 text-navy-900' : 'text-gray-400 hover:text-navy-900'" class="px-8 py-5 text-xs font-bold uppercase tracking-widest transition-all">Description de l'Article</button>
-                <button @click="tab = 'specs'" :class="tab === 'specs' ? 'bg-white border-b-2 border-gold-500 text-navy-900' : 'text-gray-400 hover:text-navy-900'" class="px-8 py-5 text-xs font-bold uppercase tracking-widest transition-all">Fiche Technique</button>
-                <button @click="tab = 'shipping'" :class="tab === 'shipping' ? 'bg-white border-b-2 border-gold-500 text-navy-900' : 'text-gray-400 hover:text-navy-900'" class="px-8 py-5 text-xs font-bold uppercase tracking-widest transition-all">Livraison & Garanties</button>
-                <button @click="tab = 'reviews'" :class="tab === 'reviews' ? 'bg-white border-b-2 border-gold-500 text-navy-900' : 'text-gray-400 hover:text-navy-900'" class="px-8 py-5 text-xs font-bold uppercase tracking-widest transition-all">Avis Clients</button>
+                <button @click="tab = 'description'" :class="tab === 'description' ? 'bg-white border-b-2 border-gold-500 text-navy-900' : 'text-gray-600 hover:text-navy-900'" class="px-8 py-5 text-xs font-bold uppercase tracking-widest transition-all">Description de l'Article</button>
+                <button @click="tab = 'specs'" :class="tab === 'specs' ? 'bg-white border-b-2 border-gold-500 text-navy-900' : 'text-gray-600 hover:text-navy-900'" class="px-8 py-5 text-xs font-bold uppercase tracking-widest transition-all">Fiche Technique</button>
+                <button @click="tab = 'shipping'" :class="tab === 'shipping' ? 'bg-white border-b-2 border-gold-500 text-navy-900' : 'text-gray-600 hover:text-navy-900'" class="px-8 py-5 text-xs font-bold uppercase tracking-widest transition-all">Livraison & Garanties</button>
             </div>
             <div class="p-8 lg:p-12">
                 <div x-show="tab === 'description'" x-transition class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                    <div class="lg:col-span-2 prose prose-navy max-w-none text-sm leading-8 text-gray-500">
+                    <div class="lg:col-span-2 prose prose-navy max-w-none text-base leading-8 text-gray-700 whitespace-pre-line">
                         <p>{{ $product->description }}</p>
                     </div>
                 </div>
@@ -325,7 +314,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div x-show="tab === 'shipping'" x-transition class="max-w-3xl text-sm leading-8 text-gray-500 space-y-4">
+                <div x-show="tab === 'shipping'" x-transition class="max-w-3xl text-base leading-8 text-gray-700 space-y-4">
                     <h4 class="font-bold text-navy-900 uppercase tracking-tighter italic">Garantie Client</h4>
                     <p>Ce produit bénéficie d'une garantie de <strong class="text-navy-900">{{ $product->warranty_duration_months ?? 12 }} mois</strong> (soit {{ ($product->warranty_duration_months ?? 12) % 12 === 0 ? (($product->warranty_duration_months ?? 12) / 12) . ' an(s)' : ($product->warranty_duration_months ?? 12) . ' mois' }}) à compter de la date d'achat.</p>
                     <h4 class="font-bold text-navy-900 uppercase tracking-tighter italic mt-6">Livraison & Expédition</h4>
@@ -338,7 +327,7 @@
         <div class="space-y-8">
             <h3 class="text-xl font-bold text-navy-900 uppercase tracking-tighter italic">Recommandations pour vous</h3>
             @php
-                $relatedProducts = \App\Models\Product::where('category_id', $product->category_id)->where('id', '!=', $product->id)->take(4)->get();
+                $relatedProducts = \App\Models\Product::where('category_id', $product->category_id)->where('id', '!=', $product->id)->where('active', true)->take(4)->get();
             @endphp
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

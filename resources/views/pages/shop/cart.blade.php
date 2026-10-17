@@ -7,7 +7,7 @@
     <!-- Breadcrumb -->
     <div class="bg-white border-b border-gray-100 py-3 mb-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav class="flex text-xs text-gray-400 gap-2 items-center">
+            <nav class="flex text-sm text-gray-600 gap-2 items-center">
                 <a href="{{ route('home') }}" class="hover:text-navy-900 flex items-center gap-1">
                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
                     Accueil
@@ -36,12 +36,12 @@
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
-                            <thead class="bg-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 italic">
+                            <thead class="bg-gray-50 text-[10px] font-bold text-gray-600 uppercase tracking-widest border-b border-gray-100 italic">
                                 <tr>
-                                    <th class="px-6 py-4">Produit</th>
-                                    <th class="px-6 py-4 text-center">Prix</th>
-                                    <th class="px-6 py-4 text-center">Quantité</th>
-                                    <th class="px-6 py-4 text-right">Sous-Total</th>
+                                    <th class="px-3 sm:px-6 py-3 sm:py-4">Produit</th>
+                                    <th class="hidden sm:table-cell px-3 sm:px-6 py-3 sm:py-4 text-center">Prix</th>
+                                    <th class="px-3 sm:px-6 py-3 sm:py-4 text-center">Quantité</th>
+                                    <th class="px-3 sm:px-6 py-3 sm:py-4 text-right">Sous-Total</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -59,17 +59,17 @@
                                             : asset('logo.jpeg');
                                     @endphp
                                     <tr class="group hover:bg-gray-50/50 transition-all duration-200">
-                                        <td class="px-6 py-8">
-                                            <div class="flex items-center gap-6">
-                                                <button type="button" onclick="removeFromCart('{{ $id }}')" class="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all">
+                                        <td class="px-3 sm:px-6 py-5 sm:py-8">
+                                            <div class="flex items-center gap-3 sm:gap-6">
+                                                <button type="button" onclick="removeFromCart('{{ $id }}')" class="p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full transition-all">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                                 </button>
                                                 <div class="flex items-center gap-4">
-                                                    <div class="w-20 h-20 bg-gray-50 rounded-lg flex-shrink-0 flex items-center justify-center p-2 border border-gray-100">
+                                                    <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-50 rounded-lg flex-shrink-0 flex items-center justify-center p-2 border border-gray-100">
                                                         <img src="{{ $cartImgUrl }}" alt="{{ $details['name'] }}" class="max-h-full max-w-full object-contain">
                                                     </div>
                                                     <div>
-                                                        <a href="{{ route('shop.show', $details['slug'] ?? '#') }}" class="text-sm font-bold text-navy-900 hover:text-gold-500 transition-colors line-clamp-2">{{ $details['name'] }}</a>
+                                                        <a href="{{ route('shop.show', $details['slug'] ?? '#') }}" class="text-sm font-bold text-navy-900 hover:text-gold-600 transition-colors line-clamp-2">{{ $details['name'] }}</a>
                                                         
                                                         @if(!empty($details['options']))
                                                             <div class="mt-1.5 text-xs text-gray-500 font-medium space-y-1">
@@ -86,7 +86,7 @@
                                                             </div>
                                                         @endif
 
-                                                        <span class="text-[10px] text-gray-400 uppercase tracking-widest block mt-1">Ref: #IT-{{ str_pad($productId, 5, '0', STR_PAD_LEFT) }}</span>
+                                                        <span class="text-[10px] text-gray-600 uppercase tracking-widest block mt-1">Ref: #IT-{{ str_pad($productId, 5, '0', STR_PAD_LEFT) }}</span>
                                                         
                                                         @if($product && $product->isPreorderable())
                                                             <div class="mt-1.5">
@@ -108,25 +108,25 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-8 text-center">
+                                        <td class="hidden sm:table-cell px-3 sm:px-6 py-5 sm:py-8 text-center">
                                             <div class="flex flex-col items-center gap-0.5">
                                                 @if($isWholesale)
                                                     @php
                                                         $originalPrice = $product->promo_price && $product->promo_price > 0 && $product->promo_price < $product->price ? $product->promo_price : $product->price;
                                                     @endphp
-                                                    <span class="text-xs text-gray-300 line-through font-medium">{{ number_format($originalPrice, 0, ',', ' ') }} CFA</span>
+                                                    <span class="text-xs text-gray-500 line-through font-medium">{{ number_format($originalPrice, 0, ',', ' ') }} CFA</span>
                                                 @endif
                                                 <span class="text-sm font-bold text-navy-800">{{ number_format($details['price'], 0, ',', ' ') }} <span class="text-[10px]">CFA</span></span>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-8 text-center">
+                                        <td class="px-3 sm:px-6 py-5 sm:py-8 text-center">
                                             <div class="inline-flex items-center border border-gray-200 rounded-lg p-1 bg-white mx-auto">
                                                 <button type="button" onclick="updateQuantity('{{ $id }}', -1)" class="w-8 h-8 flex items-center justify-center text-navy-900 hover:bg-gray-50 rounded transition-colors">-</button>
                                                 <input type="number" id="quantity-{{ $id }}" value="{{ $details['quantity'] }}" readonly class="w-10 text-center border-none bg-transparent font-bold focus:ring-0 text-sm text-navy-900">
                                                 <button type="button" onclick="updateQuantity('{{ $id }}', 1)" class="w-8 h-8 flex items-center justify-center text-navy-900 hover:bg-gray-50 rounded transition-colors">+</button>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-8 text-right">
+                                        <td class="px-3 sm:px-6 py-5 sm:py-8 text-right">
                                             <span class="text-sm font-black text-navy-900">{{ number_format($details['price'] * $details['quantity'], 0, ',', ' ') }} <span class="text-[10px]">CFA</span></span>
                                         </td>
                                     </tr>
@@ -135,10 +135,10 @@
                                         <td colspan="4" class="px-6 py-20 text-center">
                                             <div class="flex flex-col items-center">
                                                 <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                                                    <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                                                    <svg class="w-10 h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                                                 </div>
                                                 <h3 class="text-lg font-bold text-navy-900 italic uppercase">Votre panier est vide</h3>
-                                                <p class="text-sm text-gray-400 mt-2 mb-8">Découvrez nos derniers produits informatiques premium.</p>
+                                                <p class="text-sm text-gray-600 mt-2 mb-8">Découvrez nos derniers produits informatiques premium.</p>
                                                 <a href="{{ route('shop.index') }}" class="btn-primary-gold px-10 py-3 uppercase tracking-widest text-[10px]">Découvrir la Boutique</a>
                                             </div>
                                         </td>
@@ -179,7 +179,7 @@
                     
                     <div class="space-y-4 mb-8">
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-400">Sous-total</span>
+                            <span class="text-gray-600">Sous-total</span>
                             <span class="font-bold text-navy-900">{{ number_format($total, 0, ',', ' ') }} CFA</span>
                         </div>
                         @if($promoCode)
@@ -189,7 +189,7 @@
                         </div>
                         @endif
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-400">Livraison</span>
+                            <span class="text-gray-600">Livraison</span>
                             <span class="font-bold text-green-600">Gratuit</span>
                         </div>
                         
@@ -202,17 +202,17 @@
                         
                         @if(Session::get('apply_tva', false))
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-400">Taxe / TVA (18%)</span>
+                            <span class="text-gray-600">Taxe / TVA (18%)</span>
                             <span class="font-bold text-navy-900">{{ number_format($discountedSubtotal * 0.18, 0, ',', ' ') }} CFA</span>
                         </div>
                         <div class="border-t border-gray-50 pt-4 mt-4 flex justify-between items-end">
-                            <span class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Total TTC</span>
-                            <span class="text-2xl font-black text-gold-500">{{ number_format($discountedSubtotal * 1.18, 0, ',', ' ') }} <span class="text-xs">CFA</span></span>
+                            <span class="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Total TTC</span>
+                            <span class="text-2xl font-semibold text-navy-900">{{ number_format($discountedSubtotal * 1.18, 0, ',', ' ') }} <span class="text-xs">CFA</span></span>
                         </div>
                         @else
                         <div class="border-t border-gray-50 pt-4 mt-4 flex justify-between items-end">
-                            <span class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Total</span>
-                            <span class="text-2xl font-black text-gold-500">{{ number_format($discountedSubtotal, 0, ',', ' ') }} <span class="text-xs">CFA</span></span>
+                            <span class="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Total</span>
+                            <span class="text-2xl font-semibold text-navy-900">{{ number_format($discountedSubtotal, 0, ',', ' ') }} <span class="text-xs">CFA</span></span>
                         </div>
                         @endif
                     </div>
