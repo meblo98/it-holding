@@ -173,6 +173,20 @@
         }
         .btn-outline-navy:hover { background-color: #1d3b57; color: #fff; }
         :focus-visible { outline: 2px solid #1d3b57; outline-offset: 2px; }
+
+        /* Lisibilité sur tout le site public : pas de majuscules forcées, pas d'italique,
+           pas de texte minuscule, champs de saisie en noir. */
+        .uppercase { text-transform: none !important; }
+        .italic { font-style: normal !important; }
+        [class*="tracking-widest"], [class*="tracking-wider"], [class*="tracking-tighter"], [class*="tracking-["] { letter-spacing: normal !important; }
+        .font-black { font-weight: 600 !important; }
+        .text-\[8px\], .text-\[9px\] { font-size: 0.75rem !important; line-height: 1rem !important; }
+        .text-\[10px\] { font-size: 0.8125rem !important; line-height: 1.15rem !important; }
+        .text-\[11px\] { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+        input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=submit]):not([type=button]):not([type=file]):not([type=range]),
+        textarea, select { color: #000 !important; border-color: #94a9bd; }
+        input::placeholder, textarea::placeholder { color: #6b7280 !important; opacity: 1; }
+        input:not([type=checkbox]):not([type=radio]):focus, textarea:focus, select:focus { border-color: #1d3b57 !important; }
         @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 
         [x-cloak] {
