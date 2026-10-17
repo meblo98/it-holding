@@ -3,361 +3,291 @@
 @section('title', 'Boutique Informatique - ' . config('app.name'))
 
 @section('content')
-<div class="bg-white min-h-screen">
-    <!-- Breadcrumb -->
-    <div class="bg-gray-50 border-b border-gray-100 py-3">
+@php
+    $hasFilters = request()->anyFilled(['category_id', 'brand_id', 'condition', 'price_min', 'price_max']);
+    $keep = request()->except(['page']);
+    $chip = 'inline-flex items-center gap-2 bg-navy-50 border border-navy-200 px-3 py-1.5 rounded-full text-sm text-navy-900';
+    $closeIcon = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+    $field = 'w-full border border-navy-300 rounded-md text-base text-black bg-white py-2.5 px-3 focus:ring-2 focus:ring-gold-500 focus:border-navy-600 placeholder-gray-500';
+    $conditionLabel = fn ($c) => match ($c) { 'new' => 'Neuf', 'reconditioned' => 'Reconditionné', 'second_hand' => 'Seconde main', default => ucfirst(str_replace('_', ' ', $c)) };
+@endphp
+<div class="bg-white">
+    <!-- Fil d'Ariane -->
+    <div class="bg-navy-50 border-b border-navy-100 py-3">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav class="flex text-xs text-gray-400 gap-2 items-center">
-                <a href="{{ route('home') }}" class="hover:text-navy-900 flex items-center gap-1">
-                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
-                    Accueil
-                </a>
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                <span class="text-navy-900 font-bold">Boutique</span>
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                <span class="text-gold-600 font-medium truncate">Matériel Informatique</span>
+            <nav class="flex text-sm text-navy-500 gap-2 items-center" aria-label="Fil d'Ariane">
+                <a href="{{ route('home') }}" class="hover:text-navy-900">Accueil</a>
+                <span aria-hidden="true">/</span>
+                <span class="text-navy-900 font-semibold">Boutique</span>
             </nav>
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 class="text-2xl sm:text-3xl font-semibold text-navy-900 tracking-tight mb-6">Boutique</h1>
+
         <div x-data="{ showFilters: false }" class="flex flex-col lg:flex-row gap-8">
-            <!-- Mobile Filters Toggle -->
+
+            <!-- Bouton filtres (mobile) -->
             <button @click="showFilters = !showFilters" type="button"
-                class="lg:hidden w-full flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-xs font-bold text-navy-900 uppercase tracking-widest">
+                class="lg:hidden w-full flex items-center justify-between bg-white border border-navy-300 rounded-md px-4 py-3 text-base font-semibold text-navy-900">
                 <span class="flex items-center gap-2">
-                    <svg class="w-4 h-4 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 01.8 1.6l-6.3 8.4v5.6a1 1 0 01-1.45.9l-4-2A1 1 0 019 16.8V13L2.7 5.6A1 1 0 013 4z"/></svg>
-                    Filtres
-                    @if(request()->anyFilled(['category_id', 'brand_id', 'condition', 'price_min', 'price_max']))
-                        <span class="w-1.5 h-1.5 rounded-full bg-gold-500"></span>
-                    @endif
+                    Catégories et filtres
+                    @if($hasFilters)<span class="w-2 h-2 rounded-full bg-gold-500"></span>@endif
                 </span>
-                <svg class="w-4 h-4 transition-transform duration-200" :class="{'rotate-180': showFilters}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <svg class="w-5 h-5 transition-transform duration-200" :class="{'rotate-180': showFilters}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
 
-            <!-- Sidebar Filters -->
-            <aside :class="showFilters ? 'block' : 'hidden'" class="lg:block w-full lg:w-64 flex-shrink-0 space-y-8">
-                <form action="{{ route('shop.index') }}" method="GET" class="space-y-8">
+            <!-- Colonne de gauche -->
+            <aside :class="showFilters ? 'block' : 'hidden'" class="lg:block w-full lg:w-72 flex-shrink-0 space-y-8">
+
+                <!-- Catégories -->
+                <div>
+                    <h2 class="text-base font-semibold text-navy-900 mb-3">Catégories</h2>
+                    <ul class="border border-navy-200 rounded-md divide-y divide-navy-100 bg-white">
+                        <li>
+                            <a href="{{ route('shop.index', request()->except(['category_id', 'page'])) }}"
+                               class="block px-4 py-3 text-base {{ request('category_id') ? 'text-navy-700 hover:bg-navy-50' : 'bg-navy-900 text-white font-semibold rounded-t-md' }}">
+                                Toutes les catégories
+                            </a>
+                        </li>
+                        @foreach ($categories ?? [] as $cat)
+                            @php
+                                $isActiveRoot = request('category_id') == $cat->id;
+                                $childActive = $cat->children->contains('id', (int) request('category_id'));
+                            @endphp
+                            <li x-data="{ open: {{ ($isActiveRoot || $childActive) ? 'true' : 'false' }} }">
+                                <div class="flex items-stretch {{ $isActiveRoot ? 'bg-gold-100' : '' }}">
+                                    <a href="{{ route('shop.index', $keep + ['category_id' => $cat->id]) }}"
+                                       class="flex-1 px-4 py-3 text-base {{ $isActiveRoot ? 'font-semibold text-navy-900' : 'text-navy-800 hover:bg-navy-50' }}">
+                                        {{ $cat->name }}
+                                    </a>
+                                    @if($cat->children->count())
+                                        <button type="button" @click="open = !open" class="px-4 text-navy-600 hover:bg-navy-50" aria-label="Afficher les sous-catégories de {{ $cat->name }}">
+                                            <svg class="w-4 h-4 transition-transform duration-200" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                        </button>
+                                    @endif
+                                </div>
+                                @if($cat->children->count())
+                                    <ul x-show="open" x-cloak class="bg-navy-50 py-1">
+                                        @foreach($cat->children as $child)
+                                            <li>
+                                                <a href="{{ route('shop.index', $keep + ['category_id' => $child->id]) }}"
+                                                   class="block pl-8 pr-4 py-2 text-[15px] {{ request('category_id') == $child->id ? 'font-semibold text-navy-900 border-l-4 border-gold-500 pl-7' : 'text-navy-700 hover:text-navy-900' }}">
+                                                    {{ $child->name }}
+                                                </a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+
+                <!-- Filtres -->
+                <form action="{{ route('shop.index') }}" method="GET" class="space-y-6">
                     @if(request('search'))<input type="hidden" name="search" value="{{ request('search') }}">@endif
                     @if(request('blackfriday'))<input type="hidden" name="blackfriday" value="{{ request('blackfriday') }}">@endif
+                    @if(request('category_id'))<input type="hidden" name="category_id" value="{{ request('category_id') }}">@endif
+                    @if(request('sort'))<input type="hidden" name="sort" value="{{ request('sort') }}">@endif
 
-                    <!-- Category Filter (dropdown with subcategories) -->
-                    <div>
-                        <h3 class="text-xs font-bold text-navy-900 uppercase tracking-widest mb-4 italic">Catégorie</h3>
-                        <select name="category_id" class="w-full border-gray-200 rounded-lg text-sm py-2.5 px-3 focus:ring-gold-500 focus:border-gold-500 bg-white">
-                            <option value="">Toutes les catégories</option>
-                            @foreach ($categories ?? [] as $cat)
-                                <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
-                                @foreach ($cat->children as $child)
-                                    <option value="{{ $child->id }}" {{ request('category_id') == $child->id ? 'selected' : '' }}>&nbsp;&nbsp;&nbsp;└ {{ $child->name }}</option>
-                                @endforeach
-                            @endforeach
-                        </select>
-                    </div>
+                    <h2 class="text-base font-semibold text-navy-900">Filtrer</h2>
 
-                    <!-- Condition Filter -->
                     @if(isset($conditions) && $conditions->count() > 0)
                     <div>
-                        <h3 class="text-xs font-bold text-navy-900 uppercase tracking-widest mb-4 italic">État</h3>
-                        <select name="condition" class="w-full border-gray-200 rounded-lg text-sm py-2.5 px-3 focus:ring-gold-500 focus:border-gold-500 bg-white">
+                        <label for="f-condition" class="block text-sm font-semibold text-navy-900 mb-2">État</label>
+                        <select id="f-condition" name="condition" class="{{ $field }}">
                             <option value="">Tous les états</option>
                             @foreach ($conditions as $cond)
-                                <option value="{{ $cond }}" {{ request('condition') == $cond ? 'selected' : '' }}>
-                                    @switch($cond)
-                                        @case('new') Neuf @break
-                                        @case('reconditioned') Reconditionné @break
-                                        @case('second_hand') Seconde main @break
-                                        @default {{ ucfirst(str_replace('_', ' ', $cond)) }}
-                                    @endswitch
-                                </option>
+                                <option value="{{ $cond }}" {{ request('condition') == $cond ? 'selected' : '' }}>{{ $conditionLabel($cond) }}</option>
                             @endforeach
                         </select>
                     </div>
                     @endif
 
-                    <!-- Price Range -->
                     <div>
-                        <h3 class="text-xs font-bold text-navy-900 uppercase tracking-widest mb-4 italic">Gamme de Prix</h3>
+                        <span class="block text-sm font-semibold text-navy-900 mb-2">Prix (FCFA)</span>
                         <div class="flex items-center gap-2">
-                            <input type="number" min="0" name="price_min" value="{{ request('price_min') }}" placeholder="Min" class="w-full border-gray-200 rounded text-xs py-1.5 px-2 bg-gray-50/50 focus:ring-gold-500 focus:border-gold-500">
-                            <span class="text-gray-300 text-xs">–</span>
-                            <input type="number" min="0" name="price_max" value="{{ request('price_max') }}" placeholder="Max" class="w-full border-gray-200 rounded text-xs py-1.5 px-2 bg-gray-50/50 focus:ring-gold-500 focus:border-gold-500">
+                            <input type="number" min="0" name="price_min" value="{{ request('price_min') }}" placeholder="Min" aria-label="Prix minimum" class="{{ $field }}">
+                            <span class="text-navy-500">à</span>
+                            <input type="number" min="0" name="price_max" value="{{ request('price_max') }}" placeholder="Max" aria-label="Prix maximum" class="{{ $field }}">
                         </div>
                     </div>
 
-                    <!-- Popular Brands -->
-                    <div>
-                        <h3 class="text-xs font-bold text-navy-900 uppercase tracking-widest mb-4 italic">Marques Populaires</h3>
-                        <div class="grid grid-cols-2 gap-y-2">
-                            @foreach ($brands ?? [] as $b)
-                                <label class="flex items-center gap-2 text-xs text-gray-500 cursor-pointer hover:text-navy-900">
-                                    <input type="checkbox" name="brand_id[]" value="{{ $b->id }}" {{ in_array($b->id, (array) request('brand_id', [])) ? 'checked' : '' }} class="rounded text-gold-500 focus:ring-gold-500 h-3.5 w-3.5 border-gray-300">
+                    @if(count($brands ?? []))
+                    <fieldset>
+                        <legend class="text-sm font-semibold text-navy-900 mb-2">Marques</legend>
+                        <div class="grid grid-cols-2 gap-x-3 gap-y-2.5">
+                            @foreach ($brands as $b)
+                                <label class="flex items-center gap-2 text-[15px] text-navy-800 cursor-pointer">
+                                    <input type="checkbox" name="brand_id[]" value="{{ $b->id }}" {{ in_array($b->id, (array) request('brand_id', [])) ? 'checked' : '' }} class="rounded text-navy-900 focus:ring-gold-500 h-5 w-5 border-navy-300">
                                     {{ $b->name }}
                                 </label>
                             @endforeach
                         </div>
-                    </div>
+                    </fieldset>
+                    @endif
 
-                    <div class="space-y-2">
-                        <button type="submit" class="w-full btn-primary-gold py-3 text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                            Rechercher
-                        </button>
-                        @if(request()->anyFilled(['category_id', 'brand_id', 'condition', 'price_min', 'price_max']))
-                            <a href="{{ route('shop.index', request()->only('search')) }}" class="block text-center text-[10px] font-bold text-gray-400 hover:text-red-500 uppercase tracking-widest">Réinitialiser les filtres</a>
+                    <div class="space-y-3">
+                        <button type="submit" class="w-full btn-primary-gold justify-center py-3 text-base">Appliquer les filtres</button>
+                        @if($hasFilters)
+                            <a href="{{ route('shop.index', request()->only(['search'])) }}" class="block text-center text-sm font-semibold text-navy-600 hover:text-navy-900 underline">Réinitialiser les filtres</a>
                         @endif
                     </div>
                 </form>
 
-                <!-- Tags -->
-                <div>
-                    <h3 class="text-xs font-bold text-navy-900 uppercase tracking-widest mb-4 italic">Mots-clés</h3>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="px-3 py-1 bg-gray-50 text-[10px] font-bold text-navy-800 rounded border border-gray-100 hover:border-gold-300 transition-all cursor-pointer">GAMING</span>
-                        <span class="px-3 py-1 bg-gray-50 text-[10px] font-bold text-navy-800 rounded border border-gray-100 hover:border-gold-300 transition-all cursor-pointer">OFFICE</span>
-                        <span class="px-3 py-1 bg-gray-50 text-[10px] font-bold text-navy-800 rounded border border-gray-100 hover:border-gold-300 transition-all cursor-pointer">IPHONE</span>
-                        <span class="px-3 py-1 bg-navy-900 text-[10px] font-bold text-white rounded cursor-pointer">MATÉRIEL</span>
-                        <span class="px-3 py-1 bg-gray-50 text-[10px] font-bold text-navy-800 rounded border border-gray-100 hover:border-gold-300 transition-all cursor-pointer">SSD</span>
-                        <span class="px-3 py-1 bg-gray-50 text-[10px] font-bold text-navy-800 rounded border border-gray-100 hover:border-gold-300 transition-all cursor-pointer">TABLETTE</span>
-                    </div>
-                </div>
-
-                <!-- Bon Plan Banner -->
+                <!-- Dernier arrivage / bon plan -->
                 @if(isset($promoProduct))
-                <div class="relative rounded-xl overflow-hidden group ring-2 ring-red-500/70">
-                    @php
-                        $promoRawPath = $promoProduct->image ?: $promoProduct->images->first()->path ?? null;
-                        $promoImgPath = $promoRawPath ? preg_replace('#^(/?storage/)#', '', $promoRawPath) : null;
-                        $promoImgUrl = ($promoImgPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($promoImgPath)) 
-                            ? '/storage/' . ltrim($promoImgPath, '/') 
-                            : ($promoRawPath ?: asset('logo.jpeg'));
-                    @endphp
-                    <img src="{{ $promoImgUrl }}" class="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-700">
-                    <div class="absolute inset-0 bg-gradient-to-t from-red-700 via-red-700/75 to-red-700/10 p-6 flex flex-col justify-end items-center text-center">
-                        <span class="bg-white text-red-600 text-[10px] font-black uppercase tracking-[0.2em] mb-3 px-3 py-1 rounded-full">
-                            {{ $promoProduct->promo_price ? 'Bon Plan' : 'Dernier Arrivage' }}
-                        </span>
-                        <h4 class="text-white font-black italic uppercase text-sm leading-tight mb-2 line-clamp-2">
-                            {{ $promoProduct->name }}
-                        </h4>
-                        <p class="text-red-50 text-[10px] mb-4 italic line-clamp-2">
-                            {{ strip_tags($promoProduct->description) }}
-                        </p>
-                        <div class="text-white font-bold text-sm mb-4">
-                            @if($promoProduct->promo_price && $promoProduct->promo_price < $promoProduct->price)
-                                <span class="text-white text-base">{{ number_format($promoProduct->promo_price, 0, ',', ' ') }} CFA</span>
-                                <span class="text-xs line-through text-red-200 ml-2">{{ number_format($promoProduct->price, 0, ',', ' ') }} CFA</span>
-                            @else
-                                <span class="text-white text-base">{{ number_format($promoProduct->price, 0, ',', ' ') }} CFA</span>
-                            @endif
-                        </div>
-                        <a href="{{ route('shop.show', $promoProduct->slug) }}" class="bg-white text-red-600 hover:bg-red-50 font-black py-2 px-6 rounded-lg text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors w-fit">
-                            Acheter Maintenant
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                        </a>
+                @php
+                    $promoRawPath = $promoProduct->image ?: $promoProduct->images->first()->path ?? null;
+                    $promoImgPath = $promoRawPath ? preg_replace('#^(/?storage/)#', '', $promoRawPath) : null;
+                    $promoImgUrl = ($promoImgPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($promoImgPath))
+                        ? '/storage/' . ltrim($promoImgPath, '/')
+                        : ($promoRawPath ?: asset('logo.jpeg'));
+                @endphp
+                <div class="rounded-lg bg-gold-500 text-navy-900 p-5">
+                    <span class="inline-block bg-navy-900 text-white text-sm font-semibold px-3 py-1 rounded-full mb-4">
+                        {{ $promoProduct->promo_price ? 'Bon plan' : 'Dernier arrivage' }}
+                    </span>
+                    <div class="bg-white rounded-md p-4 mb-4">
+                        <img src="{{ $promoImgUrl }}" alt="{{ $promoProduct->name }}" class="w-full h-44 object-contain">
                     </div>
+                    <h3 class="font-semibold text-lg leading-snug line-clamp-2 mb-2">{{ $promoProduct->name }}</h3>
+                    <p class="text-base font-bold mb-4">
+                        @if($promoProduct->promo_price && $promoProduct->promo_price < $promoProduct->price)
+                            {{ number_format($promoProduct->promo_price, 0, ',', ' ') }} CFA
+                            <span class="text-sm font-medium line-through opacity-70 ml-2">{{ number_format($promoProduct->price, 0, ',', ' ') }} CFA</span>
+                        @else
+                            {{ number_format($promoProduct->price, 0, ',', ' ') }} CFA
+                        @endif
+                    </p>
+                    <a href="{{ route('shop.show', $promoProduct->slug) }}" class="block text-center bg-navy-900 text-white font-semibold py-3 rounded-md hover:bg-navy-700 transition-colors">Voir le produit</a>
                 </div>
                 @endif
             </aside>
 
-            <!-- Main Content Area -->
-            <main class="flex-1">
-                <!-- Header Filters -->
-                <div class="bg-gray-50/50 border border-gray-100 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
-                    <form action="{{ route('shop.index') }}" method="GET" class="relative w-full md:w-96">
-                        @if(request('category_id'))
-                            <input type="hidden" name="category_id" value="{{ request('category_id') }}">
-                        @endif
-                        @foreach((array) request('brand_id', []) as $bid)
-                            <input type="hidden" name="brand_id[]" value="{{ $bid }}">
-                        @endforeach
-                        @if(request('condition'))
-                            <input type="hidden" name="condition" value="{{ request('condition') }}">
-                        @endif
-                        @if(request('blackfriday'))
-                            <input type="hidden" name="blackfriday" value="{{ request('blackfriday') }}">
-                        @endif
-                        @if(request('price_min'))
-                            <input type="hidden" name="price_min" value="{{ request('price_min') }}">
-                        @endif
-                        @if(request('price_max'))
-                            <input type="hidden" name="price_max" value="{{ request('price_max') }}">
-                        @endif
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Rechercher un produit..." class="w-full border-gray-200 rounded-lg py-2.5 pl-4 pr-12 text-sm focus:ring-gold-500 focus:border-gold-500">
-                        <div class="absolute right-3 top-2.5 flex items-center gap-2">
-                            @if(request('search'))
-                                <a href="{{ route('shop.index', request()->except('search')) }}" class="text-gray-400 hover:text-red-500" title="Effacer la recherche">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                </a>
-                            @endif
-                            <button type="submit" class="text-gray-400 hover:text-navy-900">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                            </button>
-                        </div>
-                    </form>
-                    <div class="flex items-center gap-4 text-xs">
-                        <span class="text-gray-400 font-bold uppercase tracking-widest italic">Trier par:</span>
-                        <select class="border-gray-200 rounded-lg py-2 px-4 focus:ring-gold-500 focus:border-gold-500 text-navy-900 font-bold">
-                            <option>Plus populaires</option>
-                            <option>Prix croissant</option>
-                            <option>Prix décroissant</option>
+            <!-- Contenu -->
+            <main class="flex-1 min-w-0">
+                <!-- Recherche et tri -->
+                <form action="{{ route('shop.index') }}" method="GET" class="flex flex-col md:flex-row gap-3 mb-6">
+                    @foreach(request()->only(['category_id', 'condition', 'blackfriday', 'price_min', 'price_max']) as $k => $v)
+                        @if($v !== null && $v !== '')<input type="hidden" name="{{ $k }}" value="{{ $v }}">@endif
+                    @endforeach
+                    @foreach((array) request('brand_id', []) as $bid)
+                        <input type="hidden" name="brand_id[]" value="{{ $bid }}">
+                    @endforeach
+                    <div class="relative flex-1">
+                        <label for="shop-search" class="sr-only">Rechercher un produit</label>
+                        <input id="shop-search" type="search" name="search" value="{{ request('search') }}" placeholder="Rechercher un produit" class="{{ $field }} pr-12 py-3">
+                        <button type="submit" aria-label="Lancer la recherche" class="absolute right-0 top-0 h-full px-4 text-navy-700 hover:text-navy-900">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="shop-sort" class="text-sm font-semibold text-navy-900 whitespace-nowrap">Trier par</label>
+                        <select id="shop-sort" name="sort" onchange="this.form.submit()" class="{{ $field }} py-3 md:w-52">
+                            <option value="">Pertinence</option>
+                            <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>Nouveautés</option>
+                            <option value="price_asc" {{ request('sort') == 'price_asc' ? 'selected' : '' }}>Prix croissant</option>
+                            <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>Prix décroissant</option>
                         </select>
                     </div>
-                </div>
+                </form>
 
-                <!-- Active Filters -->
-                <div class="flex flex-wrap items-center gap-3 mb-8">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">Filtres actifs:</span>
-                    @if(request('category_id'))
-                        @php
-                            $selectedCat = \App\Models\Category::find(request('category_id'));
-                        @endphp
-                        @if($selectedCat)
-                        <div class="flex items-center gap-2 bg-navy-50 border border-navy-100 px-3 py-1 rounded text-[10px] font-bold text-navy-900 group">
-                            Catégorie: {{ $selectedCat->name }}
-                            <a href="{{ route('shop.index', request()->except('category_id')) }}" class="hover:text-red-500 transition-colors">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </a>
-                        </div>
-                        @endif
-                    @else
-                        <div class="flex items-center gap-2 bg-navy-50 border border-navy-100 px-3 py-1 rounded text-[10px] font-bold text-navy-900 group">
-                            Matériel Informatique
-                            <a href="{{ route('shop.index') }}" class="hover:text-red-500 transition-colors">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </a>
-                        </div>
+                <!-- Filtres actifs -->
+                <div class="flex flex-wrap items-center gap-2 mb-6">
+                    @if(request('category_id') && ($selectedCat = \App\Models\Category::find(request('category_id'))))
+                        <span class="{{ $chip }}">{{ $selectedCat->name }}
+                            <a href="{{ route('shop.index', request()->except(['category_id', 'page'])) }}" aria-label="Retirer la catégorie" class="hover:text-red-600">{!! $closeIcon !!}</a>
+                        </span>
                     @endif
-                    
                     @if(request('condition'))
-                    <div class="flex items-center gap-2 bg-navy-50 border border-navy-100 px-3 py-1 rounded text-[10px] font-bold text-navy-900 group">
-                        État: 
-                        @switch(request('condition'))
-                            @case('new') Neuf @break
-                            @case('reconditioned') Reconditionné @break
-                            @case('second_hand') Seconde main @break
-                            @default {{ ucfirst(str_replace('_', ' ', request('condition'))) }}
-                        @endswitch
-                        <a href="{{ request()->fullUrlWithQuery(['condition' => null]) }}" class="hover:text-red-500 transition-colors">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </a>
-                    </div>
+                        <span class="{{ $chip }}">{{ $conditionLabel(request('condition')) }}
+                            <a href="{{ request()->fullUrlWithQuery(['condition' => null, 'page' => null]) }}" aria-label="Retirer l'état" class="hover:text-red-600">{!! $closeIcon !!}</a>
+                        </span>
                     @endif
-
                     @if(request('search'))
-                    <div class="flex items-center gap-2 bg-navy-50 border border-navy-100 px-3 py-1 rounded text-[10px] font-bold text-navy-900 group">
-                        Recherche: "{{ request('search') }}"
-                        <a href="{{ route('shop.index', request()->except('search')) }}" class="hover:text-red-500 transition-colors">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </a>
-                    </div>
+                        <span class="{{ $chip }}">« {{ request('search') }} »
+                            <a href="{{ route('shop.index', request()->except(['search', 'page'])) }}" aria-label="Effacer la recherche" class="hover:text-red-600">{!! $closeIcon !!}</a>
+                        </span>
                     @endif
-
                     @if(request('price_min') || request('price_max'))
-                    <div class="flex items-center gap-2 bg-navy-50 border border-navy-100 px-3 py-1 rounded text-[10px] font-bold text-navy-900 group">
-                        Prix: {{ request('price_min') ? number_format(request('price_min'), 0, ',', ' ') . ' CFA' : '0' }} – {{ request('price_max') ? number_format(request('price_max'), 0, ',', ' ') . ' CFA' : '∞' }}
-                        <a href="{{ route('shop.index', request()->except(['price_min', 'price_max'])) }}" class="hover:text-red-500 transition-colors">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </a>
-                    </div>
+                        <span class="{{ $chip }}">{{ request('price_min') ? number_format(request('price_min'), 0, ',', ' ') : '0' }} – {{ request('price_max') ? number_format(request('price_max'), 0, ',', ' ') : '∞' }} CFA
+                            <a href="{{ route('shop.index', request()->except(['price_min', 'price_max', 'page'])) }}" aria-label="Retirer le prix" class="hover:text-red-600">{!! $closeIcon !!}</a>
+                        </span>
                     @endif
-
                     @foreach((array) request('brand_id', []) as $bid)
                         @php $activeBrand = ($brands ?? collect())->firstWhere('id', (int) $bid); @endphp
                         @if($activeBrand)
-                        <div class="flex items-center gap-2 bg-navy-50 border border-navy-100 px-3 py-1 rounded text-[10px] font-bold text-navy-900 group">
-                            Marque: {{ $activeBrand->name }}
-                            <a href="{{ route('shop.index', request()->except('brand_id') + ['brand_id' => array_values(array_diff((array) request('brand_id', []), [$bid]))]) }}" class="hover:text-red-500 transition-colors">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </a>
-                        </div>
+                            <span class="{{ $chip }}">{{ $activeBrand->name }}
+                                <a href="{{ route('shop.index', request()->except(['brand_id', 'page']) + ['brand_id' => array_values(array_diff((array) request('brand_id', []), [$bid]))]) }}" aria-label="Retirer la marque" class="hover:text-red-600">{!! $closeIcon !!}</a>
+                            </span>
                         @endif
                     @endforeach
-
-                    <span class="text-[10px] font-bold text-navy-900 italic ml-auto"><span class="text-gold-600 font-black">{{ $products->total() }}</span> Produits trouvés</span>
+                    <span class="text-sm text-navy-700 sm:ml-auto"><strong class="text-navy-900">{{ $products->total() }}</strong> produit{{ $products->total() > 1 ? 's' : '' }}</span>
                 </div>
 
-                <!-- Product Grid -->
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
+                <!-- Produits -->
+                <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
                     @forelse($products as $product)
-                        <div class="product-card group bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 relative">
-                            <!-- Discount/Preorder Badge -->
-                            @if($product->isPreorderable())
-                                <div class="absolute top-4 left-4 z-10 bg-amber-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase italic">PRÉCOMMANDE</div>
-                            @elseif($product->promo_price && $product->promo_price < $product->price)
-                                <div class="absolute top-4 left-4 z-10 bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase italic">PROMO</div>
-                            @endif
-                            @if($product->blackfriday)
-                                <div class="absolute top-4 right-4 z-10 bg-navy-900 text-gold-400 text-[10px] font-black px-2 py-1 rounded uppercase tracking-tighter italic">BLACK FRIDAY</div>
-                            @endif
+                        @php
+                            $rawPath = $product->image ?: $product->images->first()->path ?? null;
+                            $imgPath = $rawPath ? preg_replace('#^(/?storage/)#', '', $rawPath) : null;
+                            $imgUrl = ($imgPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($imgPath))
+                                ? '/storage/' . ltrim($imgPath, '/')
+                                : ($rawPath ?: asset('logo.jpeg'));
+                            $onPromo = $product->promo_price && $product->promo_price < $product->price;
+                        @endphp
+                        <div class="group bg-white border border-navy-100 rounded-lg overflow-hidden flex flex-col">
+                            <a href="{{ route('shop.show', $product->slug) }}" class="relative block bg-navy-50 p-4">
+                                @if($product->isPreorderable())
+                                    <span class="absolute top-2 left-2 z-10 bg-gold-500 text-navy-900 text-xs font-semibold px-2 py-1 rounded">Précommande</span>
+                                @elseif($onPromo)
+                                    <span class="absolute top-2 left-2 z-10 bg-navy-900 text-white text-xs font-semibold px-2 py-1 rounded">Promo</span>
+                                @endif
+                                @if($product->blackfriday)
+                                    <span class="absolute top-2 right-2 z-10 bg-navy-900 text-gold-400 text-xs font-semibold px-2 py-1 rounded">Black Friday</span>
+                                @endif
+                                <img src="{{ $imgUrl }}" alt="{{ $product->name }}" class="w-full h-32 sm:h-40 object-contain mix-blend-multiply">
+                            </a>
 
-                            <div class="relative bg-gray-50/50 p-3 sm:p-4 lg:p-5 overflow-hidden">
-                                @php
-                                    $rawPath = $product->image ?: $product->images->first()->path ?? null;
-                                    $imgPath = $rawPath ? preg_replace('#^(/?storage/)#', '', $rawPath) : null;
-                                    $imgUrl = ($imgPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($imgPath))
-                                        ? '/storage/' . ltrim($imgPath, '/')
-                                        : ($rawPath ?: asset('logo.jpeg'));
-                                @endphp
-                                <img src="{{ $imgUrl }}" alt="{{ $product->name }}" class="w-full h-24 sm:h-32 lg:h-32 object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500">
-                                
-                                <!-- Hover Actions -->
-                                <div class="absolute inset-0 bg-navy-900/60 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                    <form action="{{ route('shop.addToCart', $product->id) }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="quantity" value="1">
-                                        <button type="submit" class="w-10 h-10 {{ $product->isPreorderable() ? 'bg-amber-500' : 'bg-gold-500' }} text-navy-900 rounded-full flex items-center justify-center hover:bg-white transition-colors" title="{{ $product->isPreorderable() ? 'Précommander' : 'Ajouter au Panier' }}">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                                        </button>
-                                    </form>
-                                    <a href="{{ route('shop.show', $product->slug) }}" class="w-10 h-10 bg-white text-navy-900 rounded-full flex items-center justify-center hover:bg-gold-500 transition-colors" title="Détails">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div class="p-3 sm:p-4">
-                                <div class="flex items-center gap-1 mb-1.5">
-                                    @for($i = 0; $i < 5; $i++)
-                                        <svg class="w-3 h-3 text-gold-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                                    @endfor
-                                    <span class="text-[10px] text-gray-300 font-bold ml-1">(4.8)</span>
-                                </div>
-                                <h3 class="text-xs font-bold text-navy-900 group-hover:text-gold-600 transition-colors line-clamp-2 mb-2 h-8 italic">
-                                    <a href="{{ route('shop.show', $product->slug) }}">{{ $product->name }}</a>
+                            <div class="p-3 sm:p-4 flex flex-col flex-1">
+                                <h3 class="text-[15px] font-medium text-navy-900 line-clamp-2 min-h-[2.75rem] mb-2 leading-snug">
+                                    <a href="{{ route('shop.show', $product->slug) }}" class="hover:text-gold-600">{{ $product->name }}</a>
                                 </h3>
 
-                                <div class="flex flex-col gap-1">
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        @if($product->promo_price && $product->promo_price < $product->price)
-                                            <span class="text-sm font-black text-navy-950">{{ number_format($product->promo_price, 0, ',', ' ') }} <span class="text-[10px]">CFA</span></span>
-                                            <span class="text-xs font-bold text-gray-300 line-through italic">{{ number_format($product->price, 0, ',', ' ') }} <span class="text-[8px]">CFA</span></span>
-                                        @else
-                                            <span class="text-sm font-black text-navy-950">{{ number_format($product->price, 0, ',', ' ') }} <span class="text-[10px]">CFA</span></span>
-                                        @endif
-                                    </div>
+                                <div class="mb-3">
+                                    @if($onPromo)
+                                        <span class="text-lg font-semibold text-navy-900">{{ number_format($product->promo_price, 0, ',', ' ') }} <span class="text-xs font-medium">CFA</span></span>
+                                        <span class="block text-sm text-navy-400 line-through">{{ number_format($product->price, 0, ',', ' ') }} CFA</span>
+                                    @else
+                                        <span class="text-lg font-semibold text-navy-900">{{ number_format($product->price, 0, ',', ' ') }} <span class="text-xs font-medium">CFA</span></span>
+                                    @endif
                                     @if($product->isPreorderable() && $product->available_at)
-                                        <span class="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded font-bold w-fit">
-                                            Dispo: {{ $product->available_at->format('d/m/Y') }}
-                                        </span>
+                                        <span class="block text-sm text-gold-700">Disponible le {{ $product->available_at->format('d/m/Y') }}</span>
                                     @endif
                                 </div>
+
+                                <form action="{{ route('shop.addToCart', $product->id) }}" method="POST" class="mt-auto">
+                                    @csrf
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="w-full bg-gold-500 text-navy-900 font-semibold py-2.5 rounded-md hover:bg-gold-400 transition-colors text-[15px]">
+                                        {{ $product->isPreorderable() ? 'Précommander' : 'Ajouter au panier' }}
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     @empty
-                        <div class="col-span-full py-20 text-center">
-                            <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
-                                <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a2 2 0 00-1.96 1.414l-.724 2.17a2 2 0 001.077 2.423l1.091.546a2 2 0 011.139 1.438l.192 1.154a2 2 0 001.99 1.66h2.828a2 2 0 001.99-1.66l.192-1.154a2 2 0 011.139-1.438l1.091-.546a2 2 0 001.077-2.423l-.724-2.17a2 2 0 00-1.96-1.414l-2.387.477a2 2 0 00-1.022.547zM10 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                            </div>
-                            <h3 class="text-lg font-bold text-navy-900 italic uppercase">Aucun produit trouvé</h3>
-                            <p class="text-sm text-gray-400 mt-2">Essayez d'ajuster vos filtres pour trouver ce que vous cherchez.</p>
-                            <a href="{{ route('shop.index') }}" class="mt-8 inline-block btn-primary-gold px-8 py-3 uppercase tracking-widest text-[10px]">Réinitialiser les Filtres</a>
+                        <div class="col-span-full py-16 text-center">
+                            <h3 class="text-xl font-semibold text-navy-900">Aucun produit trouvé</h3>
+                            <p class="text-base text-navy-500 mt-2">Essayez de modifier vos filtres ou votre recherche.</p>
+                            <a href="{{ route('shop.index') }}" class="mt-6 inline-block btn-primary-gold">Réinitialiser les filtres</a>
                         </div>
                     @endforelse
                 </div>
 
-                <!-- Pagination -->
-                <div class="mt-12 flex justify-center">
+                <div class="mt-10 flex justify-center">
                     {{ $products->links() }}
                 </div>
             </main>
