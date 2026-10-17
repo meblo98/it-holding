@@ -102,6 +102,10 @@
                 </a>
             @endforeach
         </div>
+
+        <div class="mt-10 text-center">
+            <a href="{{ route('shop.index') }}" class="btn-outline-navy">Voir plus de produits</a>
+        </div>
     </div>
 </section>
 
