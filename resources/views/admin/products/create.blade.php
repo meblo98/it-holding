@@ -86,6 +86,22 @@
                                 <p class="text-xs text-gray-500 mt-1">Durée de garantie standard (ex: 12 pour 1 an).</p>
                             </div>
 
+                            <div class="col-span-6 sm:col-span-2">
+                                <label for="warranty_coverage_percent" class="block text-sm font-medium text-gray-700">Prise en charge de la réparation</label>
+                                <select name="warranty_coverage_percent" id="warranty_coverage_percent" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                    <option value="">Aucune</option>
+                                    @foreach ([25, 50, 75] as $pct)
+                                        <option value="{{ $pct }}" {{ (string) old('warranty_coverage_percent', null) === (string) $pct ? 'selected' : '' }}>{{ $pct }} %</option>
+                                    @endforeach
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">Part du prix de réparation prise en charge pendant la garantie.</p>
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-4">
+                                <label for="warranty_coverage_scope" class="block text-sm font-medium text-gray-700">Ce qui est couvert</label>
+                                <input type="text" name="warranty_coverage_scope" id="warranty_coverage_scope" maxlength="120" value="{{ old('warranty_coverage_scope', null) }}" placeholder="Ex : écran cassé" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+
                             <div class="col-span-6">
                                 <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
                                 <div class="mt-1">
