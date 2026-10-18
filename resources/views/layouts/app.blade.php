@@ -15,14 +15,14 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="@yield('og_type', 'website')">
-    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:url" content="{{ request()->query('ref') ? url()->current() . '?ref=' . urlencode(request()->query('ref')) : url()->current() }}">
     <meta property="og:title" content="@yield('title', config('app.name')) | IT-Holding Sénégal">
     <meta property="og:description" content="@yield('meta_description', 'IT-Holding est votre partenaire de confiance au Sénégal pour toutes vos solutions numériques.')">
     <meta property="og:image" content="@yield('og_image', asset('logo.jpeg'))">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="{{ url()->current() }}">
+    <meta property="twitter:url" content="{{ request()->query('ref') ? url()->current() . '?ref=' . urlencode(request()->query('ref')) : url()->current() }}">
     <meta property="twitter:title" content="@yield('title', config('app.name')) | IT-Holding Sénégal">
     <meta property="twitter:description" content="@yield('meta_description', 'IT-Holding est votre partenaire de confiance au Sénégal pour toutes vos solutions numériques.')">
     <meta property="twitter:image" content="@yield('og_image', asset('logo.jpeg'))">
