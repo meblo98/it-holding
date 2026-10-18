@@ -7,7 +7,7 @@
     <!-- Breadcrumb & Header -->
     <div class="bg-white border-b border-gray-100 py-4 mb-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav class="flex text-xs text-gray-400 gap-2 items-center mb-2">
+            <nav class="flex text-xs text-gray-600 gap-2 items-center mb-2">
                 <a href="{{ route('home') }}" class="hover:text-navy-900">Accueil</a>
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 <span class="text-gold-600 font-medium">Nos Services</span>
@@ -20,14 +20,6 @@
         <div class="lg:grid lg:grid-cols-12 lg:gap-8">
             <!-- Sidebar -->
             <aside class="hidden lg:block lg:col-span-3 space-y-8">
-                <!-- Search -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 class="text-xs font-bold text-navy-900 uppercase tracking-widest mb-4 border-l-4 border-gold-500 pl-3">Rechercher</h3>
-                    <div class="relative">
-                        <input type="text" placeholder="Quel service ?" class="w-full pl-4 pr-10 py-2.5 bg-gray-50 border-none rounded-lg text-sm focus:ring-2 focus:ring-gold-500">
-                        <svg class="w-4 h-4 text-gray-400 absolute right-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    </div>
-                </div>
 
                 <!-- Latest Blog Posts -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -39,14 +31,14 @@
                                 @if($post->image)
                                     <img src="{{ asset('storage/' . $post->image) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
                                 @else
-                                    <div class="w-full h-full flex items-center justify-center text-gray-300">
+                                    <div class="w-full h-full flex items-center justify-center text-gray-500">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h14a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     </div>
                                 @endif
                             </div>
                             <div class="flex-1">
                                 <h4 class="text-[10px] font-bold text-navy-900 line-clamp-2 group-hover:text-gold-600 transition-colors uppercase">{{ $post->title }}</h4>
-                                <span class="text-[9px] text-gray-400 uppercase tracking-tighter">{{ $post->created_at->format('d M Y') }}</span>
+                                <span class="text-[9px] text-gray-600 uppercase tracking-tighter">{{ $post->created_at->format('d M Y') }}</span>
                             </div>
                         </a>
                         @endforeach
@@ -57,7 +49,7 @@
                 <div class="bg-navy-900 rounded-xl p-6 text-white relative overflow-hidden group">
                     <div class="relative z-10">
                         <h3 class="text-xl font-black italic uppercase tracking-tighter mb-2">Besoin d'un Conseil ?</h3>
-                        <p class="text-[10px] text-gray-300 mb-4 leading-relaxed font-medium uppercase tracking-widest">Nos experts sont à votre disposition pour vous accompagner.</p>
+                        <p class="text-[10px] text-gray-500 mb-4 leading-relaxed font-medium uppercase tracking-widest">Nos experts sont à votre disposition pour vous accompagner.</p>
                         <a href="{{ route('contact.index') }}" class="inline-flex items-center gap-2 bg-gold-500 text-navy-900 px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-gold-400 transition-colors">
                             Parlons-en
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
@@ -105,7 +97,7 @@
                             <!-- Service Content -->
                             <div class="p-8">
                                 <h2 class="text-xl font-black text-navy-900 uppercase tracking-tighter italic mb-4 group-hover:text-gold-600 transition-colors">{{ $service->title }}</h2>
-                                <p class="text-xs text-gray-500 leading-relaxed mb-6 font-medium line-clamp-3">
+                                <p class="text-base text-gray-700 leading-relaxed mb-6 line-clamp-3">
                                     {{ $service->description }}
                                 </p>
                                 
@@ -125,12 +117,18 @@
                     @empty
                         <div class="col-span-full py-20 text-center">
                             <div class="inline-flex p-4 rounded-full bg-gray-50 mb-4 border border-gray-100">
-                                <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                             </div>
                             <h3 class="text-lg font-bold text-navy-900 uppercase tracking-tight italic">Aucun service trouvé</h3>
-                            <p class="text-xs text-gray-400 mt-2 uppercase tracking-widest">Revenez bientôt pour plus de solutions.</p>
+                            <p class="text-xs text-gray-600 mt-2 uppercase tracking-widest">Revenez bientôt pour plus de solutions.</p>
                         </div>
                     @endforelse
+                </div>
+
+                <div class="lg:hidden mt-10 bg-navy-900 rounded-xl p-6 text-white">
+                    <h3 class="text-xl font-semibold mb-2">Besoin d'un conseil ?</h3>
+                    <p class="text-white/75 mb-4">Nos experts sont à votre disposition pour vous accompagner.</p>
+                    <a href="{{ route('contact.index') }}" class="btn-primary-gold">Parlons-en</a>
                 </div>
             </div>
         </div>
