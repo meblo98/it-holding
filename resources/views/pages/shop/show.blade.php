@@ -276,6 +276,24 @@
                     </span>
                     @endif
                 </div>
+
+                @auth
+                @if(auth()->user()->isPartner())
+                    @php
+                        $refCode = auth()->user()->username ?: auth()->user()->partner_code;
+                        $shareUrl = route('shop.show', $product->slug) . '?ref=' . urlencode($refCode);
+                    @endphp
+                    <div x-data="{ copied: false }" class="mt-6 border border-navy-200 bg-navy-50 rounded-lg p-4">
+                        <p class="text-base font-semibold text-navy-900">Revendeur : partagez ce produit</p>
+                        <p class="text-sm text-navy-600 mb-3">Votre lien de parrainage est déjà intégré. Vous touchez une commission sur les ventes qui en découlent.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode($shareUrl) }}" target="_blank" rel="noopener" class="btn-primary-gold">Partager sur Facebook</a>
+                            <a href="https://wa.me/?text={{ urlencode($product->name . ' : ' . $shareUrl) }}" target="_blank" rel="noopener" class="btn-outline-navy">WhatsApp</a>
+                            <button type="button" @click="navigator.clipboard.writeText('{{ $shareUrl }}'); copied = true; setTimeout(() => copied = false, 2000)" class="btn-outline-navy" x-text="copied ? 'Lien copié' : 'Copier le lien'">Copier le lien</button>
+                        </div>
+                    </div>
+                @endif
+                @endauth
             </div>
         </div>
 
