@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('/about', [PageController::class, 'about'])->name('about');
+Route::get('/care', [PageController::class, 'care'])->name('care.landing');
 Route::view('/devenir-partenaire', 'pages.partenaire')->name('partner.landing');
 // « register » est exclu : sinon cette route intercepte le formulaire /partner/register déclaré plus bas.
 Route::get('/partner/{identifier}', [\App\Http\Controllers\PartnerReferralController::class, 'track'])
