@@ -1,26 +1,47 @@
-{{-- Onglets de l'espace partenaire. Attend : $active (clé de l'onglet courant), $extraClass optionnel. --}}
+{{-- Onglets de l'espace partenaire. Attend : $active (clé de l'onglet courant), $extraClass optionnel.
+     Chaque catégorie de partenaire (commercial, apporteur, revendeur) a son propre jeu d'onglets.
+     Les autres catégories (comptes existants) gardent l'ensemble d'origine. --}}
 @php
     $tabUser = auth()->user();
-    $tabs = [
-        'dashboard'     => ['route' => 'dashboard.partner',               'icon' => '📊', 'label' => 'Tableau de bord'],
-        'crm'           => ['route' => 'dashboard.partner.crm',           'icon' => '👥', 'label' => 'CRM & Prospects'],
-        'opportunities' => ['route' => 'dashboard.partner.opportunities', 'icon' => '🎯', 'label' => 'Opportunités'],
+    $type = $tabUser?->partner_type;
+
+    $all = [
+        'dashboard'     => ['route' => 'dashboard.partner',               'label' => 'Tableau de bord'],
+        'catalog'       => ['route' => 'dashboard.partner.catalog',       'label' => 'Catalogue'],
+        'crm'           => ['route' => 'dashboard.partner.crm',           'label' => 'Prospects'],
+        'opportunities' => ['route' => 'dashboard.partner.opportunities', 'label' => 'Opportunités'],
+        'missions'      => ['route' => 'dashboard.partner.missions',      'label' => 'Missions'],
+        'marketing'     => ['route' => 'dashboard.partner.marketing',     'label' => 'Studio marketing'],
+        'assistant'     => ['route' => 'dashboard.partner.assistant',     'label' => 'Assistant IA'],
+        'wallet'        => ['route' => 'dashboard.partner.wallet',        'label' => 'Portefeuille'],
+        'profile'       => ['route' => 'dashboard.partner.profile',       'label' => 'Mon profil pro'],
+        'contract'      => ['route' => 'dashboard.partner.contract',      'label' => 'Contrat'],
     ];
-    if ($tabUser && in_array($tabUser->partner_type, \App\Models\Mission::ELIGIBLE_PARTNER_TYPES, true)) {
-        $tabs['missions'] = ['route' => 'dashboard.partner.missions', 'icon' => '💼', 'label' => 'Missions'];
+
+    $sets = [
+        'commercial' => ['dashboard', 'catalog', 'crm', 'marketing', 'assistant', 'wallet', 'contract'],
+        'apporteur'  => ['dashboard', 'opportunities', 'wallet', 'contract'],
+        'revendeur'  => ['dashboard', 'catalog', 'marketing', 'wallet', 'contract'],
+    ];
+
+    if (isset($sets[$type])) {
+        $keys = $sets[$type];
+    } else {
+        // Comptes existants (freelance, prestataire, créateur…) : ensemble d'origine.
+        $keys = ['dashboard', 'crm', 'opportunities'];
+        if ($tabUser && in_array($type, \App\Models\Mission::ELIGIBLE_PARTNER_TYPES, true)) {
+            $keys[] = 'missions';
+        }
+        $keys = array_merge($keys, ['wallet', 'profile', 'assistant', 'marketing', 'contract']);
     }
-    $tabs += [
-        'wallet'    => ['route' => 'dashboard.partner.wallet',    'icon' => '💰', 'label' => 'Portefeuille'],
-        'profile'   => ['route' => 'dashboard.partner.profile',   'icon' => '🪪', 'label' => 'Mon profil pro'],
-        'assistant' => ['route' => 'dashboard.partner.assistant', 'icon' => '🤖', 'label' => 'Assistant IA'],
-        'marketing' => ['route' => 'dashboard.partner.marketing', 'icon' => '📢', 'label' => 'Studio Marketing'],
-        'contract'  => ['route' => 'dashboard.partner.contract',  'icon' => '📄', 'label' => 'Contrat'],
-    ];
+    $tabs = array_intersect_key($all, array_flip($keys));
+    $tabs = array_replace(array_flip($keys), $tabs);
 @endphp
-<div class="flex overflow-x-auto border-b border-gray-200 bg-white rounded-xl p-2 shadow-sm gap-2 scrollbar-none whitespace-nowrap {{ $extraClass ?? '' }}">
+<nav aria-label="Espace partenaire" class="flex overflow-x-auto bg-white border border-navy-100 rounded-lg p-1.5 gap-1 whitespace-nowrap {{ $extraClass ?? '' }}">
     @foreach($tabs as $key => $tab)
-        <a href="{{ route($tab['route']) }}" class="shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2 {{ ($active ?? '') === $key ? 'bg-navy-900 text-white' : 'text-gray-500 hover:text-navy-900 hover:bg-gray-50' }}">
-            <span>{{ $tab['icon'] }}</span> {{ $tab['label'] }}
+        <a href="{{ route($tab['route']) }}"
+           class="shrink-0 px-4 py-2.5 rounded-md text-[15px] font-semibold transition-colors {{ ($active ?? '') === $key ? 'bg-navy-900 text-white' : 'text-navy-700 hover:bg-navy-50' }}">
+            {{ $tab['label'] }}
         </a>
     @endforeach
-</div>
+</nav>
