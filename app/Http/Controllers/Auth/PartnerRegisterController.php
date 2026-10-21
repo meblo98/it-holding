@@ -11,9 +11,15 @@ use Illuminate\Validation\Rules;
 
 class PartnerRegisterController extends Controller
 {
+    /**
+     * Catégories proposées à l'inscription. Les autres types (freelance, prestataire, créateur)
+     * restent valides pour les comptes existants mais ne sont plus proposés aux nouveaux partenaires.
+     */
+    private const REGISTRATION_TYPES = ['commercial', 'apporteur', 'revendeur'];
+
     public function showRegistrationForm()
     {
-        $partnerTypes = User::PARTNER_TYPES;
+        $partnerTypes = array_intersect_key(User::PARTNER_TYPES, array_flip(self::REGISTRATION_TYPES));
 
         return view('auth.partner-register', compact('partnerTypes'));
     }
@@ -26,7 +32,8 @@ class PartnerRegisterController extends Controller
             // « register » est réservé : /partner/register est l'URL du formulaire d'inscription.
             'username' => ['required', 'string', 'alpha_num', 'min:3', 'max:30', 'unique:users,username', 'not_in:register'],
             'phone' => ['required', 'string', 'max:20'],
-            'partner_type' => ['required', 'in:' . implode(',', array_keys(User::PARTNER_TYPES))],
+            'partner_type' => ['required', 'in:' . implode(',', self::REGISTRATION_TYPES)],
+            'shop_name' => ['exclude_unless:partner_type,revendeur', 'nullable', 'string', 'max:255'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'provider_kind' => ['exclude_unless:partner_type,prestataire', 'nullable', 'in:individual,structure'],
             'company_name' => ['exclude_unless:partner_type,prestataire', 'nullable', 'required_if:provider_kind,structure', 'string', 'max:255'],
@@ -62,6 +69,11 @@ class PartnerRegisterController extends Controller
                 'rccm' => $request->rccm,
                 'beneficiary_type' => 'company',
             ]);
+        }
+
+        // Revendeur : nom de la boutique ou de la page, repris dans son profil professionnel.
+        if ($request->partner_type === 'revendeur' && filled($request->shop_name)) {
+            $user->ensureProfessionalProfile()->update(['company_name' => $request->shop_name]);
         }
 
         Auth::login($user);
