@@ -34,4 +34,12 @@ class PageController extends Controller
             
         return view('pages.about', compact('products'));
     }
+
+    public function care()
+    {
+        return view('pages.care', [
+            'plans'   => config('care.plans'),
+            'example' => config('care.example_amount'),
+        ]);
+    }
 }
