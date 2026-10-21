@@ -6,6 +6,7 @@
         ['Accueil', route('home'), request()->routeIs('home')],
         ['Boutique', route('shop.index'), request()->routeIs('shop.*')],
         ['Services', route('services.index'), request()->routeIs('services.*')],
+        ['Care+', route('care.landing'), request()->routeIs('care.*')],
         ['Portfolio', route('portfolio.index'), request()->routeIs('portfolio.*')],
         ['Blog', route('blog.index'), request()->routeIs('blog.*')],
         ['À propos', route('about'), request()->routeIs('about')],
