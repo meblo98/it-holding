@@ -136,4 +136,16 @@
         </div>
     </div>
 </section>
+
+<!-- Garantie & Protection -->
+<section class="bg-gold-50 border-y border-gold-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-wrap items-center justify-between gap-6">
+        <div class="max-w-2xl">
+            <p class="text-sm font-semibold text-gold-700">Garantie &amp; Protection IT Holding Services</p>
+            <h2 class="mt-1 text-2xl font-semibold text-navy-900 tracking-tight">Réduisez vos frais de réparation dès {{ number_format(config('care.plans.basique.price'), 0, ',', ' ') }} FCFA par an.</h2>
+            <p class="mt-2 text-navy-600">Trois formules, une prise en charge de 25 %, 50 % ou 75 % des frais de réparation admissibles de vos ordinateurs.</p>
+        </div>
+        <a href="{{ route('care.landing') }}" class="btn-primary-gold">Découvrir les formules</a>
+    </div>
+</section>
 @endsection
