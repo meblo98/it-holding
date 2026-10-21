@@ -13,7 +13,6 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('/about', [PageController::class, 'about'])->name('about');
-Route::get('/care', [PageController::class, 'care'])->name('care.landing');
 Route::view('/devenir-partenaire', 'pages.partenaire')->name('partner.landing');
 // « register » est exclu : sinon cette route intercepte le formulaire /partner/register déclaré plus bas.
 Route::get('/partner/{identifier}', [\App\Http\Controllers\PartnerReferralController::class, 'track'])
@@ -134,6 +133,9 @@ Route::middleware(['auth', 'redirect.admin'])->group(function () {
     Route::post('/dashboard/partner/marketing/video-script', [\App\Http\Controllers\PartnerMarketingController::class, 'generateVideoScript'])->name('dashboard.partner.marketing.video');
     Route::post('/dashboard/partner/marketing/poster-ai', [\App\Http\Controllers\PartnerMarketingController::class, 'generatePosterAI'])->name('dashboard.partner.marketing.poster.ai');
     Route::get('/dashboard/partner/marketing/proxy-image', [\App\Http\Controllers\PartnerMarketingController::class, 'proxyImage'])->name('dashboard.partner.marketing.proxy.image');
+
+    // Catalogue partenaire (revendeurs et partenaires commerciaux)
+    Route::get('/dashboard/partner/catalog', [\App\Http\Controllers\PartnerCatalogController::class, 'index'])->name('dashboard.partner.catalog');
     
     // Client Savings Routes
     Route::get('/dashboard/savings', [\App\Http\Controllers\DashboardController::class, 'savings'])->name('dashboard.savings');
