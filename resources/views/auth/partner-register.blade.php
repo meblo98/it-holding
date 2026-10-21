@@ -1,176 +1,107 @@
 @extends('layouts.app')
-
-@section('title', 'Rejoindre IT Holding Partner - ' . config('app.name'))
+@section('title', 'Devenir partenaire - ' . config('app.name'))
 
 @section('content')
-<div class="bg-gray-50 min-h-screen py-20 px-4">
-    <div class="max-w-2xl mx-auto grid grid-cols-1 md:grid-cols-5 bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100">
-        
-        <!-- Left Side: Promo Info (2 cols) -->
-        <div class="md:col-span-2 bg-navy-900 p-8 text-white flex flex-col justify-between">
+@php
+    $descriptions = [
+        'commercial' => ['Vous prospectez et vendez nos produits et services à vos clients.', 'Suivi de vos prospects, de vos ventes et de vos commissions.'],
+        'apporteur'  => ['Vous nous recommandez un client ou un projet, nous nous occupons de la suite.', 'Vous suivez le statut de chaque recommandation et votre commission.'],
+        'revendeur'  => ['Vous revendez nos produits à votre clientèle ou sur vos réseaux.', 'Liens de partage personnels et outils pour vos publications.'],
+    ];
+    $field = 'w-full border border-navy-300 rounded-md py-3 px-3.5 text-base text-black bg-white focus:ring-2 focus:ring-gold-500 focus:border-navy-600 placeholder-gray-500';
+    $label = 'block text-sm font-semibold text-navy-900 mb-1.5';
+    $err = 'mt-1 text-sm text-red-700';
+@endphp
+<div class="bg-navy-50 py-12 px-4">
+    <div class="max-w-2xl mx-auto bg-white border border-navy-100 rounded-lg p-6 sm:p-10">
+        <p class="text-sm font-semibold text-gold-600 mb-2">Programme partenaire</p>
+        <h1 class="text-3xl font-semibold text-navy-900 tracking-tight">Créer un compte partenaire</h1>
+        <p class="mt-3 text-navy-600">Choisissez d’abord votre profil. Votre espace de travail et vos outils en dépendent. Une commission vous est versée sur les ventes issues de votre lien.</p>
+
+        <form action="{{ route('partner.register') }}" method="POST" class="mt-8 space-y-8"
+              x-data="{ type: @js(old('partner_type', request('type', ''))) }">
+            @csrf
+
+            <!-- 1. Profil -->
+            <fieldset>
+                <legend class="text-lg font-semibold text-navy-900 mb-3">1. Votre profil</legend>
+                <div class="space-y-3">
+                    @foreach($partnerTypes as $key => $name)
+                        <label class="block cursor-pointer">
+                            <input type="radio" name="partner_type" value="{{ $key }}" x-model="type" class="sr-only peer" required>
+                            <span class="block border-2 border-navy-200 rounded-lg p-4 peer-checked:border-navy-900 peer-checked:bg-gold-50 peer-focus-visible:ring-2 peer-focus-visible:ring-navy-600 hover:border-navy-400 transition-colors">
+                                <span class="block text-lg font-semibold text-navy-900">{{ $name }}</span>
+                                <span class="block mt-1 text-navy-700">{{ $descriptions[$key][0] ?? '' }}</span>
+                                <span class="block mt-1 text-sm text-navy-500">{{ $descriptions[$key][1] ?? '' }}</span>
+                            </span>
+                        </label>
+                    @endforeach
+                </div>
+                @error('partner_type')<p class="{{ $err }}">{{ $message }}</p>@enderror
+            </fieldset>
+
+            <!-- 2. Coordonnées -->
+            <fieldset class="space-y-5">
+                <legend class="text-lg font-semibold text-navy-900 mb-3">2. Vos informations</legend>
+
+                <div>
+                    <label for="name" class="{{ $label }}">Nom complet</label>
+                    <input type="text" name="name" id="name" value="{{ old('name') }}" required autocomplete="name" placeholder="Ex : Mamadou Diallo" class="{{ $field }}">
+                    @error('name')<p class="{{ $err }}">{{ $message }}</p>@enderror
+                </div>
+
+                <div x-show="type === 'revendeur'" x-cloak>
+                    <label for="shop_name" class="{{ $label }}">Nom de votre boutique ou de votre page <span class="font-normal text-navy-500">(facultatif)</span></label>
+                    <input type="text" name="shop_name" id="shop_name" value="{{ old('shop_name') }}" placeholder="Ex : Diallo Informatique" class="{{ $field }}">
+                    @error('shop_name')<p class="{{ $err }}">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="email" class="{{ $label }}">Adresse e-mail</label>
+                    <input type="email" name="email" id="email" value="{{ old('email') }}" required autocomplete="email" placeholder="Ex : mamadou@example.com" class="{{ $field }}">
+                    @error('email')<p class="{{ $err }}">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="phone" class="{{ $label }}">Téléphone (WhatsApp)</label>
+                    <input type="text" name="phone" id="phone" value="{{ old('phone') }}" required autocomplete="tel" placeholder="Ex : +221 77 000 00 00" class="{{ $field }}">
+                    @error('phone')<p class="{{ $err }}">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="username" class="{{ $label }}">Identifiant de votre lien</label>
+                    <div class="flex items-stretch">
+                        <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-navy-300 bg-navy-50 text-navy-700">/partner/</span>
+                        <input type="text" name="username" id="username" value="{{ old('username') }}" required autocomplete="username" placeholder="mamadou123" class="{{ $field }} rounded-l-none">
+                    </div>
+                    <p class="mt-1 text-sm text-navy-500">Lettres et chiffres uniquement. Il servira à votre lien de recommandation.</p>
+                    @error('username')<p class="{{ $err }}">{{ $message }}</p>@enderror
+                </div>
+            </fieldset>
+
+            <!-- 3. Mot de passe -->
+            <fieldset class="space-y-5">
+                <legend class="text-lg font-semibold text-navy-900 mb-3">3. Votre mot de passe</legend>
+                <div>
+                    <label for="password" class="{{ $label }}">Mot de passe</label>
+                    <input type="password" name="password" id="password" required autocomplete="new-password" class="{{ $field }}">
+                    @error('password')<p class="{{ $err }}">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label for="password_confirmation" class="{{ $label }}">Confirmer le mot de passe</label>
+                    <input type="password" name="password_confirmation" id="password_confirmation" required autocomplete="new-password" class="{{ $field }}">
+                </div>
+            </fieldset>
+
             <div>
-                <span class="text-gold-500 text-xs font-bold uppercase tracking-widest">IT Holding Partner</span>
-                <h2 class="text-2xl font-black italic uppercase tracking-wider mt-2 mb-6">Devenez Partenaire Commercial</h2>
-                
-                <ul class="space-y-4 text-xs text-gray-300">
-                    <li class="flex items-start gap-2.5">
-                        <svg class="w-4 h-4 text-gold-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>Gagnez jusqu'à <strong>20% de commission</strong> sur nos services.</span>
-                    </li>
-                    <li class="flex items-start gap-2.5">
-                        <svg class="w-4 h-4 text-gold-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>Pas de stock, pas de logistique, pas de boutique physique nécessaire.</span>
-                    </li>
-                    <li class="flex items-start gap-2.5">
-                        <svg class="w-4 h-4 text-gold-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>Un lien personnalisé unique pour promouvoir nos produits et services.</span>
-                    </li>
-                    <li class="flex items-start gap-2.5">
-                        <svg class="w-4 h-4 text-gold-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>Espace d'administration dédié pour suivre vos ventes et vos gains.</span>
-                    </li>
-                </ul>
+                <button type="submit" class="btn-primary-gold w-full justify-center py-3.5 text-base">Envoyer ma demande</button>
+                <p class="mt-3 text-sm text-navy-500">Notre équipe examine chaque demande avant d’ouvrir l’accès à votre espace.</p>
             </div>
-            
-            <div class="mt-8 pt-6 border-t border-navy-800 text-[10px] text-gray-400 uppercase font-bold tracking-wider">
-                IT Holding &copy; {{ date('Y') }}
-            </div>
-        </div>
-        
-        <!-- Right Side: Registration Form (3 cols) -->
-        <div class="md:col-span-3 p-8 lg:p-10">
-            <h3 class="text-lg font-black uppercase tracking-wider italic text-navy-900 mb-6">Créer un compte partenaire</h3>
-            
-            <form action="{{ route('partner.register') }}" method="POST" class="space-y-4">
-                @csrf
-                
-                <!-- Name field -->
-                <div>
-                    <label for="name" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Nom Complet</label>
-                    <input type="text" name="name" id="name" value="{{ old('name') }}" required autofocus
-                        class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-xs focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('name') border-red-500 @enderror"
-                        placeholder="Ex: Mamadou Diallo">
-                    @error('name')
-                        <p class="mt-1 text-[9px] text-red-500 font-bold uppercase italic">{{ $message }}</p>
-                    @enderror
-                </div>
+        </form>
 
-                <!-- Email field -->
-                <div>
-                    <label for="email" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Adresse Email</label>
-                    <input type="email" name="email" id="email" value="{{ old('email') }}" required
-                        class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-xs focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('email') border-red-500 @enderror"
-                        placeholder="Ex: mamadou@example.com">
-                    @error('email')
-                        <p class="mt-1 text-[9px] text-red-500 font-bold uppercase italic">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Username field (used for the partner link) -->
-                <div>
-                    <label for="username" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Identifiant Unique (Lien Partenaire)</label>
-                    <div class="relative flex items-stretch">
-                        <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-200 bg-gray-50 text-[10px] text-gray-500 font-bold uppercase tracking-wider">
-                            /partner/
-                        </span>
-                        <input type="text" name="username" id="username" value="{{ old('username') }}" required
-                            class="w-full border-gray-200 rounded-r-lg py-2.5 px-3.5 text-xs focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('username') border-red-500 @enderror"
-                            placeholder="mamadou123">
-                    </div>
-                    <p class="mt-1 text-[9px] text-gray-400">Ce nom servira pour votre lien de recommandation unique.</p>
-                    @error('username')
-                        <p class="mt-1 text-[9px] text-red-500 font-bold uppercase italic">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Phone field -->
-                <div>
-                    <label for="phone" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Téléphone (WhatsApp)</label>
-                    <input type="text" name="phone" id="phone" value="{{ old('phone') }}" required
-                        class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-xs focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('phone') border-red-500 @enderror"
-                        placeholder="Ex: +221 77 000 00 00">
-                    @error('phone')
-                        <p class="mt-1 text-[9px] text-red-500 font-bold uppercase italic">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Partner type field -->
-                <div x-data="{ type: @js(old('partner_type', '')), kind: @js(old('provider_kind', 'individual')) }">
-                    <label for="partner_type" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Votre profil dans le réseau IT Holding</label>
-                    <select name="partner_type" id="partner_type" required x-model="type"
-                        class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-xs focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('partner_type') border-red-500 @enderror">
-                        <option value="" disabled {{ old('partner_type') ? '' : 'selected' }}>Choisissez votre catégorie</option>
-                        @foreach($partnerTypes as $key => $label)
-                            <option value="{{ $key }}" {{ old('partner_type') === $key ? 'selected' : '' }}>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                    <p class="mt-1 text-[9px] text-gray-400">Détermine votre badge, votre tableau de bord et votre grille de commission.</p>
-                    @error('partner_type')
-                        <p class="mt-1 text-[9px] text-red-500 font-bold uppercase italic">{{ $message }}</p>
-                    @enderror
-
-                    <!-- Prestataire : personne ou structure (doc §7) -->
-                    <div x-show="type === 'prestataire'" x-cloak class="mt-4 space-y-3 border border-gray-100 rounded-lg p-4 bg-gray-50/50">
-                        <div class="flex gap-4 text-xs text-gray-600">
-                            <label class="flex items-center gap-2"><input type="radio" name="provider_kind" value="individual" x-model="kind" class="text-gold-500"> Personne physique</label>
-                            <label class="flex items-center gap-2"><input type="radio" name="provider_kind" value="structure" x-model="kind" class="text-gold-500"> Structure / entreprise</label>
-                        </div>
-                        <div x-show="kind === 'structure'" class="space-y-3">
-                            <div>
-                                <label for="company_name" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Raison sociale</label>
-                                <input type="text" name="company_name" id="company_name" value="{{ old('company_name') }}" :required="type === 'prestataire' && kind === 'structure'"
-                                    class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-xs" placeholder="Ex: Diallo Câblage SARL">
-                                @error('company_name')<p class="mt-1 text-[9px] text-red-500 font-bold uppercase italic">{{ $message }}</p>@enderror
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label for="ninea" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">NINEA</label>
-                                    <input type="text" name="ninea" id="ninea" value="{{ old('ninea') }}" class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-xs">
-                                </div>
-                                <div>
-                                    <label for="rccm" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">RCCM</label>
-                                    <input type="text" name="rccm" id="rccm" value="{{ old('rccm') }}" class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-xs">
-                                </div>
-                            </div>
-                            <p class="text-[9px] text-gray-400">Ces informations seront vérifiées par IT Holding avant validation de votre compte.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Password field -->
-                <div>
-                    <label for="password" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Mot de passe</label>
-                    <input type="password" name="password" id="password" required
-                        class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-xs focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('password') border-red-500 @enderror"
-                        placeholder="••••••••">
-                    @error('password')
-                        <p class="mt-1 text-[9px] text-red-500 font-bold uppercase italic">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Password confirmation field -->
-                <div>
-                    <label for="password_confirmation" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Confirmer le Mot de passe</label>
-                    <input type="password" name="password_confirmation" id="password_confirmation" required
-                        class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-xs focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30"
-                        placeholder="••••••••">
-                </div>
-
-                <div class="flex items-center pt-2">
-                    <input type="checkbox" id="terms" required class="rounded text-gold-500 focus:ring-gold-500 h-4 w-4 border-gray-200">
-                    <label for="terms" class="ml-2 text-[9px] font-bold text-gray-400 uppercase tracking-tight">J'accepte le <a href="#" class="text-gold-600 underline">Contrat Partenaire IT Holding</a></label>
-                </div>
-
-                <button type="submit" class="w-full btn-primary-gold py-3 text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-4 group mt-4">
-                    SOUMETTRE MA CANDIDATURE
-                    <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                </button>
-            </form>
-            
-            <p class="text-center text-[10px] text-gray-400 uppercase tracking-wider mt-6">
-                Déjà partenaire ? <a href="{{ route('login') }}" class="text-gold-600 font-bold hover:underline">Se connecter</a>
-            </p>
-        </div>
+        <p class="mt-8 pt-6 border-t border-navy-100 text-center text-navy-600">
+            Vous avez déjà un compte ? <a href="{{ route('login') }}" class="font-semibold text-navy-900 underline">Se connecter</a>
+        </p>
     </div>
 </div>
 @endsection
