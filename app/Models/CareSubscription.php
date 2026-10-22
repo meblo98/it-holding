@@ -10,12 +10,12 @@ class CareSubscription extends Model
     use HasFactory;
 
     protected $fillable = [
-        'number', 'client_id', 'warranty_id',
+        'number', 'client_id', 'user_id', 'warranty_id',
         'client_name', 'client_phone', 'product_name', 'serial_number',
         'plan', 'start_date', 'end_date', 'duration_months', 'price',
         'has_priority_support', 'has_repair_discount', 'repair_discount_pct',
         'has_parts_discount', 'parts_discount_pct', 'has_home_service',
-        'status', 'payment_status', 'amount_paid', 'notes',
+        'status', 'payment_status', 'payment_method', 'amount_paid', 'paid_at', 'notes',
     ];
 
     protected $casts = [
@@ -23,6 +23,7 @@ class CareSubscription extends Model
         'end_date'             => 'date',
         'price'                => 'decimal:2',
         'amount_paid'          => 'decimal:2',
+        'paid_at'              => 'datetime',
         'has_priority_support' => 'boolean',
         'has_repair_discount'  => 'boolean',
         'has_parts_discount'   => 'boolean',
@@ -35,6 +36,7 @@ class CareSubscription extends Model
     // ── Relations ───────────────────────────────────────────────────────────
     public function client()  { return $this->belongsTo(Client::class); }
     public function warranty() { return $this->belongsTo(Warranty::class); }
+    public function user()     { return $this->belongsTo(User::class); }
 
     // ── Scopes ──────────────────────────────────────────────────────────────
     public function scopeActive($q)          { return $q->where('status', 'active'); }
@@ -60,6 +62,8 @@ class CareSubscription extends Model
     public static function planConfig(string $plan): array
     {
         return match($plan) {
+            'basique'    => ['label' => 'Basique',    'classes' => 'bg-blue-50 text-blue-700 border-blue-200',   'icon' => '🛡️'],
+            'business'   => ['label' => 'Business',   'classes' => 'bg-gold-50 text-gold-700 border-gold-200',   'icon' => '🏆'],
             'standard'   => ['label' => 'Standard',   'classes' => 'bg-blue-50 text-blue-700 border-blue-200',   'icon' => '🛡️'],
             'premium'    => ['label' => 'Premium',     'classes' => 'bg-purple-50 text-purple-700 border-purple-200', 'icon' => '⭐'],
             'enterprise' => ['label' => 'Entreprise',  'classes' => 'bg-gold-50 text-gold-700 border-gold-200',   'icon' => '🏆'],
@@ -70,6 +74,7 @@ class CareSubscription extends Model
     public static function statusConfig(string $status): array
     {
         return match($status) {
+            'pending'   => ['label' => 'En attente de paiement', 'classes' => 'bg-yellow-50 text-yellow-700 border-yellow-200'],
             'active'    => ['label' => 'Actif',     'classes' => 'bg-green-50 text-green-700 border-green-200'],
             'expired'   => ['label' => 'Expiré',    'classes' => 'bg-red-50 text-red-700 border-red-200'],
             'cancelled' => ['label' => 'Annulé',    'classes' => 'bg-gray-100 text-gray-500 border-gray-200'],
