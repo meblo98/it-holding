@@ -95,7 +95,7 @@
 
             <div>
                 <button type="submit" class="btn-primary-gold w-full justify-center py-3.5 text-base">Envoyer ma demande</button>
-                <p class="mt-3 text-sm text-navy-500">Notre équipe examine chaque demande avant d’ouvrir l’accès à votre espace.</p>
+                <p class="mt-3 text-sm text-navy-500">Votre compte est activé immédiatement : vous accédez à votre espace dès l’inscription.</p>
             </div>
         </form>
 
