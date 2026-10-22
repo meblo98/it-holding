@@ -19,7 +19,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/care/souscrire/{plan}', [\App\Http\Controllers\CareCheckoutController::class, 'store'])->name('care.subscribe.store')->middleware('throttle:10,1');
     Route::get('/care/paiement/succes', [\App\Http\Controllers\CareCheckoutController::class, 'success'])->name('care.success')->middleware('signed');
     Route::get('/care/paiement/erreur', [\App\Http\Controllers\CareCheckoutController::class, 'error'])->name('care.error')->middleware('signed');
+
+    // Espace client Care+ : abonnements, appareil, certificat
+    Route::get('/dashboard/care', [\App\Http\Controllers\CareClientController::class, 'index'])->name('dashboard.care');
+    Route::get('/dashboard/care/{care}/appareil', [\App\Http\Controllers\CareClientController::class, 'deviceForm'])->whereNumber('care')->name('dashboard.care.device');
+    Route::post('/dashboard/care/{care}/appareil', [\App\Http\Controllers\CareClientController::class, 'storeDevice'])->whereNumber('care')->middleware('throttle:10,1')->name('dashboard.care.device.store');
+    Route::get('/dashboard/care/{care}/fichier/{type}/{index?}', [\App\Http\Controllers\CareClientController::class, 'file'])->whereNumber('care')->whereIn('type', ['photo', 'invoice'])->name('dashboard.care.file');
+    Route::get('/dashboard/care/{care}/certificat', [\App\Http\Controllers\CareClientController::class, 'certificate'])->whereNumber('care')->name('dashboard.care.certificate');
 });
+
+// Vérification publique (QR code du certificat) : aucune donnée personnelle
+Route::get('/care/verification/{token}', [\App\Http\Controllers\CareClientController::class, 'verify'])->name('care.verify');
 Route::view('/devenir-partenaire', 'pages.partenaire')->name('partner.landing');
 // « register » est exclu : sinon cette route intercepte le formulaire /partner/register déclaré plus bas.
 Route::get('/partner/{identifier}', [\App\Http\Controllers\PartnerReferralController::class, 'track'])
