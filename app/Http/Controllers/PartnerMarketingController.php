@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\MarketingAsset;
+use App\Models\PartnerAiImage;
 use App\Models\PartnerScheduledPost;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -44,7 +45,28 @@ class PartnerMarketingController extends Controller
             'other' => $assets->where('category', 'other'),
         ];
 
-        return view('pages.shop.partner.marketing', compact('user', 'products', 'groupedAssets', 'scheduledPosts'));
+        // Studio image IA (revendeurs et commerciaux)
+        $aiEligible = PartnerImageStudioController::eligible($user);
+        $aiLimit = (int) config('partner_ai.daily_limit', 5);
+        $aiRemaining = 0;
+        $aiHistory = [];
+        $aiProducts = [];
+
+        if ($aiEligible) {
+            $aiRemaining = PartnerImageStudioController::remaining($user->id);
+            $aiHistory = PartnerAiImage::where('user_id', $user->id)->latest()->take(12)->get()
+                ->map(fn ($i) => PartnerImageStudioController::toArray($i))->all();
+            $aiProducts = $products->map(fn ($p) => [
+                'id' => $p->id,
+                'name' => $p->name,
+                'images' => PartnerImageStudioController::productImagePaths($p),
+            ])->filter(fn ($p) => count($p['images']) > 0)->values()->all();
+        }
+
+        return view('pages.shop.partner.marketing', compact(
+            'user', 'products', 'groupedAssets', 'scheduledPosts',
+            'aiEligible', 'aiLimit', 'aiRemaining', 'aiHistory', 'aiProducts'
+        ));
     }
 
     /**
