@@ -16,8 +16,8 @@
         <div class="lg:col-span-2 space-y-6">
             <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-5 space-y-4">
                 <h2 class="admin-section-title">Plan</h2>
-                <div class="grid grid-cols-3 gap-3 text-center">
-                    @foreach(['standard'=>['🛡️','Standard'],'premium'=>['⭐','Premium'],'enterprise'=>['🏆','Entreprise']] as $val => [$icon, $lbl])
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
+                    @foreach(['basique'=>['🛡️','Basique'],'premium'=>['⭐','Premium'],'business'=>['🏆','Business'],'standard'=>['🛡️','Standard'],'enterprise'=>['🏆','Entreprise']] as $val => [$icon, $lbl])
                     <label class="cursor-pointer"><input type="radio" name="plan" value="{{ $val }}" class="sr-only" {{ $care->plan===$val?'checked':'' }}>
                         <div class="border-2 rounded-lg p-3 text-sm transition {{ $care->plan===$val ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-300' }}">{{ $icon }} {{ $lbl }}</div>
                     </label>
@@ -60,7 +60,7 @@
                 <div><label class="admin-label">Prix (FCFA) *</label><input type="number" name="price" value="{{ old('price', $care->price) }}" min="0" required class="admin-input"></div>
                 <div><label class="admin-label">Statut</label>
                     <select name="status" required class="admin-select">
-                        @foreach(['active'=>'Actif','expired'=>'Expiré','cancelled'=>'Annulé','suspended'=>'Suspendu'] as $val => $lbl)
+                        @foreach(['pending'=>'En attente de paiement','active'=>'Actif','expired'=>'Expiré','cancelled'=>'Annulé','suspended'=>'Suspendu'] as $val => $lbl)
                         <option value="{{ $val }}" {{ $care->status===$val?'selected':'' }}>{{ $lbl }}</option>
                         @endforeach
                     </select>

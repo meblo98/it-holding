@@ -18,7 +18,7 @@
 @endif
 
 {{-- KPI CARDS --}}
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
     <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg shadow-sm p-4 text-white">
         <p class="text-xs font-bold text-purple-200 uppercase mb-1">Abonnés actifs</p>
         <p class="text-2xl font-black">{{ $stats['active'] }}</p>
@@ -26,6 +26,10 @@
     <div class="bg-white rounded-lg shadow-sm border border-amber-100 p-4">
         <p class="text-xs font-bold text-amber-400 uppercase mb-1">Expirant ≤ 30j</p>
         <p class="text-2xl font-black text-amber-700">{{ $stats['expiring_soon'] }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm border border-yellow-100 p-4">
+        <p class="text-xs font-bold text-yellow-500 uppercase mb-1">En attente de paiement</p>
+        <p class="text-2xl font-black text-yellow-700">{{ $stats['pending'] }}</p>
     </div>
     <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
         <p class="text-xs font-bold text-gray-400 uppercase mb-1">Total</p>
@@ -40,6 +44,8 @@
 {{-- PLAN TABS --}}
 <div class="flex flex-wrap gap-2 mb-5">
     <a href="{{ route('admin.care.index') }}" class="px-4 py-1.5 rounded-full text-xs font-bold border transition {{ !$plan ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-300 hover:border-purple-400' }}">Tous les plans</a>
+    <a href="{{ route('admin.care.index', ['plan' => 'basique']) }}" class="px-4 py-1.5 rounded-full text-xs font-bold border transition {{ $plan==='basique' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400' }}">🛡️ Basique</a>
+    <a href="{{ route('admin.care.index', ['plan' => 'business']) }}" class="px-4 py-1.5 rounded-full text-xs font-bold border transition {{ $plan==='business' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-gray-600 border-gray-300 hover:border-amber-400' }}">🏆 Business</a>
     <a href="{{ route('admin.care.index', ['plan' => 'standard']) }}" class="px-4 py-1.5 rounded-full text-xs font-bold border transition {{ $plan==='standard' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400' }}">🛡️ Standard</a>
     <a href="{{ route('admin.care.index', ['plan' => 'premium']) }}" class="px-4 py-1.5 rounded-full text-xs font-bold border transition {{ $plan==='premium' ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-300 hover:border-purple-400' }}">⭐ Premium</a>
     <a href="{{ route('admin.care.index', ['plan' => 'enterprise']) }}" class="px-4 py-1.5 rounded-full text-xs font-bold border transition {{ $plan==='enterprise' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-gray-600 border-gray-300 hover:border-amber-400' }}">🏆 Entreprise</a>
@@ -53,7 +59,7 @@
                    class="border-gray-300 rounded-md shadow-sm text-sm flex-1 max-w-sm focus:ring-purple-500 focus:border-purple-500">
             <select name="status" class="border-gray-300 rounded-md shadow-sm text-sm">
                 <option value="">Tous statuts</option>
-                @foreach(['active'=>'Actif','expired'=>'Expiré','cancelled'=>'Annulé','suspended'=>'Suspendu'] as $s => $l)
+                @foreach(['pending'=>'En attente de paiement','active'=>'Actif','expired'=>'Expiré','cancelled'=>'Annulé','suspended'=>'Suspendu'] as $s => $l)
                 <option value="{{ $s }}" {{ $status===$s?'selected':'' }}>{{ $l }}</option>
                 @endforeach
             </select>
@@ -107,7 +113,9 @@
                             @if($sub->has_home_service) <span class="text-xs bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded">À domicile</span> @endif
                         </div>
                     </td>
-                    <td class="px-5 py-4 text-right font-bold text-gray-900 text-sm">{{ number_format($sub->price, 0, ',', ' ') }} FCFA</td>
+                    <td class="px-5 py-4 text-right font-bold text-gray-900 text-sm">{{ number_format($sub->price, 0, ',', ' ') }} FCFA
+                        <div class="text-[10px] font-semibold {{ $sub->payment_status === 'paid' ? 'text-green-600' : 'text-red-500' }}">{{ $sub->payment_status === 'paid' ? 'Payé' : 'Non payé' }}</div>
+                    </td>
                     <td class="px-5 py-4 text-sm {{ $sub->days_remaining <= 30 && $sub->status === 'active' ? 'text-amber-600 font-bold' : 'text-gray-500' }}">
                         {{ $sub->end_date->format('d/m/Y') }}
                         @if($sub->status === 'active' && $sub->days_remaining <= 30)
