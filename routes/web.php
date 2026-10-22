@@ -333,6 +333,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // IT HOLDING CARE+
     Route::middleware('permission:care')->group(function () {
+        Route::post('care/{care}/device-review', [\App\Http\Controllers\Admin\CareSubscriptionController::class, 'reviewDevice'])->name('care.device.review');
+        Route::get('care/{care}/device-file/{type}/{index?}', [\App\Http\Controllers\Admin\CareSubscriptionController::class, 'deviceFile'])->whereIn('type', ['photo', 'invoice'])->name('care.device.file');
         Route::resource('care', \App\Http\Controllers\Admin\CareSubscriptionController::class);
     });
 
