@@ -15,7 +15,8 @@
                 <div class="py-3 flex justify-between gap-4"><dt>Valable</dt><dd class="font-semibold text-navy-900">du {{ $subscription->start_date->format('d/m/Y') }} au {{ $subscription->end_date->format('d/m/Y') }}</dd></div>
                 <div class="py-3 flex justify-between gap-4"><dt>Montant payé</dt><dd class="font-semibold text-navy-900">{{ number_format($subscription->amount_paid, 0, ',', ' ') }} FCFA</dd></div>
             </dl>
-            <p class="mt-6 text-navy-500">Prochaine étape : l’enregistrement de votre appareil, que nous ajouterons à votre espace client.</p>
+            <p class="mt-6 text-navy-500">Prochaine étape : enregistrez votre appareil pour que notre équipe valide son admissibilité. Votre certificat sera ensuite disponible.</p>
+            <a href="{{ route('dashboard.care') }}" class="mt-4 inline-flex btn-primary-gold">Enregistrer mon appareil</a>
         @else
             <p class="text-sm font-semibold text-gold-600">Paiement en cours de confirmation</p>
             <h1 class="mt-2 text-3xl font-semibold text-navy-900 tracking-tight">Nous attendons la confirmation de votre paiement.</h1>
