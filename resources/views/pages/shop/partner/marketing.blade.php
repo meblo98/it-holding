@@ -53,6 +53,11 @@
                     <button @click="mainTab = 'video'" :class="mainTab === 'video' ? 'bg-navy-900 text-white' : 'text-gray-500 hover:bg-gray-50'" class="flex-shrink-0 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5">
                         🎬 Créateur Vidéo IA
                     </button>
+                    @if($aiEligible)
+                    <button @click="mainTab = 'aiimage'" :class="mainTab === 'aiimage' ? 'bg-navy-900 text-white' : 'text-gray-500 hover:bg-gray-50'" class="flex-shrink-0 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5">
+                        ✨ Image IA
+                    </button>
+                    @endif
                     <button @click="mainTab = 'library'" :class="mainTab === 'library' ? 'bg-navy-900 text-white' : 'text-gray-500 hover:bg-gray-50'" class="flex-shrink-0 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5">
                         📦 Bibliothèque Assets
                     </button>
@@ -909,6 +914,179 @@
                         </div>
                     </div>
                 </div>
+
+                @if($aiEligible)
+                <!-- TAB: IMAGE IA (génération et modification d'images) -->
+                <script>
+                    function aiImageStudio() {
+                        return {
+                            mode: 'generate', prompt: '', ratio: 'portrait',
+                            source: 'product', productId: '', imageIndex: 0, file: null, fileName: '',
+                            loading: false, error: '', result: null,
+                            remaining: {{ $aiRemaining }}, limit: {{ $aiLimit }},
+                            products: @json($aiProducts),
+                            history: @json($aiHistory),
+                            get product() { return this.products.find(p => String(p.id) === String(this.productId)) || null; },
+                            pickFile(e) { this.file = e.target.files[0] || null; this.fileName = this.file ? this.file.name : ''; },
+                            async submit() {
+                                this.error = ''; this.result = null;
+                                if (this.prompt.trim().length < 5) { this.error = 'Décrivez votre demande (au moins 5 caractères).'; return; }
+                                if (this.remaining <= 0) { this.error = 'Limite du jour atteinte. Revenez demain.'; return; }
+                                const fd = new FormData();
+                                fd.append('prompt', this.prompt);
+                                let url;
+                                if (this.mode === 'generate') {
+                                    url = '{{ route("dashboard.partner.marketing.ai.generate") }}';
+                                    fd.append('ratio', this.ratio);
+                                } else {
+                                    url = '{{ route("dashboard.partner.marketing.ai.edit") }}';
+                                    fd.append('source', this.source);
+                                    if (this.source === 'product') {
+                                        if (!this.productId) { this.error = 'Choisissez un produit.'; return; }
+                                        fd.append('product_id', this.productId);
+                                        fd.append('image_index', this.imageIndex);
+                                    } else {
+                                        if (!this.file) { this.error = 'Choisissez une image à modifier.'; return; }
+                                        fd.append('image', this.file);
+                                    }
+                                }
+                                this.loading = true;
+                                try {
+                                    const res = await fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }, body: fd });
+                                    const data = await res.json().catch(() => ({}));
+                                    if (!res.ok || !data.success) {
+                                        this.error = (data.errors ? Object.values(data.errors)[0][0] : data.message) || 'La création a échoué. Réessayez.';
+                                    } else {
+                                        this.result = data.image;
+                                        this.history = [data.image, ...this.history].slice(0, 12);
+                                        this.remaining = data.remaining;
+                                    }
+                                } catch (e) {
+                                    this.error = 'Connexion impossible. Réessayez.';
+                                }
+                                this.loading = false;
+                            },
+                            async remove(item) {
+                                if (!confirm('Supprimer cette image ?')) return;
+                                const res = await fetch('{{ url("/dashboard/partner/marketing/ai-image") }}/' + item.id, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } });
+                                if (res.ok) {
+                                    this.history = this.history.filter(h => h.id !== item.id);
+                                    if (this.result && this.result.id === item.id) this.result = null;
+                                }
+                            }
+                        };
+                    }
+                </script>
+                <div x-show="mainTab === 'aiimage'" class="bg-white rounded-xl border border-gray-150 p-6 lg:p-8 shadow-sm space-y-6" x-data="aiImageStudio()" x-cloak>
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                            <h3 class="text-base font-black text-navy-900 uppercase tracking-widest">Studio image IA</h3>
+                            <p class="text-xs text-gray-500 mt-1">Créez une image à partir d'une description, ou modifiez une photo de produit.</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-navy-50 text-navy-900 text-xs font-bold">
+                            Il vous reste <span x-text="remaining"></span> / <span x-text="limit"></span> images aujourd'hui
+                        </span>
+                    </div>
+
+                    <div class="inline-flex rounded-lg border border-gray-200 p-1 gap-1">
+                        <button type="button" @click="mode = 'generate'" :class="mode === 'generate' ? 'bg-navy-900 text-white' : 'text-gray-600'" class="px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider">Générer</button>
+                        <button type="button" @click="mode = 'edit'" :class="mode === 'edit' ? 'bg-navy-900 text-white' : 'text-gray-600'" class="px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider">Modifier une photo</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="space-y-5">
+                            <!-- Mode Générer : format -->
+                            <div x-show="mode === 'generate'" class="space-y-2">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest">Format</label>
+                                <select x-model="ratio" class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-sm">
+                                    <option value="portrait">Vertical 4:5 (publication Instagram / Facebook)</option>
+                                    <option value="square">Carré 1:1</option>
+                                    <option value="story">Story / statut WhatsApp 9:16</option>
+                                    <option value="landscape">Bannière horizontale 16:9</option>
+                                </select>
+                            </div>
+
+                            <!-- Mode Modifier : source -->
+                            <div x-show="mode === 'edit'" class="space-y-4">
+                                <div class="flex gap-4 text-sm text-navy-900">
+                                    <label class="flex items-center gap-2"><input type="radio" value="product" x-model="source"> Photo d'un produit IT Holding</label>
+                                    <label class="flex items-center gap-2"><input type="radio" value="upload" x-model="source"> Ma propre image</label>
+                                </div>
+
+                                <div x-show="source === 'product'" class="space-y-3">
+                                    <select x-model="productId" @change="imageIndex = 0" class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-sm">
+                                        <option value="">Choisissez un produit</option>
+                                        <template x-for="p in products" :key="p.id">
+                                            <option :value="p.id" x-text="p.name"></option>
+                                        </template>
+                                    </select>
+                                    <div x-show="product" class="flex flex-wrap gap-2">
+                                        <template x-for="(path, i) in (product ? product.images : [])" :key="path">
+                                            <button type="button" @click="imageIndex = i" :class="imageIndex === i ? 'border-gold-500 ring-2 ring-gold-500' : 'border-gray-200'" class="w-20 h-20 rounded-lg border overflow-hidden bg-gray-50">
+                                                <img :src="'/storage/' + path" class="w-full h-full object-contain" alt="">
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div x-show="source === 'upload'" class="space-y-2">
+                                    <label class="block w-full border-2 border-dashed border-gray-200 rounded-lg p-5 text-center text-sm text-gray-500 cursor-pointer">
+                                        <span x-text="fileName || 'Touchez pour choisir une image (JPG, PNG, WebP, 4 Mo max)'"></span>
+                                        <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="pickFile($event)">
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest" x-text="mode === 'generate' ? 'Décrivez l\'image' : 'Que faut-il modifier ?'"></label>
+                                <textarea x-model="prompt" rows="4" maxlength="800" class="w-full border-gray-200 rounded-lg py-2.5 px-3.5 text-sm"
+                                          :placeholder="mode === 'generate' ? 'Ex : un ordinateur portable moderne sur un bureau lumineux, ambiance professionnelle, pour une publication de promotion' : 'Ex : remplace le fond par un bureau moderne et ajoute une lumière chaleureuse'"></textarea>
+                            </div>
+
+                            <p x-show="error" x-text="error" class="text-sm text-red-600 font-medium"></p>
+
+                            <button type="button" @click="submit()" :disabled="loading || remaining <= 0" class="w-full btn-primary-gold py-3.5 text-xs font-black uppercase tracking-widest disabled:opacity-50 flex items-center justify-center gap-2">
+                                <span x-show="!loading" x-text="mode === 'generate' ? 'Générer l\'image' : 'Modifier la photo'"></span>
+                                <span x-show="loading">Création en cours… (jusqu'à 30 secondes)</span>
+                            </button>
+
+                            <p class="text-xs text-gray-400 leading-relaxed">
+                                Vérifiez toujours l'image avant de la publier : l'IA peut se tromper. N'y ajoutez ni prix ni promesse non officielle, et utilisez vos codes promo officiels dans le texte de la publication.
+                            </p>
+                        </div>
+
+                        <!-- Résultat -->
+                        <div>
+                            <div x-show="result" class="space-y-3">
+                                <img :src="result ? result.url : ''" class="w-full rounded-lg border border-gray-200" alt="Image créée">
+                                <a :href="result ? result.url + '?download=1' : '#'" class="inline-flex px-5 py-2.5 rounded-md bg-navy-900 text-white text-xs font-bold uppercase tracking-wider">Télécharger</a>
+                            </div>
+                            <div x-show="!result" class="h-full min-h-[200px] flex items-center justify-center border border-dashed border-gray-200 rounded-lg text-sm text-gray-400 text-center p-6">
+                                Votre image apparaîtra ici.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Historique -->
+                    <div x-show="history.length > 0" class="space-y-3 pt-4 border-t border-gray-100">
+                        <h4 class="text-xs font-bold text-navy-900 uppercase tracking-widest">Mes dernières images</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <template x-for="item in history" :key="item.id">
+                                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                                    <img :src="item.url" class="w-full aspect-square object-cover bg-gray-50" alt="" loading="lazy">
+                                    <div class="p-2 flex items-center justify-between gap-2 text-[11px]">
+                                        <span class="text-gray-400" x-text="item.created"></span>
+                                        <span class="flex gap-2">
+                                            <a :href="item.url + '?download=1'" class="font-bold text-navy-900">Télécharger</a>
+                                            <button type="button" @click="remove(item)" class="font-bold text-red-600">Suppr.</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                @endif
 
             </main>
         </div>
