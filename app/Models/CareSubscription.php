@@ -16,6 +16,9 @@ class CareSubscription extends Model
         'has_priority_support', 'has_repair_discount', 'repair_discount_pct',
         'has_parts_discount', 'parts_discount_pct', 'has_home_service',
         'status', 'payment_status', 'payment_method', 'amount_paid', 'paid_at', 'notes',
+        'public_token', 'device_category', 'device_brand', 'device_model', 'purchase_date',
+        'initial_condition', 'device_photos', 'invoice_path', 'device_status',
+        'device_rejection_reason', 'device_submitted_at', 'device_reviewed_at', 'certificate_issued_at',
     ];
 
     protected $casts = [
@@ -24,6 +27,11 @@ class CareSubscription extends Model
         'price'                => 'decimal:2',
         'amount_paid'          => 'decimal:2',
         'paid_at'              => 'datetime',
+        'purchase_date'        => 'date',
+        'device_photos'        => 'array',
+        'device_submitted_at'  => 'datetime',
+        'device_reviewed_at'   => 'datetime',
+        'certificate_issued_at' => 'datetime',
         'has_priority_support' => 'boolean',
         'has_repair_discount'  => 'boolean',
         'has_parts_discount'   => 'boolean',
@@ -50,6 +58,32 @@ class CareSubscription extends Model
     public function getDaysRemainingAttribute(): int
     {
         return max(0, (int) now()->diffInDays($this->end_date, false));
+    }
+
+    /** Le client peut (re)soumettre son appareil : abonnement payé, actif, appareil non encore validé. */
+    public function getCanRegisterDeviceAttribute(): bool
+    {
+        return $this->payment_status === 'paid'
+            && $this->status === 'active'
+            && $this->end_date && !$this->end_date->isPast()
+            && in_array($this->device_status ?: 'none', ['none', 'rejected'], true);
+    }
+
+    /** Certificat disponible : abonnement payé et actif, appareil validé. */
+    public function getHasCertificateAttribute(): bool
+    {
+        return $this->payment_status === 'paid'
+            && $this->status === 'active'
+            && $this->device_status === 'approved';
+    }
+
+    public function ensurePublicToken(): string
+    {
+        if (!$this->public_token) {
+            $this->update(['public_token' => \Illuminate\Support\Str::random(40)]);
+        }
+
+        return $this->public_token;
     }
 
     // ── Static helpers ───────────────────────────────────────────────────────
