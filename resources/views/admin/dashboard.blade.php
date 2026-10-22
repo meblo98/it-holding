@@ -93,6 +93,10 @@
                             <span>Factures :</span>
                             <span class="font-bold text-gray-700">{{ number_format($financials['invoices']['revenue'], 0, ',', ' ') }} FCFA</span>
                         </div>
+                        <div class="flex justify-between">
+                            <span>Care+ :</span>
+                            <span class="font-bold text-gray-700">{{ number_format($financials['care']['revenue'], 0, ',', ' ') }} FCFA</span>
+                        </div>
                     </div>
                 </div>
 
@@ -137,6 +141,55 @@
                     </p>
                 </div>
             </div>
+        </div>
+
+        <!-- Garantie & Protection (Care+) -->
+        <div class="mt-8 bg-white overflow-hidden shadow sm:rounded-lg border-t-4 border-purple-500">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-50 gap-2">
+                <div>
+                    <h3 class="text-lg leading-6 font-bold text-navy-900 uppercase tracking-tight">Garantie &amp; Protection (Care+)</h3>
+                    <p class="text-xs text-gray-500 mt-1">Abonnements souscrits en ligne et créés par l'équipe. Le chiffre d'affaires ne compte que les abonnements payés.</p>
+                </div>
+                <a href="{{ route('admin.care.index') }}" class="text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded transition">Voir tous les abonnements</a>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-gray-200">
+                <div class="p-5">
+                    <dt class="text-xs font-bold text-gray-400 uppercase tracking-widest">Abonnements actifs</dt>
+                    <dd class="mt-2 text-3xl font-black text-navy-900">{{ $careStats['active'] }}</dd>
+                </div>
+                <div class="p-5">
+                    <dt class="text-xs font-bold text-gray-400 uppercase tracking-widest">En attente de paiement</dt>
+                    <dd class="mt-2 text-3xl font-black text-amber-600">{{ $careStats['pending'] }}</dd>
+                </div>
+                <div class="p-5">
+                    <dt class="text-xs font-bold text-gray-400 uppercase tracking-widest">Abonnements payés</dt>
+                    <dd class="mt-2 text-3xl font-black text-navy-900">{{ $careStats['paid'] }}</dd>
+                    <p class="text-xs text-gray-500 mt-1">
+                        Basique {{ $careStats['by_plan']['basique'] ?? 0 }} · Premium {{ $careStats['by_plan']['premium'] ?? 0 }} · Business {{ $careStats['by_plan']['business'] ?? 0 }}
+                    </p>
+                </div>
+                <div class="p-5">
+                    <dt class="text-xs font-bold text-gray-400 uppercase tracking-widest">C.A. abonnements</dt>
+                    <dd class="mt-2 text-2xl font-black text-purple-800">{{ number_format($careStats['revenue'], 0, ',', ' ') }} <span class="text-sm font-semibold">FCFA</span></dd>
+                </div>
+            </div>
+            <ul role="list" class="divide-y divide-gray-200 border-t border-gray-200">
+                @forelse($latestCare as $care)
+                    @php $careStatus = \App\Models\CareSubscription::statusConfig($care->status); @endphp
+                    <li class="px-4 py-3 sm:px-6 hover:bg-gray-50">
+                        <div class="flex items-center justify-between gap-3">
+                            <a href="{{ route('admin.care.show', $care->id) }}" class="text-sm font-medium text-navy-600 truncate">{{ $care->number }} · {{ $care->client_name }}</a>
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full border {{ $careStatus['classes'] }}">{{ $careStatus['label'] }}</span>
+                        </div>
+                        <div class="mt-1 flex justify-between text-sm text-gray-500">
+                            <span>{{ ucfirst($care->plan) }} · {{ number_format($care->price, 0, ',', ' ') }} FCFA · {{ $care->payment_status === 'paid' ? 'payé' : 'non payé' }}</span>
+                            <span>{{ $care->created_at->diffForHumans() }}</span>
+                        </div>
+                    </li>
+                @empty
+                    <li class="px-4 py-4 text-center text-gray-500">Aucun abonnement Care+ pour le moment.</li>
+                @endforelse
+            </ul>
         </div>
 
         <!-- Section Graphiques Financiers -->
@@ -598,15 +651,17 @@
             const distributionChart = new Chart(ctxDistribution, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Boutique en ligne', 'Factures directes'],
+                    labels: ['Boutique en ligne', 'Factures directes', 'Care+'],
                     datasets: [{
                         data: [
                             {{ $financials['orders']['revenue'] }},
-                            {{ $financials['invoices']['revenue'] }}
+                            {{ $financials['invoices']['revenue'] }},
+                            {{ $financials['care']['revenue'] }}
                         ],
                         backgroundColor: [
                             'rgba(22, 38, 70, 0.85)', // navy
-                            'rgba(202, 138, 4, 0.85)'   // gold
+                            'rgba(202, 138, 4, 0.85)',  // gold
+                            'rgba(124, 58, 237, 0.85)'  // violet (Care+)
                         ],
                         borderColor: '#fff',
                         borderWidth: 2,
