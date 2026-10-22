@@ -7,7 +7,7 @@
 @php
     $steps = [
         ['Créez votre compte partenaire', 'Remplissez le formulaire d’inscription partenaire.'],
-        ['Faites valider votre profil', 'Notre équipe examine votre demande. Après validation, vous acceptez le contrat de partenariat et accédez à votre espace.'],
+        ['Accédez à votre espace', 'Votre compte est activé dès l’inscription. Vous accédez directement à votre espace et acceptez le contrat de partenariat.'],
         ['Partagez vos liens', 'Chaque produit a votre lien personnel. Partagez-le sur Facebook, sur WhatsApp ou en direct.'],
         ['Touchez vos commissions', 'Les ventes issues de votre lien sont suivies automatiquement. Retrouvez vos gains dans votre portefeuille.'],
     ];
