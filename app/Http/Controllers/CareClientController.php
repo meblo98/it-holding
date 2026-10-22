@@ -33,7 +33,7 @@ class CareClientController extends Controller
     public function index()
     {
         return view('pages.shop.care-espace', [
-            'subscriptions' => $this->mine()->latest()->get(),
+            'subscriptions' => $this->mine()->with('claims')->latest()->get(),
             'plans'         => config('care.plans'),
         ]);
     }
