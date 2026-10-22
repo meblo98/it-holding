@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\CareSubscription;
 use App\Models\Contact;
 use App\Models\Order;
 use App\Models\Post;
@@ -54,7 +55,12 @@ class DashboardController extends Controller
                 $q->where('status', '!=', 'cancelled');
             })->sum('commission_amount');
 
-        $totalRevenue = $ordersRevenue + $invoicesRevenue - $ordersCommissions;
+        // 2 bis. Garantie & Protection (Care+) : abonnements payés
+        $careQuery = CareSubscription::where('payment_status', 'paid');
+        $careCount = $careQuery->count();
+        $careRevenue = (float) $careQuery->sum('amount_paid');
+
+        $totalRevenue = $ordersRevenue + $invoicesRevenue + $careRevenue - $ordersCommissions;
         $totalCost = $ordersCost + $invoicesCost;
         $totalProfit = $totalRevenue - $totalCost;
         $marginPercentage = $totalRevenue > 0 ? ($totalProfit / $totalRevenue) * 100 : 0;
@@ -77,7 +83,23 @@ class DashboardController extends Controller
                 'revenue' => $invoicesRevenue,
                 'cost' => $invoicesCost,
                 'profit' => $invoicesRevenue - $invoicesCost,
-            ]
+            ],
+            // Aucun coût direct n'est imputé aux abonnements ici : les réparations prises en charge seront suivies à part.
+            'care' => [
+                'count' => $careCount,
+                'revenue' => $careRevenue,
+            ],
+        ];
+
+        $careStats = [
+            'active' => CareSubscription::where('status', 'active')->count(),
+            'pending' => CareSubscription::where('status', 'pending')->count(),
+            'paid' => $careCount,
+            'revenue' => $careRevenue,
+            'by_plan' => CareSubscription::where('payment_status', 'paid')
+                ->selectRaw('plan, COUNT(*) as total')
+                ->groupBy('plan')
+                ->pluck('total', 'plan'),
         ];
 
         // 4. Rolling 6-month historical calculations for Chart.js
@@ -132,8 +154,14 @@ class DashboardController extends Controller
                 ->whereYear('invoices.created_at', $yearNum)
                 ->sum(\Illuminate\Support\Facades\DB::raw('invoice_items.quantity * invoice_items.purchase_price'));
 
+            // Abonnements Care+ payés ce mois-ci (date d'activation)
+            $careRev = CareSubscription::where('payment_status', 'paid')
+                ->whereMonth('start_date', $monthNum)
+                ->whereYear('start_date', $yearNum)
+                ->sum('amount_paid');
+
             // Calculations
-            $monthlyRev = $ordersRev + $invoicesRev;
+            $monthlyRev = $ordersRev + $invoicesRev + $careRev;
             $monthlyCst = $ordersCst + $invoicesCst;
             $monthlyPrf = $monthlyRev - $monthlyCst;
 
@@ -150,6 +178,8 @@ class DashboardController extends Controller
         $latestContacts = Contact::latest()->take(5)->get();
         $latestOrders = Order::latest()->take(5)->get();
 
-        return view('admin.dashboard', compact('stats', 'financials', 'chartData', 'latestContacts', 'latestOrders'));
+        $latestCare = CareSubscription::latest()->take(5)->get();
+
+        return view('admin.dashboard', compact('stats', 'financials', 'chartData', 'latestContacts', 'latestOrders', 'careStats', 'latestCare'));
     }
 }

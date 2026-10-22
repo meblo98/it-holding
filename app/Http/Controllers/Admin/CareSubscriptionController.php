@@ -31,7 +31,8 @@ class CareSubscriptionController extends Controller
             'active'        => CareSubscription::active()->count(),
             'expiring_soon' => CareSubscription::expiringSoon(30)->count(),
             'total'         => CareSubscription::count(),
-            'revenue'       => CareSubscription::active()->sum('price'),
+            'revenue'       => CareSubscription::where('payment_status', 'paid')->sum('amount_paid'),
+            'pending'       => CareSubscription::where('status', 'pending')->count(),
         ];
 
         return view('admin.care.index', compact('subscriptions', 'search', 'status', 'plan', 'stats'));
@@ -53,7 +54,7 @@ class CareSubscriptionController extends Controller
             'client_phone'        => 'nullable|string|max:50',
             'product_name'        => 'required|string|max:255',
             'serial_number'       => 'nullable|string|max:255',
-            'plan'                => 'required|in:standard,premium,enterprise',
+            'plan'                => 'required|in:basique,standard,premium,business,enterprise',
             'start_date'          => 'required|date',
             'duration_months'     => 'required|integer|min:1',
             'price'               => 'required|numeric|min:0',
@@ -63,7 +64,7 @@ class CareSubscriptionController extends Controller
             'has_parts_discount'  => 'boolean',
             'parts_discount_pct'  => 'nullable|integer|min:0|max:100',
             'has_home_service'    => 'boolean',
-            'status'              => 'required|in:active,expired,cancelled,suspended',
+            'status'              => 'required|in:pending,active,expired,cancelled,suspended',
             'payment_status'      => 'required|in:pending,paid',
             'notes'               => 'nullable|string',
         ]);
@@ -103,7 +104,7 @@ class CareSubscriptionController extends Controller
             'client_phone'        => 'nullable|string|max:50',
             'product_name'        => 'required|string|max:255',
             'serial_number'       => 'nullable|string|max:255',
-            'plan'                => 'required|in:standard,premium,enterprise',
+            'plan'                => 'required|in:basique,standard,premium,business,enterprise',
             'start_date'          => 'required|date',
             'duration_months'     => 'required|integer|min:1',
             'price'               => 'required|numeric|min:0',
@@ -113,7 +114,7 @@ class CareSubscriptionController extends Controller
             'has_parts_discount'  => 'boolean',
             'parts_discount_pct'  => 'nullable|integer|min:0|max:100',
             'has_home_service'    => 'boolean',
-            'status'              => 'required|in:active,expired,cancelled,suspended',
+            'status'              => 'required|in:pending,active,expired,cancelled,suspended',
             'payment_status'      => 'required|in:pending,paid',
             'notes'               => 'nullable|string',
         ]);
@@ -123,6 +124,10 @@ class CareSubscriptionController extends Controller
         $validated['has_repair_discount']  = $request->boolean('has_repair_discount');
         $validated['has_parts_discount']   = $request->boolean('has_parts_discount');
         $validated['has_home_service']     = $request->boolean('has_home_service');
+
+        if ($validated['payment_status'] === 'paid' && (float) $care->amount_paid <= 0) {
+            $validated['amount_paid'] = $validated['price'];
+        }
 
         $care->update($validated);
 
