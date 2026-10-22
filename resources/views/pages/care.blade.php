@@ -75,7 +75,7 @@
                         <li>Suivi, historique et rapport de réparation inclus</li>
                     </ul>
                     <p class="mt-5 text-sm text-navy-400">{{ $p['target'] }}</p>
-                    <a href="{{ route('contact.index') }}" class="mt-6 {{ $p['highlight'] ? 'btn-primary-gold justify-center' : 'inline-flex justify-center px-5 py-3 rounded-md border border-navy-200 font-semibold text-navy-900 hover:bg-navy-50 transition-colors' }}">Choisir {{ $p['label'] }}</a>
+                    <a href="{{ route('care.subscribe', $key) }}" class="mt-6 {{ $p['highlight'] ? 'btn-primary-gold justify-center' : 'inline-flex justify-center px-5 py-3 rounded-md border border-navy-200 font-semibold text-navy-900 hover:bg-navy-50 transition-colors' }}">Choisir {{ $p['label'] }}</a>
                 </div>
             @endforeach
         </div>
@@ -162,7 +162,7 @@
 </section>
 
 <!-- Couverture et exclusions -->
-<section class="bg-navy-50 border-y border-navy-100 py-16">
+<section id="couverture" class="bg-navy-50 border-y border-navy-100 py-16">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-2xl font-semibold text-navy-900 tracking-tight">Ce qui est couvert, ce qui ne l’est pas</h2>
         <p class="mt-3 text-navy-500 max-w-2xl">Au lancement, la protection concerne les {{ strtolower(implode(' et les ', config('care.pilot_categories'))) }}. Une pièce n’est couverte que si elle figure dans la grille de votre formule : être réparable ne suffit pas.</p>
