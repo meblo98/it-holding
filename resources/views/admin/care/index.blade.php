@@ -18,7 +18,7 @@
 @endif
 
 {{-- KPI CARDS --}}
-<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+<div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
     <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg shadow-sm p-4 text-white">
         <p class="text-xs font-bold text-purple-200 uppercase mb-1">Abonnés actifs</p>
         <p class="text-2xl font-black">{{ $stats['active'] }}</p>
@@ -27,6 +27,10 @@
         <p class="text-xs font-bold text-amber-400 uppercase mb-1">Expirant ≤ 30j</p>
         <p class="text-2xl font-black text-amber-700">{{ $stats['expiring_soon'] }}</p>
     </div>
+    <a href="{{ route('admin.care.index', ['device' => 'pending']) }}" class="bg-white rounded-lg shadow-sm border border-blue-100 p-4 block hover:border-blue-300 transition">
+        <p class="text-xs font-bold text-blue-500 uppercase mb-1">Appareils à vérifier</p>
+        <p class="text-2xl font-black text-blue-700">{{ $stats['devices_pending'] }}</p>
+    </a>
     <div class="bg-white rounded-lg shadow-sm border border-yellow-100 p-4">
         <p class="text-xs font-bold text-yellow-500 uppercase mb-1">En attente de paiement</p>
         <p class="text-2xl font-black text-yellow-700">{{ $stats['pending'] }}</p>

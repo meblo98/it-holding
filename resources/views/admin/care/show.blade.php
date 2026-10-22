@@ -57,6 +57,76 @@
             </div>
         </div>
 
+        {{-- APPAREIL : vérification d'admissibilité --}}
+        @php
+            $devCfg = [
+                'none'     => ['Non enregistré', 'bg-gray-100 text-gray-600'],
+                'pending'  => ['À vérifier', 'bg-blue-50 text-blue-700'],
+                'approved' => ['Validé', 'bg-green-50 text-green-700'],
+                'rejected' => ['Refusé', 'bg-red-50 text-red-700'],
+            ][$care->device_status ?: 'none'];
+            $deviceCats = ['laptop' => 'Ordinateur portable', 'desktop' => 'Ordinateur fixe'];
+        @endphp
+        <div class="bg-white rounded-lg shadow-sm border {{ $care->device_status === 'pending' ? 'border-blue-300' : 'border-gray-100' }} p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Appareil &amp; admissibilité</h2>
+                <span class="px-3 py-0.5 rounded-full text-xs font-bold {{ $devCfg[1] }}">{{ $devCfg[0] }}</span>
+            </div>
+
+            @if(($care->device_status ?: 'none') === 'none')
+                <p class="text-sm text-gray-500">Le client n'a pas encore enregistré son appareil.</p>
+            @else
+                <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                    <div><span class="text-xs text-gray-400 uppercase font-bold block">Type</span>{{ $deviceCats[$care->device_category] ?? '—' }}</div>
+                    <div><span class="text-xs text-gray-400 uppercase font-bold block">Marque / modèle</span><span class="font-bold">{{ $care->device_brand }} {{ $care->device_model }}</span></div>
+                    <div><span class="text-xs text-gray-400 uppercase font-bold block">N° de série</span><span class="font-mono">{{ $care->serial_number }}</span></div>
+                    <div><span class="text-xs text-gray-400 uppercase font-bold block">Date d'achat</span>{{ $care->purchase_date ? $care->purchase_date->format('d/m/Y') : 'Non renseignée' }}</div>
+                    <div class="col-span-2"><span class="text-xs text-gray-400 uppercase font-bold block">État déclaré par le client</span><p class="whitespace-pre-line">{{ $care->initial_condition }}</p></div>
+                    @if($care->device_submitted_at)
+                        <div class="col-span-2 text-xs text-gray-400">Soumis le {{ $care->device_submitted_at->format('d/m/Y à H:i') }}</div>
+                    @endif
+                </div>
+
+                @if(!empty($care->device_photos))
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($care->device_photos as $i => $p)
+                            <a href="{{ route('admin.care.device.file', [$care->id, 'photo', $i]) }}" target="_blank" class="block w-24 h-24 rounded border border-gray-200 overflow-hidden bg-gray-50">
+                                <img src="{{ route('admin.care.device.file', [$care->id, 'photo', $i]) }}" class="w-full h-full object-cover" alt="Photo {{ $i + 1 }}">
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
+                @if($care->invoice_path)
+                    <a href="{{ route('admin.care.device.file', [$care->id, 'invoice']) }}" target="_blank" class="inline-block text-sm font-bold text-navy-700 hover:underline">Voir la facture / preuve d'achat</a>
+                @endif
+
+                @if($care->device_status === 'rejected' && $care->device_rejection_reason)
+                    <p class="text-sm bg-red-50 border border-red-200 text-red-700 rounded px-3 py-2">Motif communiqué au client : {{ $care->device_rejection_reason }}</p>
+                @endif
+                @if($care->device_reviewed_at && $care->device_status !== 'pending')
+                    <p class="text-xs text-gray-400">Décision prise le {{ $care->device_reviewed_at->format('d/m/Y à H:i') }}</p>
+                @endif
+
+                @if($care->device_status === 'pending')
+                    <div class="border-t border-gray-100 pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <form action="{{ route('admin.care.device.review', $care->id) }}" method="POST" onsubmit="return confirm('Valider cet appareil et délivrer le certificat ?')">
+                            @csrf
+                            <input type="hidden" name="decision" value="approve">
+                            <button type="submit" class="w-full px-4 py-2.5 bg-green-600 text-white font-bold rounded-md text-sm hover:bg-green-700 transition">Valider l'appareil</button>
+                            <p class="mt-1 text-xs text-gray-400">Le certificat devient disponible pour le client.</p>
+                        </form>
+                        <form action="{{ route('admin.care.device.review', $care->id) }}" method="POST" class="space-y-2">
+                            @csrf
+                            <input type="hidden" name="decision" value="reject">
+                            <textarea name="reason" rows="2" required maxlength="500" placeholder="Motif du refus (visible par le client)" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">{{ old('reason') }}</textarea>
+                            @error('reason')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+                            <button type="submit" class="w-full px-4 py-2.5 bg-red-600 text-white font-bold rounded-md text-sm hover:bg-red-700 transition">Refuser</button>
+                        </form>
+                    </div>
+                @endif
+            @endif
+        </div>
+
         {{-- AVANTAGES --}}
         <div class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border border-purple-200 p-6">
             <h2 class="text-xs font-bold text-purple-600 uppercase tracking-wider mb-4">Avantages du plan {{ $planCfg['label'] }}</h2>
