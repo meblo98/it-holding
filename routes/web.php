@@ -14,6 +14,12 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/care', [PageController::class, 'care'])->name('care.landing');
+Route::middleware('auth')->group(function () {
+    Route::get('/care/souscrire/{plan}', [\App\Http\Controllers\CareCheckoutController::class, 'show'])->name('care.subscribe');
+    Route::post('/care/souscrire/{plan}', [\App\Http\Controllers\CareCheckoutController::class, 'store'])->name('care.subscribe.store')->middleware('throttle:10,1');
+    Route::get('/care/paiement/succes', [\App\Http\Controllers\CareCheckoutController::class, 'success'])->name('care.success')->middleware('signed');
+    Route::get('/care/paiement/erreur', [\App\Http\Controllers\CareCheckoutController::class, 'error'])->name('care.error')->middleware('signed');
+});
 Route::view('/devenir-partenaire', 'pages.partenaire')->name('partner.landing');
 // « register » est exclu : sinon cette route intercepte le formulaire /partner/register déclaré plus bas.
 Route::get('/partner/{identifier}', [\App\Http\Controllers\PartnerReferralController::class, 'track'])
