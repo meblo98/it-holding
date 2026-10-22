@@ -7,6 +7,7 @@ use App\Models\CareSubscription;
 use App\Models\Client;
 use App\Models\Warranty;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class CareSubscriptionController extends Controller
 {
@@ -15,6 +16,7 @@ class CareSubscriptionController extends Controller
         $search = $request->input('search');
         $status = $request->input('status');
         $plan   = $request->input('plan');
+        $device = $request->input('device');
 
         $subscriptions = CareSubscription::with('client')
             ->when($search, fn($q, $s) => $q->where(fn($q) => $q
@@ -24,6 +26,7 @@ class CareSubscriptionController extends Controller
             ))
             ->when($status, fn($q) => $q->where('status', $status))
             ->when($plan,   fn($q) => $q->where('plan',   $plan))
+            ->when($device, fn($q) => $q->where('device_status', $device))
             ->orderByDesc('end_date')
             ->paginate(20);
 
@@ -33,9 +36,56 @@ class CareSubscriptionController extends Controller
             'total'         => CareSubscription::count(),
             'revenue'       => CareSubscription::where('payment_status', 'paid')->sum('amount_paid'),
             'pending'       => CareSubscription::where('status', 'pending')->count(),
+            'devices_pending' => CareSubscription::where('device_status', 'pending')->count(),
         ];
 
         return view('admin.care.index', compact('subscriptions', 'search', 'status', 'plan', 'stats'));
+    }
+
+    /** Validation ou refus de l'appareil soumis par le client (vérification d'admissibilité). */
+    public function reviewDevice(Request $request, CareSubscription $care)
+    {
+        abort_unless($care->device_status === 'pending', 422, 'Aucun appareil en attente de vérification.');
+
+        $data = $request->validate([
+            'decision' => 'required|in:approve,reject',
+            'reason'   => 'required_if:decision,reject|nullable|string|max:500',
+        ], [
+            'reason.required_if' => 'Indiquez le motif du refus : il sera communiqué au client.',
+        ]);
+
+        if ($data['decision'] === 'approve') {
+            if ($care->payment_status !== 'paid') {
+                return back()->with('error', 'Impossible de valider : l\'abonnement n\'est pas payé.');
+            }
+
+            $care->update([
+                'device_status'           => 'approved',
+                'device_rejection_reason' => null,
+                'device_reviewed_at'      => now(),
+                'certificate_issued_at'   => now(),
+            ]);
+            $care->ensurePublicToken();
+
+            return back()->with('success', 'Appareil validé. Le certificat est disponible pour le client.');
+        }
+
+        $care->update([
+            'device_status'           => 'rejected',
+            'device_rejection_reason' => $data['reason'],
+            'device_reviewed_at'      => now(),
+        ]);
+
+        return back()->with('success', 'Appareil refusé. Le client verra le motif et pourra corriger sa demande.');
+    }
+
+    /** Photos et facture de l'appareil (disque privé), réservées aux administrateurs ayant la permission « care ». */
+    public function deviceFile(CareSubscription $care, string $type, int $index = 0)
+    {
+        $path = $type === 'invoice' ? $care->invoice_path : ($care->device_photos[$index] ?? null);
+        abort_unless($path && Storage::disk('local')->exists($path), 404);
+
+        return response()->file(Storage::disk('local')->path($path));
     }
 
     public function create()
