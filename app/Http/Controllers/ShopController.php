@@ -946,6 +946,11 @@ class ShopController extends Controller
             return response()->json(['error' => 'No order reference found'], 400);
         }
 
+        // Souscriptions Garantie & Protection : référence « CARE-{id} ».
+        if (str_starts_with((string) $orderId, 'CARE-')) {
+            return app(\App\Http\Controllers\CareCheckoutController::class)->webhook($payload);
+        }
+
         $order = Order::find($orderId);
         if (!$order) {
             return response()->json(['error' => 'Order not found'], 404);
