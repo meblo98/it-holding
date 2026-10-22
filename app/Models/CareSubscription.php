@@ -45,6 +45,7 @@ class CareSubscription extends Model
     public function client()  { return $this->belongsTo(Client::class); }
     public function warranty() { return $this->belongsTo(Warranty::class); }
     public function user()     { return $this->belongsTo(User::class); }
+    public function claims()    { return $this->hasMany(CareClaim::class)->latest(); }
 
     // ── Scopes ──────────────────────────────────────────────────────────────
     public function scopeActive($q)          { return $q->where('status', 'active'); }
@@ -75,6 +76,14 @@ class CareSubscription extends Model
         return $this->payment_status === 'paid'
             && $this->status === 'active'
             && $this->device_status === 'approved';
+    }
+
+    /** Le client peut déclarer une panne : certificat délivré, non expiré, aucune demande déjà ouverte. */
+    public function getCanDeclareClaimAttribute(): bool
+    {
+        return $this->has_certificate
+            && $this->end_date && !$this->end_date->isPast()
+            && !$this->claims()->open()->exists();
     }
 
     public function ensurePublicToken(): string
