@@ -199,13 +199,22 @@ class DashboardController extends Controller
             }
         }
 
+        // Validation automatique pour les profils proposés à l'inscription ;
+        // les autres profils (freelance, prestataire, créateur) restent à examiner.
+        $autoApproved = in_array($request->partner_type, ['commercial', 'apporteur', 'revendeur'], true);
+
         $user->update([
             'role' => 'partner',
-            'partner_status' => 'pending',
+            'partner_status' => $autoApproved ? 'approved' : 'pending',
             'partner_type' => $request->partner_type,
             'partner_code' => 'PART-' . str_pad($user->id, 6, '0', STR_PAD_LEFT),
             'username' => $username,
         ]);
+
+        if ($autoApproved) {
+            $user->getOrCreateProfessionalProfile();
+            return back()->with('success', 'Votre espace partenaire est activé.');
+        }
 
         return back()->with('success', 'Votre candidature a été soumise avec succès.');
     }
