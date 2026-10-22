@@ -139,6 +139,10 @@ Route::middleware(['auth', 'redirect.admin'])->group(function () {
     Route::delete('/dashboard/partner/marketing/posts/{post}', [\App\Http\Controllers\PartnerMarketingController::class, 'destroyPost'])->name('dashboard.partner.marketing.posts.destroy');
     Route::post('/dashboard/partner/marketing/video-script', [\App\Http\Controllers\PartnerMarketingController::class, 'generateVideoScript'])->name('dashboard.partner.marketing.video');
     Route::post('/dashboard/partner/marketing/poster-ai', [\App\Http\Controllers\PartnerMarketingController::class, 'generatePosterAI'])->name('dashboard.partner.marketing.poster.ai');
+    Route::post('/dashboard/partner/marketing/ai-image/generate', [\App\Http\Controllers\PartnerImageStudioController::class, 'generate'])->middleware('throttle:10,1')->name('dashboard.partner.marketing.ai.generate');
+    Route::post('/dashboard/partner/marketing/ai-image/edit', [\App\Http\Controllers\PartnerImageStudioController::class, 'edit'])->middleware('throttle:10,1')->name('dashboard.partner.marketing.ai.edit');
+    Route::get('/dashboard/partner/marketing/ai-image/{image}', [\App\Http\Controllers\PartnerImageStudioController::class, 'show'])->name('dashboard.partner.marketing.ai.show');
+    Route::delete('/dashboard/partner/marketing/ai-image/{image}', [\App\Http\Controllers\PartnerImageStudioController::class, 'destroy'])->name('dashboard.partner.marketing.ai.destroy');
     Route::get('/dashboard/partner/marketing/proxy-image', [\App\Http\Controllers\PartnerMarketingController::class, 'proxyImage'])->name('dashboard.partner.marketing.proxy.image');
 
     // Catalogue partenaire (revendeurs et partenaires commerciaux)
