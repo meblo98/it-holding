@@ -7,10 +7,13 @@
         <h1 class="text-2xl font-bold text-gray-900">IT HOLDING CARE+</h1>
         <p class="text-sm text-gray-500 mt-0.5">Abonnements garantie prolongée et assistance prioritaire.</p>
     </div>
+    <div class="flex flex-wrap gap-2">
+    <a href="{{ route('admin.care.claims.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-purple-300 text-purple-700 rounded-md font-bold text-sm hover:bg-purple-50 transition shadow-sm gap-2">Pannes &amp; réparations</a>
     <a href="{{ route('admin.care.create') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-navy-700 text-white rounded-md font-bold text-sm hover:opacity-90 transition shadow-sm gap-2">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         Nouvel Abonnement
     </a>
+    </div>
 </div>
 
 @if(session('success'))
