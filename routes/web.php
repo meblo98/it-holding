@@ -25,6 +25,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/care/{care}/appareil', [\App\Http\Controllers\CareClientController::class, 'deviceForm'])->whereNumber('care')->name('dashboard.care.device');
     Route::post('/dashboard/care/{care}/appareil', [\App\Http\Controllers\CareClientController::class, 'storeDevice'])->whereNumber('care')->middleware('throttle:10,1')->name('dashboard.care.device.store');
     Route::get('/dashboard/care/{care}/fichier/{type}/{index?}', [\App\Http\Controllers\CareClientController::class, 'file'])->whereNumber('care')->whereIn('type', ['photo', 'invoice'])->name('dashboard.care.file');
+    // Déclaration de panne et suivi
+    Route::get('/dashboard/care/{care}/panne', [\App\Http\Controllers\CareClaimController::class, 'form'])->whereNumber('care')->name('dashboard.care.claim.form');
+    Route::post('/dashboard/care/{care}/panne', [\App\Http\Controllers\CareClaimController::class, 'store'])->whereNumber('care')->middleware('throttle:10,1')->name('dashboard.care.claim.store');
+    Route::get('/dashboard/care/demande/{claim}', [\App\Http\Controllers\CareClaimController::class, 'show'])->whereNumber('claim')->name('dashboard.care.claim.show');
+    Route::post('/dashboard/care/demande/{claim}/annuler', [\App\Http\Controllers\CareClaimController::class, 'cancel'])->whereNumber('claim')->name('dashboard.care.claim.cancel');
+    Route::get('/dashboard/care/demande/{claim}/fichier/{type}/{index?}', [\App\Http\Controllers\CareClaimController::class, 'file'])->whereNumber('claim')->whereIn('type', ['photo', 'video'])->name('dashboard.care.claim.file');
     Route::get('/dashboard/care/{care}/certificat', [\App\Http\Controllers\CareClientController::class, 'certificate'])->whereNumber('care')->name('dashboard.care.certificate');
 });
 
@@ -333,6 +339,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // IT HOLDING CARE+
     Route::middleware('permission:care')->group(function () {
+        // Pannes et réparations Care+ (chemin « care-pannes » pour ne pas entrer en conflit avec care/{care})
+        Route::get('care-pannes', [\App\Http\Controllers\Admin\CareClaimAdminController::class, 'index'])->name('care.claims.index');
+        Route::get('care-pannes/{claim}', [\App\Http\Controllers\Admin\CareClaimAdminController::class, 'show'])->name('care.claims.show');
+        Route::post('care-pannes/{claim}/statut', [\App\Http\Controllers\Admin\CareClaimAdminController::class, 'updateStatus'])->name('care.claims.status');
+        Route::post('care-pannes/{claim}/refus', [\App\Http\Controllers\Admin\CareClaimAdminController::class, 'refuse'])->name('care.claims.refuse');
+        Route::get('care-pannes/{claim}/fichier/{type}/{index?}', [\App\Http\Controllers\Admin\CareClaimAdminController::class, 'file'])->whereIn('type', ['photo', 'video'])->name('care.claims.file');
         Route::post('care/{care}/device-review', [\App\Http\Controllers\Admin\CareSubscriptionController::class, 'reviewDevice'])->name('care.device.review');
         Route::get('care/{care}/device-file/{type}/{index?}', [\App\Http\Controllers\Admin\CareSubscriptionController::class, 'deviceFile'])->whereIn('type', ['photo', 'invoice'])->name('care.device.file');
         Route::resource('care', \App\Http\Controllers\Admin\CareSubscriptionController::class);
