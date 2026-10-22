@@ -51,7 +51,7 @@ class PartnerRegisterController extends Controller
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
             'role' => 'partner',
-            'partner_status' => 'pending',
+            'partner_status' => 'approved', // validation automatique : accès immédiat à l'espace
             'partner_type' => $request->partner_type,
         ]);
 
@@ -60,8 +60,10 @@ class PartnerRegisterController extends Controller
             'partner_code' => 'PART-' . str_pad($user->id, 6, '0', STR_PAD_LEFT),
         ]);
 
+        // Compte approuvé automatiquement : on attribue tout de suite l'ID pro public.
+        $user->getOrCreateProfessionalProfile();
+
         // Prestataire structure (doc §7) : identité déclarée, à vérifier par IT Holding.
-        // Pas d'ID pro public avant l'approbation.
         if ($request->partner_type === 'prestataire' && $request->provider_kind === 'structure') {
             $user->ensureProfessionalProfile()->update([
                 'company_name' => $request->company_name,
@@ -78,6 +80,6 @@ class PartnerRegisterController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('dashboard.partner')->with('success', 'Votre demande d\'inscription partenaire a été soumise avec succès.');
+        return redirect()->route('dashboard.partner')->with('success', 'Bienvenue ! Votre espace partenaire est activé.');
     }
 }
