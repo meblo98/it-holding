@@ -78,7 +78,25 @@
                                     @if ($sub->has_certificate)
                                         <a href="{{ route('dashboard.care.certificate', $sub->id) }}" class="inline-flex px-5 py-2.5 rounded-md bg-navy-900 text-white font-semibold text-sm">Voir mon certificat</a>
                                     @endif
+                                    @if ($sub->can_declare_claim)
+                                        <a href="{{ route('dashboard.care.claim.form', $sub->id) }}" class="inline-flex px-5 py-2.5 rounded-md border border-navy-900 text-navy-900 font-semibold text-sm">Déclarer une panne</a>
+                                    @endif
                                 </div>
+
+                                @if ($sub->claims->isNotEmpty())
+                                    <div class="pt-2">
+                                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Mes demandes de réparation</p>
+                                        <ul class="divide-y divide-gray-100 text-sm">
+                                            @foreach ($sub->claims as $claim)
+                                                <li class="py-2 flex items-center justify-between gap-3">
+                                                    <a href="{{ route('dashboard.care.claim.show', $claim->id) }}" class="font-semibold text-navy-900 underline">{{ $claim->number }}</a>
+                                                    <span class="text-gray-500">{{ $claim->symptoms }}</span>
+                                                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 whitespace-nowrap">{{ $claim->status_label }}</span>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
                             </div>
                         @endif
                     </div>
