@@ -39,6 +39,32 @@ class Order extends Model
         'partner_id' => 'integer',
     ];
 
+    protected static function booted(): void
+    {
+        static::created(fn (Order $order) => self::scheduleSourcing($order->id));
+
+        static::updated(function (Order $order) {
+            if ($order->wasChanged(['payment_status', 'status'])) {
+                self::scheduleSourcing($order->id);
+            }
+        });
+    }
+
+    /** Lancé après l'envoi de la réponse : la commande et ses articles sont alors entièrement enregistrés. */
+    private static function scheduleSourcing(int $orderId): void
+    {
+        app()->terminating(function () use ($orderId) {
+            try {
+                $order = static::find($orderId);
+                if ($order) {
+                    \App\Services\SourcingService::startForOrder($order);
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Sourcing start failed: ' . $e->getMessage());
+            }
+        });
+    }
+
     public function items()
     {
         return $this->hasMany(OrderItem::class);
