@@ -422,6 +422,8 @@ class ShopController extends Controller
             'country' => 'required|string|max:255',
             'zip' => 'required|string|max:20',
             'payment_method' => 'required|string|in:bictorys,cod,wallet,credit',
+            'delivery_lat' => 'nullable|numeric|between:-90,90',
+            'delivery_lng' => 'nullable|numeric|between:-180,180',
         ]);
 
         // calculate total with dynamic wholesale pricing recalculation
@@ -539,6 +541,9 @@ class ShopController extends Controller
                 'promo_code_id' => $promoCode ? $promoCode->id : null,
                 'discount_amount' => $discount,
                 'tax_amount' => $taxAmount,
+                'delivery_lat' => $validated['delivery_lat'] ?? null,
+                'delivery_lng' => $validated['delivery_lng'] ?? null,
+                'delivery_source' => isset($validated['delivery_lat'], $validated['delivery_lng']) ? 'gps' : null,
             ]);
 
             if ($validated['payment_method'] === 'wallet') {
