@@ -24,12 +24,17 @@ class Order extends Model
         'promo_code_id',
         'discount_amount',
         'tax_amount',
+        'delivery_lat',
+        'delivery_lng',
+        'delivery_source',
     ];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'tax_amount' => 'decimal:2',
+        'delivery_lat' => 'float',
+        'delivery_lng' => 'float',
         'client_id' => 'integer',
         'partner_id' => 'integer',
     ];
