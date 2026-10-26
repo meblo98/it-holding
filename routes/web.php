@@ -34,6 +34,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/care/{care}/certificat', [\App\Http\Controllers\CareClientController::class, 'certificate'])->whereNumber('care')->name('dashboard.care.certificate');
 });
 
+// Espace livreur : position, rayon et disponibilité
+Route::middleware('auth')->group(function () {
+    Route::get('/livreur', [\App\Http\Controllers\CourierController::class, 'home'])->name('courier.home');
+    Route::post('/livreur/profil', [\App\Http\Controllers\CourierController::class, 'update'])->name('courier.update');
+});
+
 // Vérification publique (QR code du certificat) : aucune donnée personnelle
 Route::get('/care/verification/{token}', [\App\Http\Controllers\CareClientController::class, 'verify'])->name('care.verify');
 Route::view('/devenir-partenaire', 'pages.partenaire')->name('partner.landing');
