@@ -27,7 +27,14 @@ class SupplierController extends Controller
             'phone'          => 'nullable|string|max:50',
             'address'        => 'nullable|string|max:1000',
             'contact_person' => 'nullable|string|max:255',
+            'latitude'          => 'nullable|numeric|between:-90,90',
+            'longitude'         => 'nullable|numeric|between:-180,180',
+            'service_radius_km' => 'nullable|integer|min:1|max:500',
+            'rating'            => 'nullable|numeric|min:0|max:5',
         ]);
+        $validated['is_active'] = $request->boolean('is_active');
+        $validated['service_radius_km'] = $validated['service_radius_km'] ?? config('delivery.default_radius_km', 30);
+        $validated['rating'] = $validated['rating'] ?? 3;
 
         Supplier::create($validated);
 
@@ -56,7 +63,14 @@ class SupplierController extends Controller
             'phone'          => 'nullable|string|max:50',
             'address'        => 'nullable|string|max:1000',
             'contact_person' => 'nullable|string|max:255',
+            'latitude'          => 'nullable|numeric|between:-90,90',
+            'longitude'         => 'nullable|numeric|between:-180,180',
+            'service_radius_km' => 'nullable|integer|min:1|max:500',
+            'rating'            => 'nullable|numeric|min:0|max:5',
         ]);
+        $validated['is_active'] = $request->boolean('is_active');
+        $validated['service_radius_km'] = $validated['service_radius_km'] ?? config('delivery.default_radius_km', 30);
+        $validated['rating'] = $validated['rating'] ?? 3;
 
         $supplier->update($validated);
 
