@@ -297,6 +297,15 @@
                     </a>
                     @endif
 
+                    @if(auth()->user()?->hasPermission('orders'))
+                    <a href="{{ route('admin.sourcing.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.sourcing*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.sourcing*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12M8 12h12M8 17h12M4 7h.01M4 12h.01M4 17h.01" />
+                        </svg>
+                        Appels d'offres
+                    </a>
+                    @endif
+
                     @if(auth()->user()?->hasPermission('clients'))
                     <a href="{{ route('admin.clients.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.clients*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
                          <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.clients*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
