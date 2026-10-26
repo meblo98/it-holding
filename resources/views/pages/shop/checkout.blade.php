@@ -72,6 +72,29 @@
                                 <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        <div class="md:col-span-6"
+                             x-data="{ state: 'idle',
+                                       locate() {
+                                           if (!navigator.geolocation) { this.state = 'unsupported'; return; }
+                                           this.state = 'loading';
+                                           navigator.geolocation.getCurrentPosition(
+                                               p => { $refs.lat.value = p.coords.latitude.toFixed(7); $refs.lng.value = p.coords.longitude.toFixed(7); this.state = 'ok'; },
+                                               () => { this.state = 'denied'; },
+                                               { enableHighAccuracy: true, timeout: 15000 }
+                                           );
+                                       } }">
+                            <input type="hidden" name="delivery_lat" x-ref="lat" value="{{ old('delivery_lat') }}">
+                            <input type="hidden" name="delivery_lng" x-ref="lng" value="{{ old('delivery_lng') }}">
+                            <button type="button" @click="locate()" class="w-full md:w-auto px-5 py-3 rounded-lg border border-navy-900 text-navy-900 font-semibold text-sm">
+                                <span x-show="state !== 'loading'">📍 Partager ma position pour la livraison</span>
+                                <span x-show="state === 'loading'">Recherche de votre position…</span>
+                            </button>
+                            <p x-show="state === 'ok'" class="mt-2 text-sm text-green-700 font-medium">Position enregistrée : votre livraison sera attribuée automatiquement au livreur le plus proche.</p>
+                            <p x-show="state === 'denied'" class="mt-2 text-sm text-red-600">Position refusée. Vous pouvez continuer : nous utiliserons votre ville.</p>
+                            <p x-show="state === 'unsupported'" class="mt-2 text-sm text-red-600">Ce navigateur ne gère pas la localisation. Nous utiliserons votre ville.</p>
+                            <p x-show="state === 'idle'" class="mt-2 text-xs text-gray-400">Recommandé : cela accélère et précise votre livraison.</p>
+                        </div>
                         
                         <div class="md:col-span-2">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Pays</label>
