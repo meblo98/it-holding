@@ -34,6 +34,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/care/{care}/certificat', [\App\Http\Controllers\CareClientController::class, 'certificate'])->whereNumber('care')->name('dashboard.care.certificate');
 });
 
+// Appel d'offres : page publique par lien secret (fournisseur, sans compte)
+Route::get('/offre/{token}', [\App\Http\Controllers\SupplierOfferController::class, 'show'])->name('supplier.offer.show');
+Route::post('/offre/{token}', [\App\Http\Controllers\SupplierOfferController::class, 'submit'])->middleware('throttle:20,1')->name('supplier.offer.submit');
+
 // Espace livreur : position, rayon et disponibilité
 Route::middleware('auth')->group(function () {
     Route::get('/livreur', [\App\Http\Controllers\CourierController::class, 'home'])->name('courier.home');
@@ -220,6 +224,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Commandes
     Route::middleware('permission:orders')->group(function () {
         Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class)->only(['index', 'show', 'update']);
+
+        // Appels d'offres fournisseurs (livraison automatique)
+        Route::get('sourcing', [\App\Http\Controllers\Admin\SourcingController::class, 'index'])->name('sourcing.index');
+        Route::get('sourcing/{sourcing}', [\App\Http\Controllers\Admin\SourcingController::class, 'show'])->name('sourcing.show');
+        Route::post('sourcing/{sourcing}/award', [\App\Http\Controllers\Admin\SourcingController::class, 'awardNow'])->name('sourcing.award');
+        Route::post('sourcing/{sourcing}/manual', [\App\Http\Controllers\Admin\SourcingController::class, 'awardManually'])->name('sourcing.manual');
+        Route::post('sourcing/{sourcing}/relaunch', [\App\Http\Controllers\Admin\SourcingController::class, 'relaunch'])->name('sourcing.relaunch');
+        Route::post('sourcing/{sourcing}/location', [\App\Http\Controllers\Admin\SourcingController::class, 'setLocation'])->name('sourcing.location');
+        Route::post('sourcing/{sourcing}/cancel', [\App\Http\Controllers\Admin\SourcingController::class, 'cancel'])->name('sourcing.cancel');
     });
     
     // Marketing Assets
