@@ -65,6 +65,11 @@ class Order extends Model
         });
     }
 
+    public function delivery()
+    {
+        return $this->hasOne(Delivery::class);
+    }
+
     public function items()
     {
         return $this->hasMany(OrderItem::class);
