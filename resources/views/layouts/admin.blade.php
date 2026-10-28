@@ -306,6 +306,15 @@
                     </a>
                     @endif
 
+                    @if(auth()->user()?->hasPermission('orders'))
+                    <a href="{{ route('admin.deliveries.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.deliveries*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.deliveries*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                        </svg>
+                        Livraisons
+                    </a>
+                    @endif
+
                     @if(auth()->user()?->hasPermission('clients'))
                     <a href="{{ route('admin.clients.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.clients*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
                          <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.clients*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
