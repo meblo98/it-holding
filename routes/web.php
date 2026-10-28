@@ -42,6 +42,10 @@ Route::post('/offre/{token}', [\App\Http\Controllers\SupplierOfferController::cl
 Route::middleware('auth')->group(function () {
     Route::get('/livreur', [\App\Http\Controllers\CourierController::class, 'home'])->name('courier.home');
     Route::post('/livreur/profil', [\App\Http\Controllers\CourierController::class, 'update'])->name('courier.update');
+    Route::post('/livreur/course/{delivery}/accepter', [\App\Http\Controllers\CourierController::class, 'accept'])->name('courier.accept');
+    Route::post('/livreur/course/{delivery}/refuser', [\App\Http\Controllers\CourierController::class, 'decline'])->name('courier.decline');
+    Route::post('/livreur/course/{delivery}/recupere', [\App\Http\Controllers\CourierController::class, 'pickedUp'])->name('courier.pickedup');
+    Route::post('/livreur/course/{delivery}/livre', [\App\Http\Controllers\CourierController::class, 'delivered'])->name('courier.delivered');
 });
 
 // Vérification publique (QR code du certificat) : aucune donnée personnelle
@@ -233,6 +237,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('sourcing/{sourcing}/relaunch', [\App\Http\Controllers\Admin\SourcingController::class, 'relaunch'])->name('sourcing.relaunch');
         Route::post('sourcing/{sourcing}/location', [\App\Http\Controllers\Admin\SourcingController::class, 'setLocation'])->name('sourcing.location');
         Route::post('sourcing/{sourcing}/cancel', [\App\Http\Controllers\Admin\SourcingController::class, 'cancel'])->name('sourcing.cancel');
+
+        // Livraisons (attribution aux livreurs)
+        Route::get('deliveries', [\App\Http\Controllers\Admin\DeliveryController::class, 'index'])->name('deliveries.index');
+        Route::get('deliveries/{delivery}', [\App\Http\Controllers\Admin\DeliveryController::class, 'show'])->name('deliveries.show');
+        Route::post('deliveries/{delivery}/assign', [\App\Http\Controllers\Admin\DeliveryController::class, 'assign'])->name('deliveries.assign');
+        Route::post('deliveries/{delivery}/reassign', [\App\Http\Controllers\Admin\DeliveryController::class, 'reassign'])->name('deliveries.reassign');
+        Route::post('deliveries/{delivery}/cancel', [\App\Http\Controllers\Admin\DeliveryController::class, 'cancel'])->name('deliveries.cancel');
     });
     
     // Marketing Assets
