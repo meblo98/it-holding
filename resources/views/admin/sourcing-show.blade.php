@@ -104,7 +104,7 @@
         @if($req->status === 'awarded' && $req->awardedOffer)
             <div class="rounded-lg border border-green-200 bg-green-50 text-green-800 p-4 text-sm">
                 Retenue : <strong>{{ $req->awardedOffer->supplier->name }}</strong> ({{ $req->award_mode === 'manual' ? 'choix manuel' : 'choix automatique' }}).<br>
-                Prochaine étape : attribution de la livraison à un livreur.
+                <a href="{{ route('admin.deliveries.index') }}" class="font-bold underline">Voir la livraison</a> : attribuée automatiquement au livreur le plus proche.
             </div>
         @endif
     </div>
