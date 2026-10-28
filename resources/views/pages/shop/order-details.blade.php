@@ -30,6 +30,23 @@
             <!-- Main Content -->
             <main class="flex-1">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    @if($order->delivery && $order->delivery->status !== 'cancelled')
+                        @php
+                            $dl = $order->delivery;
+                            $dlText = [
+                                'pending'   => 'Nous recherchons un livreur près de chez vous.',
+                                'offered'   => 'Nous recherchons un livreur près de chez vous.',
+                                'accepted'  => 'Votre livreur ' . ($dl->courier?->name ?? '') . ' va récupérer votre commande.',
+                                'picked_up' => 'Votre commande est en route. Livreur : ' . ($dl->courier?->name ?? '') . ($dl->courier?->phone ? ' · ' . $dl->courier->phone : '') . '.',
+                                'delivered' => 'Votre commande a été livrée' . ($dl->delivered_at ? ' le ' . $dl->delivered_at->format('d/m/Y à H:i') : '') . '.',
+                            ][$dl->status] ?? '';
+                        @endphp
+                        <div class="px-8 py-4 bg-blue-50 border-b border-blue-100">
+                            <p class="text-[10px] font-black text-blue-700 uppercase tracking-widest">Livraison · {{ $dl->status_label }}</p>
+                            <p class="text-sm text-blue-900 mt-1">{{ $dlText }}</p>
+                        </div>
+                    @endif
+
                     <!-- Header -->
                     <div class="px-8 py-6 border-b border-gray-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/30">
                         <div>
