@@ -291,15 +291,25 @@ class SourcingService
             self::evaluate($request, true);
         }
 
-        return $due->count();
+        // Livraisons : propositions expirées et courses encore sans livreur.
+        $deliveries = DeliveryService::tick();
+
+        return $due->count() + $deliveries;
     }
 
-    /** Point d'accroche de l'étape suivante : attribution de la livraison à un livreur. */
+    /** Offre retenue : on prévient l'admin puis on crée la livraison et on cherche un livreur. */
     private static function afterAward(SourcingRequest $request): void
     {
         $offer = $request->awardedOffer()->with('supplier')->first();
         self::alertAdmin("✅ Commande #{$request->order_id} : offre retenue de {$offer->supplier->name} ("
             . number_format($offer->price, 0, ',', ' ') . " FCFA, {$offer->delay_hours} h, score {$offer->score}/100).");
+
+        try {
+            DeliveryService::createForAward($request);
+        } catch (\Throwable $e) {
+            Log::error('Delivery creation failed: ' . $e->getMessage());
+            self::alertAdmin("⚠️ Commande #{$request->order_id} : la livraison n'a pas pu être créée automatiquement. Vérifiez dans Livraisons.");
+        }
     }
 
     /** Scores sur 100 selon les poids de config/delivery.php. @return array<int,float> offre => score */
