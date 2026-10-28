@@ -15,6 +15,55 @@
             @endif
         @endforeach
 
+
+        {{-- Courses proposées --}}
+        @foreach ($offered as $d)
+            <div class="mt-6 bg-white rounded-xl border-2 border-gold-500 shadow-sm p-6 space-y-3">
+                <div class="flex items-center justify-between">
+                    <p class="text-sm font-bold text-navy-900">Nouvelle course · commande #{{ $d->order_id }}</p>
+                    <span class="text-xs text-gray-500">à accepter avant {{ $d->offer_expires_at?->format('H:i') }}</span>
+                </div>
+                <p class="text-sm text-gray-600">Point de retrait : <strong>{{ $d->pickup_label ?: 'à confirmer' }}</strong> · à {{ number_format($d->distance_km ?? 0, 1) }} km de vous</p>
+                <p class="text-sm text-gray-600">{{ $d->order->items->sum('quantity') }} article(s)</p>
+                <div class="flex gap-3">
+                    <form method="POST" action="{{ route('courier.accept', $d->id) }}" class="flex-1">@csrf
+                        <button class="w-full px-4 py-3 rounded-lg bg-green-600 text-white font-semibold text-sm">Accepter</button></form>
+                    <form method="POST" action="{{ route('courier.decline', $d->id) }}" class="flex-1">@csrf
+                        <button class="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-700 font-semibold text-sm">Refuser</button></form>
+                </div>
+            </div>
+        @endforeach
+
+        {{-- Courses en cours --}}
+        @foreach ($active as $d)
+            <div class="mt-6 bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-3">
+                <div class="flex items-center justify-between">
+                    <p class="text-sm font-bold text-navy-900">Course en cours · commande #{{ $d->order_id }}</p>
+                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">{{ $d->status === 'accepted' ? 'À récupérer' : 'En route vers le client' }}</span>
+                </div>
+                <div class="text-sm text-gray-700 space-y-1">
+                    <p><span class="text-gray-400">Retrait :</span> {{ $d->pickup_label ?: '—' }}
+                        @if ($d->pickup_maps_url)<a href="{{ $d->pickup_maps_url }}" target="_blank" class="underline text-navy-900">Itinéraire</a>@endif</p>
+                    <p><span class="text-gray-400">Client :</span> {{ $d->order->customer_name }} · <a href="tel:{{ $d->order->customer_phone }}" class="underline">{{ $d->order->customer_phone }}</a></p>
+                    <p><span class="text-gray-400">Adresse :</span> {{ $d->order->customer_address }}
+                        @if ($d->maps_url)<a href="{{ $d->maps_url }}" target="_blank" class="underline text-navy-900">Itinéraire</a>@endif</p>
+                    <p class="text-gray-400">Articles :
+                        @foreach ($d->order->items as $item)<span class="text-gray-700">{{ $item->product?->name ?? 'Produit' }} ×{{ $item->quantity }}@if(!$loop->last), @endif</span>@endforeach
+                    </p>
+                    @if ($d->order->payment_method === 'cod')
+                        <p class="font-semibold text-red-700">Paiement à la livraison : encaisser {{ number_format($d->order->total_amount, 0, ',', ' ') }} FCFA</p>
+                    @endif
+                </div>
+                @if ($d->status === 'accepted')
+                    <form method="POST" action="{{ route('courier.pickedup', $d->id) }}">@csrf
+                        <button class="w-full btn-primary-gold justify-center">J'ai récupéré le colis</button></form>
+                @else
+                    <form method="POST" action="{{ route('courier.delivered', $d->id) }}" onsubmit="return confirm('Confirmer la livraison au client ?')">@csrf
+                        <button class="w-full px-4 py-3 rounded-lg bg-green-600 text-white font-semibold text-sm">Colis livré</button></form>
+                @endif
+            </div>
+        @endforeach
+
         <form method="POST" action="{{ route('courier.update') }}" class="mt-6 bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-5"
               x-data="{ state: 'idle',
                         locate() {
@@ -65,7 +114,18 @@
             <button type="submit" class="btn-primary-gold w-full justify-center">Enregistrer</button>
         </form>
 
-        <p class="mt-4 text-xs text-gray-400">Les courses qui vous sont proposées apparaîtront ici dès la prochaine étape de la livraison automatique.</p>
+
+        @if ($history->isNotEmpty())
+            <div class="mt-6 bg-white rounded-xl border border-gray-100 p-6">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Dernières livraisons</p>
+                <ul class="divide-y divide-gray-100 text-sm">
+                    @foreach ($history as $d)
+                        <li class="py-2 flex justify-between"><span>Commande #{{ $d->order_id }}</span><span class="text-gray-500">{{ $d->delivered_at?->format('d/m H:i') }}</span></li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
     </div>
 </section>
 @endsection
