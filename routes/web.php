@@ -220,6 +220,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::middleware('permission:products')->group(function () {
         Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
         Route::resource('brands', \App\Http\Controllers\Admin\BrandController::class);
+        Route::get('products/export/{format}', [\App\Http\Controllers\Admin\ProductController::class, 'export'])
+            ->whereIn('format', ['json', 'csv'])
+            ->name('products.export');
+        Route::post('products/import', [\App\Http\Controllers\Admin\ProductController::class, 'import'])->name('products.import');
         Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
         Route::post('products/{product}/duplicate', [\App\Http\Controllers\Admin\ProductController::class, 'duplicate'])->name('products.duplicate');
         Route::delete('products/{product}/images/{image}', [\App\Http\Controllers\Admin\ProductController::class, 'destroyImage'])->name('products.images.destroy');
@@ -459,6 +463,5 @@ Route::get('storage-bypass/{path}', function ($path) {
     
     return response()->file($fullPath);
 })->where('path', '.*')->name('storage.bypass');
-
 
 

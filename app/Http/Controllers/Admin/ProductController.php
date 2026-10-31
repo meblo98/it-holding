@@ -8,11 +8,40 @@ use App\Models\ProductImage;
 use App\Models\Category;
 use App\Models\Brand;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+use JsonException;
 
 class ProductController extends Controller
 {
+    private const IMPORT_FIELDS = [
+        'name',
+        'slug',
+        'description',
+        'price',
+        'purchase_price',
+        'stock',
+        'available_at',
+        'warranty_duration_months',
+        'warranty_coverage_percent',
+        'warranty_coverage_scope',
+        'active',
+        'is_pack',
+        'promo_price',
+        'blackfriday',
+        'category_id',
+        'brand_id',
+        'condition',
+        'wholesale_qty',
+        'wholesale_discount_rate',
+        'wholesale_discount_limit',
+        'specs',
+        'pack_items',
+    ];
+
     /**
      * Display a listing of the resource.
      */
@@ -31,6 +60,283 @@ class ProductController extends Controller
         $products = $query->paginate(10)->withQueryString();
 
         return view('admin.products.index', compact('products'));
+    }
+
+    public function export(string $format)
+    {
+        $products = Product::with('packItems.product')->orderBy('id')->get();
+        $rows = $products->map(fn (Product $product) => $this->exportRow($product));
+
+        if ($format === 'json') {
+            return response()->json(['products' => $rows])
+                ->withHeaders(['Content-Disposition' => 'attachment; filename="produits.json"']);
+        }
+
+        return response()->streamDownload(function () use ($rows) {
+            $output = fopen('php://output', 'w');
+            fwrite($output, "\xEF\xBB\xBF");
+            fputcsv($output, self::IMPORT_FIELDS, ';', '"', '');
+
+            foreach ($rows as $row) {
+                fputcsv($output, array_map(function ($field) use ($row) {
+                    $value = $row[$field] ?? null;
+                    if (is_bool($value)) {
+                        return $value ? '1' : '0';
+                    }
+                    return is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : $value;
+                }, self::IMPORT_FIELDS), ';', '"', '');
+            }
+
+            fclose($output);
+        }, 'produits.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|max:10240|mimes:json,csv,txt',
+        ]);
+
+        $rows = $this->readImportFile($request);
+        if (count($rows) < 1 || count($rows) > 1000) {
+            throw ValidationException::withMessages([
+                'file' => 'Le fichier doit contenir entre 1 et 1 000 produits.',
+            ]);
+        }
+
+        $validatedRows = [];
+        $errors = [];
+        $seenSlugs = [];
+
+        foreach ($rows as $index => $row) {
+            $line = $index + 1;
+            if (!is_array($row) || array_is_list($row)) {
+                $errors["products.{$line}"] = "La ligne {$line} doit être un objet produit.";
+                continue;
+            }
+
+            foreach ($row as $field => $value) {
+                if ($value === '') {
+                    $row[$field] = null;
+                }
+            }
+
+            foreach (['specs', 'pack_items'] as $jsonField) {
+                if (isset($row[$jsonField]) && is_string($row[$jsonField]) && $row[$jsonField] !== '') {
+                    try {
+                        $row[$jsonField] = json_decode($row[$jsonField], true, 512, JSON_THROW_ON_ERROR);
+                    } catch (JsonException) {
+                        $errors["products.{$line}.{$jsonField}"] = "Le champ {$jsonField} de la ligne {$line} doit contenir un JSON valide.";
+                    }
+                } elseif (($row[$jsonField] ?? null) === '') {
+                    $row[$jsonField] = null;
+                }
+            }
+
+            $validator = Validator::make($row, [
+                'name' => 'required|string|max:255',
+                'slug' => 'nullable|string|max:255',
+                'description' => 'required|string',
+                'price' => 'required|numeric|min:0',
+                'purchase_price' => 'required|numeric|min:0',
+                'stock' => 'nullable|integer|min:0',
+                'available_at' => 'nullable|date',
+                'warranty_duration_months' => 'nullable|integer|min:0|max:120',
+                'warranty_coverage_percent' => 'nullable|integer|in:25,50,75',
+                'warranty_coverage_scope' => 'nullable|string|max:120',
+                'active' => 'nullable|boolean',
+                'is_pack' => 'nullable|boolean',
+                'promo_price' => 'nullable|numeric|min:0',
+                'blackfriday' => 'nullable|boolean',
+                'category_id' => 'nullable|integer|exists:categories,id',
+                'brand_id' => 'nullable|integer|exists:brands,id',
+                'condition' => 'nullable|string|max:255',
+                'wholesale_qty' => 'nullable|integer|min:2',
+                'wholesale_discount_rate' => 'nullable|numeric|min:0|max:100',
+                'wholesale_discount_limit' => 'nullable|numeric|min:0',
+                'specs' => 'nullable|array',
+                'pack_items' => 'nullable|array',
+            ]);
+
+            if ($validator->fails()) {
+                foreach ($validator->errors()->all() as $message) {
+                    $errors["products.{$line}"] = "Ligne {$line} : {$message}";
+                }
+                continue;
+            }
+
+            $row = $validator->validated();
+            foreach ($row['pack_items'] ?? [] as $itemIndex => $item) {
+                if (!is_array($item)) {
+                    $errors["products.{$line}.pack_items.{$itemIndex}"] = "Composition invalide à la ligne {$line}.";
+                    continue;
+                }
+
+                $itemValidator = Validator::make($item, [
+                    'product_slug' => 'required|string|max:255',
+                    'quantity' => 'required|integer|min:1',
+                ]);
+                if ($itemValidator->fails()) {
+                    $errors["products.{$line}.pack_items.{$itemIndex}"] = "Composition invalide à la ligne {$line}.";
+                }
+            }
+
+            if (!empty($row['slug'])) {
+                if (isset($seenSlugs[$row['slug']])) {
+                    $errors["products.{$line}.slug"] = "Le slug « {$row['slug']} » apparaît plusieurs fois dans le fichier.";
+                }
+                $seenSlugs[$row['slug']] = true;
+            }
+            $validatedRows[] = $row;
+        }
+
+        if ($errors) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        DB::transaction(function () use ($validatedRows) {
+            $imported = [];
+
+            foreach ($validatedRows as $row) {
+                $slug = $row['slug'] ?? $this->generateUniqueSlug($row['name']);
+                $attributes = collect($row)->only(self::IMPORT_FIELDS)->except(['slug', 'pack_items'])->all();
+                $attributes['slug'] = $slug;
+
+                $product = Product::where('slug', $slug)->first();
+                if (!$product && !array_key_exists('warranty_duration_months', $attributes)) {
+                    $attributes['warranty_duration_months'] = 12;
+                }
+
+                $isPack = filter_var($attributes['is_pack'] ?? false, FILTER_VALIDATE_BOOLEAN);
+                if ($isPack) {
+                    $attributes['stock'] = 0;
+                }
+
+                $product ??= new Product();
+                $product->fill($attributes);
+                $product->save();
+                $imported[] = [$product, $row];
+            }
+
+            foreach ($imported as [$product, $row]) {
+                if (!array_key_exists('pack_items', $row) && !array_key_exists('is_pack', $row)) {
+                    continue;
+                }
+
+                if (!$product->is_pack) {
+                    $product->packItems()->delete();
+                    continue;
+                }
+
+                if (!array_key_exists('pack_items', $row)) {
+                    continue;
+                }
+
+                $product->packItems()->delete();
+                foreach ($row['pack_items'] ?? [] as $item) {
+                    $component = Product::where('slug', $item['product_slug'])->first();
+                    if (!$component || $component->is_pack || $component->id === $product->id) {
+                        throw ValidationException::withMessages([
+                            'file' => "Produit « {$product->name} » : composant « {$item['product_slug']} » introuvable ou invalide.",
+                        ]);
+                    }
+
+                    $product->packItems()->create([
+                        'product_id' => $component->id,
+                        'quantity' => $item['quantity'],
+                    ]);
+                }
+            }
+        });
+
+        return redirect()->route('admin.products.index')
+            ->with('success', count($validatedRows) . ' produit(s) importé(s) ou mis à jour avec succès.');
+    }
+
+    private function exportRow(Product $product): array
+    {
+        $row = $product->only(array_diff(self::IMPORT_FIELDS, ['pack_items']));
+        $row['pack_items'] = $product->packItems->map(fn ($item) => [
+            'product_slug' => $item->product?->slug,
+            'quantity' => $item->quantity,
+        ])->all();
+
+        return $row;
+    }
+
+    private function readImportFile(Request $request): array
+    {
+        $file = $request->file('file');
+        $contents = file_get_contents($file->getRealPath());
+        if ($contents === false) {
+            throw ValidationException::withMessages(['file' => 'Impossible de lire le fichier importé.']);
+        }
+
+        if (strtolower($file->getClientOriginalExtension()) === 'json') {
+            try {
+                $decoded = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+            } catch (JsonException) {
+                throw ValidationException::withMessages(['file' => 'Le fichier JSON est invalide.']);
+            }
+
+            if (is_array($decoded) && isset($decoded['products'])) {
+                if (!is_array($decoded['products']) || !array_is_list($decoded['products'])) {
+                    throw ValidationException::withMessages([
+                        'file' => 'La propriété « products » doit contenir un tableau de produits.',
+                    ]);
+                }
+                return $decoded['products'];
+            }
+            if (is_array($decoded) && array_is_list($decoded)) {
+                return $decoded;
+            }
+
+            throw ValidationException::withMessages([
+                'file' => 'Le fichier JSON doit contenir un tableau de produits ou une propriété « products ».',
+            ]);
+        }
+
+        $handle = fopen($file->getRealPath(), 'r');
+        if ($handle === false) {
+            throw ValidationException::withMessages(['file' => 'Impossible de lire le fichier importé.']);
+        }
+
+        $headerLine = fgets($handle);
+        if ($headerLine === false) {
+            fclose($handle);
+            return [];
+        }
+        $headerLine = preg_replace('/^\xEF\xBB\xBF/', '', $headerLine);
+        $semicolonCount = count(str_getcsv($headerLine, ';'));
+        $commaCount = count(str_getcsv($headerLine, ','));
+        $delimiter = $semicolonCount >= $commaCount ? ';' : ',';
+        rewind($handle);
+
+        $headers = fgetcsv($handle, 0, $delimiter, '"', '');
+        if (isset($headers[0])) {
+            $headers[0] = preg_replace('/^\xEF\xBB\xBF/', '', (string) $headers[0]);
+        }
+        $headers = array_map(fn ($header) => trim((string) $header), $headers ?: []);
+        if (!$headers || !in_array('name', $headers, true)) {
+            fclose($handle);
+            throw ValidationException::withMessages([
+                'file' => 'Le tableau doit contenir une colonne « name ».',
+            ]);
+        }
+
+        $rows = [];
+        while (($values = fgetcsv($handle, 0, $delimiter, '"', '')) !== false) {
+            if (count(array_filter($values, fn ($value) => $value !== null && $value !== '')) === 0) {
+                continue;
+            }
+            $rows[] = array_combine(
+                array_slice($headers, 0, count($values)),
+                array_slice(array_pad($values, count($headers), null), 0, count($headers))
+            );
+        }
+        fclose($handle);
+
+        return $rows;
     }
 
     public function create()

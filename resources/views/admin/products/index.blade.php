@@ -29,6 +29,49 @@
         </div>
     </div>
 
+    <div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <h2 class="text-sm font-semibold text-gray-900">Import / export du catalogue</h2>
+                <p class="mt-1 text-xs text-gray-500">
+                    Formats JSON et CSV (tableur, séparateur « ; » et colonnes identiques à l’export).
+                    Un produit portant le même slug sera mis à jour.
+                    Les images et fiches techniques ne sont pas incluses.
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="{{ route('admin.products.export', 'json') }}"
+                    class="inline-flex items-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Exporter JSON
+                </a>
+                <a href="{{ route('admin.products.export', 'csv') }}"
+                    class="inline-flex items-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Exporter CSV
+                </a>
+                <form action="{{ route('admin.products.import') }}" method="POST" enctype="multipart/form-data"
+                    class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    @csrf
+                    <input type="file" name="file" accept=".json,.csv,.txt,application/json,text/csv"
+                        required
+                        class="block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200">
+                    <button type="submit"
+                        class="inline-flex items-center justify-center rounded-md bg-navy-600 px-4 py-2 text-sm font-medium text-white hover:bg-navy-700">
+                        Importer
+                    </button>
+                </form>
+            </div>
+        </div>
+        @if ($errors->any())
+            <div class="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+                <ul class="list-inside list-disc">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+    </div>
+
     @if (session('success'))
         <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
             <span class="block sm:inline">{{ session('success') }}</span>
