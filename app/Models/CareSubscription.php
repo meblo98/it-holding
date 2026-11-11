@@ -46,6 +46,7 @@ class CareSubscription extends Model
     public function warranty() { return $this->belongsTo(Warranty::class); }
     public function user()     { return $this->belongsTo(User::class); }
     public function claims()    { return $this->hasMany(CareClaim::class)->latest(); }
+    public function manualPayment() { return $this->morphOne(ManualPayment::class, 'payable')->latestOfMany(); }
 
     // ── Scopes ──────────────────────────────────────────────────────────────
     public function scopeActive($q)          { return $q->where('status', 'active'); }
