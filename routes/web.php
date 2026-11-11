@@ -34,6 +34,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/care/{care}/certificat', [\App\Http\Controllers\CareClientController::class, 'certificate'])->whereNumber('care')->name('dashboard.care.certificate');
 });
 
+// Paiement par lien Wave (confirmation par l'équipe)
+Route::middleware('auth')->group(function () {
+    Route::get('/paiement/wave/{payment}', [\App\Http\Controllers\ManualPaymentController::class, 'show'])->whereNumber('payment')->name('wave.payment.show');
+    Route::post('/paiement/wave/{payment}', [\App\Http\Controllers\ManualPaymentController::class, 'submit'])->whereNumber('payment')->middleware('throttle:10,1')->name('wave.payment.submit');
+});
+
 // Appel d'offres : page publique par lien secret (fournisseur, sans compte)
 Route::get('/offre/{token}', [\App\Http\Controllers\SupplierOfferController::class, 'show'])->name('supplier.offer.show');
 Route::post('/offre/{token}', [\App\Http\Controllers\SupplierOfferController::class, 'submit'])->middleware('throttle:20,1')->name('supplier.offer.submit');
@@ -220,10 +226,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::middleware('permission:products')->group(function () {
         Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
         Route::resource('brands', \App\Http\Controllers\Admin\BrandController::class);
-        Route::get('products/export/{format}', [\App\Http\Controllers\Admin\ProductController::class, 'export'])
-            ->whereIn('format', ['json', 'csv'])
-            ->name('products.export');
-        Route::post('products/import', [\App\Http\Controllers\Admin\ProductController::class, 'import'])->name('products.import');
         Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
         Route::post('products/{product}/duplicate', [\App\Http\Controllers\Admin\ProductController::class, 'duplicate'])->name('products.duplicate');
         Route::delete('products/{product}/images/{image}', [\App\Http\Controllers\Admin\ProductController::class, 'destroyImage'])->name('products.images.destroy');
@@ -241,6 +243,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('sourcing/{sourcing}/relaunch', [\App\Http\Controllers\Admin\SourcingController::class, 'relaunch'])->name('sourcing.relaunch');
         Route::post('sourcing/{sourcing}/location', [\App\Http\Controllers\Admin\SourcingController::class, 'setLocation'])->name('sourcing.location');
         Route::post('sourcing/{sourcing}/cancel', [\App\Http\Controllers\Admin\SourcingController::class, 'cancel'])->name('sourcing.cancel');
+
+        // Paiements Wave à vérifier
+        Route::get('wave-payments', [\App\Http\Controllers\Admin\ManualPaymentAdminController::class, 'index'])->name('wave-payments.index');
+        Route::post('wave-payments/{payment}/confirm', [\App\Http\Controllers\Admin\ManualPaymentAdminController::class, 'confirm'])->name('wave-payments.confirm');
+        Route::post('wave-payments/{payment}/reject', [\App\Http\Controllers\Admin\ManualPaymentAdminController::class, 'reject'])->name('wave-payments.reject');
+        Route::get('wave-payments/{payment}/proof', [\App\Http\Controllers\Admin\ManualPaymentAdminController::class, 'proof'])->name('wave-payments.proof');
 
         // Livraisons (attribution aux livreurs)
         Route::get('deliveries', [\App\Http\Controllers\Admin\DeliveryController::class, 'index'])->name('deliveries.index');
@@ -463,5 +471,6 @@ Route::get('storage-bypass/{path}', function ($path) {
     
     return response()->file($fullPath);
 })->where('path', '.*')->name('storage.bypass');
+
 
 
