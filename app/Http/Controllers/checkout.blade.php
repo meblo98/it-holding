@@ -1,0 +1,337 @@
+@extends('layouts.app')
+
+@section('title', 'Finaliser la Commande - ' . config('app.name'))
+
+@section('content')
+<div class="bg-gray-50 min-h-screen">
+    <!-- Breadcrumb -->
+    <div class="bg-white border-b border-gray-100 py-3 mb-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav class="flex text-sm text-gray-600 gap-2 items-center">
+                <a href="{{ route('home') }}" class="hover:text-navy-900 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
+                    Accueil
+                </a>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                <a href="{{ route('shop.cart') }}" class="hover:text-navy-900">Panier</a>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                <span class="text-gold-600 font-medium truncate">Checkout</span>
+            </nav>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-20">
+        <form action="{{ route('shop.placeOrder') }}" method="POST" class="lg:grid lg:grid-cols-12 lg:gap-x-12">
+            @csrf
+            
+            <!-- Left Column: Billing & Payment -->
+            <div class="lg:col-span-8 space-y-8">
+                @if($errors->any())
+                    <div class="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-xs font-bold uppercase tracking-widest italic space-y-1">
+                        @foreach($errors->all() as $error)
+                            <div class="flex items-center gap-3">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span>{{ $error }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                <!-- Billing Information -->
+                <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden p-8">
+                    <h2 class="text-xl font-bold text-navy-900 uppercase tracking-tighter italic mb-8 border-b border-gray-50 pb-4">Coordonnées de Facturation</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
+                        <div class="md:col-span-3">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Prénom</label>
+                            <input type="text" name="first_name" value="{{ old('first_name', Auth::user()?->billing_first_name ?? (Auth::user() ? explode(' ', Auth::user()->name)[0] : '')) }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('first_name') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror" placeholder="Votre prénom">
+                            @error('first_name')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Nom</label>
+                            <input type="text" name="last_name" value="{{ old('last_name', Auth::user()?->billing_last_name ?? (Auth::user() && count(explode(' ', Auth::user()->name)) > 1 ? explode(' ', Auth::user()->name)[1] : '')) }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('last_name') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror" placeholder="Votre nom">
+                            @error('last_name')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        
+                        <div class="md:col-span-6">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Entreprise (Optionnel)</label>
+                            <input type="text" name="company" value="{{ old('company') }}" class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('company') border-red-500 @enderror">
+                            @error('company')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        
+                        <div class="md:col-span-6">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Adresse</label>
+                            <input type="text" name="address" value="{{ old('address', Auth::user()?->billing_address ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('address') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror" placeholder="Adresse complète">
+                            @error('address')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="md:col-span-6"
+                             x-data="{ state: 'idle',
+                                       locate() {
+                                           if (!navigator.geolocation) { this.state = 'unsupported'; return; }
+                                           this.state = 'loading';
+                                           navigator.geolocation.getCurrentPosition(
+                                               p => { $refs.lat.value = p.coords.latitude.toFixed(7); $refs.lng.value = p.coords.longitude.toFixed(7); this.state = 'ok'; },
+                                               () => { this.state = 'denied'; },
+                                               { enableHighAccuracy: true, timeout: 15000 }
+                                           );
+                                       } }">
+                            <input type="hidden" name="delivery_lat" x-ref="lat" value="{{ old('delivery_lat') }}">
+                            <input type="hidden" name="delivery_lng" x-ref="lng" value="{{ old('delivery_lng') }}">
+                            <button type="button" @click="locate()" class="w-full md:w-auto px-5 py-3 rounded-lg border border-navy-900 text-navy-900 font-semibold text-sm">
+                                <span x-show="state !== 'loading'">📍 Partager ma position pour la livraison</span>
+                                <span x-show="state === 'loading'">Recherche de votre position…</span>
+                            </button>
+                            <p x-show="state === 'ok'" class="mt-2 text-sm text-green-700 font-medium">Position enregistrée : votre livraison sera attribuée automatiquement au livreur le plus proche.</p>
+                            <p x-show="state === 'denied'" class="mt-2 text-sm text-red-600">Position refusée. Vous pouvez continuer : nous utiliserons votre ville.</p>
+                            <p x-show="state === 'unsupported'" class="mt-2 text-sm text-red-600">Ce navigateur ne gère pas la localisation. Nous utiliserons votre ville.</p>
+                            <p x-show="state === 'idle'" class="mt-2 text-xs text-gray-400">Recommandé : cela accélère et précise votre livraison.</p>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Pays</label>
+                            <select name="country" class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('country') border-red-500 @enderror">
+                                <option value="Sénégal" {{ old('country', Auth::user()?->country ?? '') == 'SN' || old('country', Auth::user()?->country ?? '') == 'Sénégal' ? 'selected' : '' }}>Sénégal</option>
+                                <option value="France" {{ old('country', Auth::user()?->country ?? '') == 'FR' || old('country', Auth::user()?->country ?? '') == 'France' ? 'selected' : '' }}>France</option>
+                                <option value="USA" {{ old('country', Auth::user()?->country ?? '') == 'US' || old('country', Auth::user()?->country ?? '') == 'USA' ? 'selected' : '' }}>USA</option>
+                            </select>
+                            @error('country')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ville</label>
+                            <input type="text" name="city" value="{{ old('city', Auth::user()?->billing_city ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('city') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror">
+                            @error('city')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Code Postal</label>
+                            <input type="text" name="zip" value="{{ old('zip', Auth::user()?->billing_zip ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('zip') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror">
+                            @error('zip')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        
+                        <div class="md:col-span-3">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Email</label>
+                            <input type="email" name="email" value="{{ old('email', Auth::user()?->email ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('email') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror" placeholder="exemple@mail.com">
+                            @error('email')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Numéro de Téléphone</label>
+                            <input type="tel" name="phone" value="{{ old('phone', Auth::user()?->phone ?? '') }}" required class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30 @error('phone') border-red-500 focus:ring-red-500 focus:border-red-500 @enderror" placeholder="+221 ...">
+                            @error('phone')
+                                <p class="text-xs text-red-500 font-bold italic mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex items-center">
+                        <input type="checkbox" id="ship_different" class="rounded text-gold-500 focus:ring-gold-500 h-4 w-4 border-gray-200">
+                        <label for="ship_different" class="ml-3 text-xs font-bold text-navy-800 uppercase tracking-tight">Expédier à une adresse différente</label>
+                    </div>
+                </div>
+
+                <!-- Payment Options -->
+                @php
+                    // Bictorys is the only online payment gateway integrated in this app (it handles
+                    // card/Wave/OM itself on its hosted checkout page), so those aren't separate
+                    // payment_method options here — offering them would create orders that look paid
+                    // online but never actually get charged.
+                    $methods = [
+                        ['id' => 'bictorys', 'label' => 'Paiement en ligne', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
+                        ['id' => 'wave_manual', 'label' => 'Wave', 'icon' => 'M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z'],
+                        ['id' => 'cod', 'label' => 'Espèces', 'icon' => 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z'],
+                    ];
+
+                    if (isset($client) && $client) {
+                        $methods[] = [
+                            'id' => 'wallet',
+                            'label' => 'Portefeuille (' . number_format($client->wallet_balance, 0, ',', ' ') . ' F)',
+                            'icon' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                        ];
+
+                        if ($client->is_professional) {
+                            $methods[] = [
+                                'id' => 'credit',
+                                'label' => 'Crédit Pro (Reste: ' . number_format($client->credit_limit - $client->current_balance, 0, ',', ' ') . ' F)',
+                                'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
+                            ];
+                        }
+                    }
+                @endphp
+
+                <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden p-8">
+                    <h2 class="text-xl font-bold text-navy-900 uppercase tracking-tighter italic mb-8 border-b border-gray-50 pb-4">Mode de Paiement</h2>
+                    
+                    <div x-data="{ method: 'bictorys' }" class="space-y-6">
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                            <!-- Payment Method Buttons -->
+                            <template x-for="item in {{ json_encode($methods) }}">
+                                <label :class="method === item.id ? 'border-gold-500 bg-gold-50/30' : 'border-gray-100 bg-white'" class="cursor-pointer border-2 rounded-xl p-4 flex flex-col items-center justify-center gap-3 transition-all">
+                                    <input type="radio" name="payment_method" :value="item.id" x-model="method" class="sr-only">
+                                    <svg class="w-6 h-6" :class="method === item.id ? 'text-gold-600' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="item.icon"/></svg>
+                                    <span class="text-[10px] font-bold uppercase tracking-widest text-center" :class="method === item.id ? 'text-navy-900' : 'text-gray-600'" x-text="item.label"></span>
+                                    <div class="w-4 h-4 rounded-full border-2 flex items-center justify-center" :class="method === item.id ? 'border-gold-500' : 'border-gray-200'">
+                                        <div x-show="method === item.id" class="w-2 h-2 rounded-full bg-gold-500"></div>
+                                    </div>
+                                </label>
+                            </template>
+                        </div>
+                        <p x-show="method === 'wave_manual'" x-cloak class="text-sm text-gray-600 bg-blue-50 border border-blue-100 rounded-lg px-4 py-3">
+                            Après validation de la commande, vous serez redirigé vers Wave avec le montant déjà rempli. Votre commande est traitée dès que votre paiement est confirmé.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Additional Info -->
+                <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden p-8">
+                    <h2 class="text-xl font-bold text-navy-900 uppercase tracking-tighter italic mb-8 border-b border-gray-50 pb-4">Informations Complémentaires</h2>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Notes de commande (Optionnel)</label>
+                        <textarea name="notes" rows="4" class="w-full border-gray-200 rounded-lg py-3 px-4 text-sm focus:ring-gold-500 focus:border-gold-500 bg-gray-50/30" placeholder="Notes concernant votre livraison..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Order Summary -->
+            <div class="lg:col-span-4 mt-12 lg:mt-0 sticky top-8">
+                <div class="bg-white border border-gray-100 rounded-xl shadow-md overflow-hidden p-8">
+                    <h2 class="text-lg font-bold text-navy-900 uppercase tracking-tighter italic border-b border-gray-50 pb-4 mb-6">Résumé de la Commande</h2>
+                    
+                    <!-- Items List -->
+                    <div class="space-y-4 mb-8">
+                        @foreach($cart as $id => $item)
+                        @php
+                            $itemProduct = \App\Models\Product::find($item['product_id'] ?? $id);
+                            $itemRawPath = ($item['image'] ?? null) ?: ($itemProduct ? ($itemProduct->images->first()?->path ?? null) : null);
+                            $itemImgUrl = $itemRawPath 
+                                ? (filter_var($itemRawPath, FILTER_VALIDATE_URL) 
+                                    ? $itemRawPath 
+                                    : (preg_match('#^/?storage/#', $itemRawPath) ? $itemRawPath : '/storage/' . ltrim($itemRawPath, '/'))) 
+                                : asset('logo.jpeg');
+                        @endphp
+                        <div class="flex gap-4 items-center">
+                            <div class="w-16 h-16 bg-gray-50 rounded-lg p-2 border border-gray-50 flex-shrink-0 flex items-center justify-center">
+                                <img src="{{ $itemImgUrl }}" class="max-h-full max-w-full object-contain">
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[10px] font-bold text-navy-900 line-clamp-1 truncate w-40">{{ $item['name'] }}</p>
+                                @if(!empty($item['options']))
+                                    <div class="text-[9px] text-gray-500 font-medium mt-0.5 space-y-0.5">
+                                        @foreach($item['options'] as $opt)
+                                            @if($opt['name'] === 'Personnalisation')
+                                                <span class="inline-block px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100 font-bold text-[8px] max-w-full truncate">Perso: {{ $opt['value'] }}</span>
+                                            @else
+                                                <span class="block">• {{ $opt['name'] }} : {{ $opt['value'] }} @if($opt['price'] > 0)(+{{ number_format($opt['price'], 0, ',', ' ') }} F)@endif</span>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                @endif
+                                <p class="text-[10px] text-gray-600 mt-1">
+                                    {{ $item['quantity'] }} x <span class="text-gold-600 font-bold">{{ number_format($item['price'], 0, ',', ' ') }} CFA</span>
+                                    @if($itemProduct && $itemProduct->isPreorderable())
+                                        <span class="text-amber-600 font-bold ml-1">(Précommande)</span>
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Calculation -->
+                    <div class="space-y-4 border-t border-gray-50 pt-6 mb-8 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Sous-total</span>
+                            <span class="font-bold text-navy-900">{{ number_format($total, 0, ',', ' ') }} CFA</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Livraison</span>
+                            <span class="font-bold text-green-600">Gratuit</span>
+                        </div>
+                        @if(isset($promoCode) && $promoCode)
+                        <div class="flex justify-between text-green-600 font-bold">
+                            <span>Remise (Code: {{ $promoCode->code }})</span>
+                            <span>-{{ number_format($discount, 0, ',', ' ') }} CFA</span>
+                        </div>
+                        @else
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Remise</span>
+                            <span class="font-bold text-red-500">0 CFA</span>
+                        </div>
+                        @endif
+                        <div class="border-t border-gray-100 pt-3">
+                            <label class="flex items-center text-xs font-bold text-navy-800 uppercase tracking-tight cursor-pointer select-none">
+                                <input type="checkbox" id="tva_toggle" onchange="toggleTva(this.checked)" {{ Session::get('apply_tva', false) ? 'checked' : '' }} class="rounded border-gray-200 text-gold-500 focus:ring-gold-500 mr-2">
+                                Appliquer la TVA (18%)
+                            </label>
+                        </div>
+                        @if(Session::get('apply_tva', false))
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 text-xs">Taxe / TVA (18%)</span>
+                            <span class="font-bold text-navy-900 text-xs">{{ number_format($discountedTotal * 0.18, 0, ',', ' ') }} CFA</span>
+                        </div>
+                        <div class="border-t border-gray-50 pt-4 mt-4 flex justify-between items-end">
+                            <span class="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Total TTC</span>
+                            <span class="text-2xl font-semibold text-navy-900">{{ number_format($discountedTotal * 1.18, 0, ',', ' ') }} <span class="text-xs">CFA</span></span>
+                        </div>
+                        @else
+                        <div class="border-t border-gray-50 pt-4 mt-4 flex justify-between items-end">
+                            <span class="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Total</span>
+                            <span class="text-2xl font-semibold text-navy-900">{{ number_format($discountedTotal, 0, ',', ' ') }} <span class="text-xs">CFA</span></span>
+                        </div>
+                        @endif
+                    </div>
+
+                    <button type="submit" class="w-full btn-primary-gold py-4 text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-4 group">
+                        CONFIRMER LA COMMANDE
+                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </button>
+                    
+                    <p class="mt-4 text-[9px] text-gray-600 text-center leading-relaxed italic">
+                        En confirmant la commande, vous acceptez nos <a href="#" class="underline">Conditions Générales de Vente</a> et notre <a href="#" class="underline">Politique de Confidentialité</a>.
+                    </p>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+    function toggleTva(checked) {
+        fetch('{{ route('shop.tva.toggle') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                apply_tva: checked
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+</script>
+@endpush

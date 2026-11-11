@@ -31,6 +31,7 @@ class CareCheckoutController extends Controller
         $data = $request->validate([
             'phone'        => ['required', 'string', 'min:9', 'max:20'],
             'accept_terms' => ['accepted'],
+            'method'       => ['nullable', 'in:wave,bictorys'],
         ], [
             'phone.required'  => 'Le numéro de téléphone est obligatoire.',
             'phone.min'       => 'Le numéro de téléphone est trop court.',
@@ -64,6 +65,14 @@ class CareCheckoutController extends Controller
             'amount_paid'          => 0,
             'notes'                => 'Souscription en ligne',
         ]);
+
+        // Paiement par lien Wave : confirmation manuelle par l'équipe.
+        if (($data['method'] ?? 'bictorys') === 'wave') {
+            $subscription->update(['payment_method' => 'wave_manual']);
+            $payment = \App\Services\ManualPaymentService::start($subscription, (int) $subscription->price, $user->id);
+
+            return redirect()->route('wave.payment.show', $payment->id);
+        }
 
         try {
             $checkoutUrl = $this->createBictorysCharge($subscription, $user->email);
