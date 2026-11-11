@@ -421,7 +421,7 @@ class ShopController extends Controller
             'city' => 'required|string|max:255',
             'country' => 'required|string|max:255',
             'zip' => 'required|string|max:20',
-            'payment_method' => 'required|string|in:bictorys,cod,wallet,credit',
+            'payment_method' => 'required|string|in:bictorys,cod,wallet,credit,wave_manual',
             'delivery_lat' => 'nullable|numeric|between:-90,90',
             'delivery_lng' => 'nullable|numeric|between:-180,180',
         ]);
@@ -667,10 +667,24 @@ class ShopController extends Controller
             }
         }
 
+        // Paiement par lien Wave : le paiement est créé ici, la commande reste « en attente » jusqu'à la confirmation.
+        $wavePayment = null;
+        if ($validated['payment_method'] === 'wave_manual') {
+            $wavePayment = \App\Services\ManualPaymentService::start($order, (int) round($grandTotal), Auth::id());
+        }
+
         try {
             \App\Services\WhatsAppService::notifyAdminForOrder($order);
         } catch (\Exception $e) {
             Log::error("Error sending WhatsApp notification: " . $e->getMessage());
+        }
+
+        if ($wavePayment) {
+            Session::forget('cart');
+            Session::forget('promo_code');
+            Session::forget('apply_tva');
+
+            return redirect()->route('wave.payment.show', $wavePayment->id);
         }
 
         if ($redirectUrl) {
