@@ -315,6 +315,17 @@
                     </a>
                     @endif
 
+                    @if(auth()->user()?->hasPermission('orders'))
+                    @php $wavePending = \App\Models\ManualPayment::where('status', 'submitted')->count(); @endphp
+                    <a href="{{ route('admin.wave-payments.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.wave-payments*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.wave-payments*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        Paiements Wave
+                        @if($wavePending > 0)<span class="ml-auto inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold rounded-full bg-gold-500 text-navy-900">{{ $wavePending }}</span>@endif
+                    </a>
+                    @endif
+
                     @if(auth()->user()?->hasPermission('clients'))
                     <a href="{{ route('admin.clients.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.clients*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
                          <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.clients*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
