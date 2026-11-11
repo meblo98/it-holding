@@ -34,16 +34,6 @@
             </div>
 
             <div>
-                <p class="text-sm font-medium text-navy-900">Moyens de paiement</p>
-                <div class="mt-2 flex flex-wrap gap-2">
-                    <span class="px-3 py-1.5 rounded-md border border-navy-200 text-sm text-navy-900">Wave</span>
-                    <span class="px-3 py-1.5 rounded-md border border-navy-200 text-sm text-navy-900">Orange Money</span>
-                    <span class="px-3 py-1.5 rounded-md border border-navy-200 text-sm text-navy-900">Carte bancaire</span>
-                </div>
-                <p class="mt-2 text-xs text-navy-400">Vous choisirez votre moyen de paiement sur la page sécurisée de paiement, après avoir cliqué sur « Payer ».</p>
-            </div>
-
-            <div>
                 <label class="flex items-start gap-3 text-sm text-navy-600">
                     <input type="checkbox" name="accept_terms" value="1" class="mt-1" {{ old('accept_terms') ? 'checked' : '' }}>
                     <span>J’ai lu et j’accepte les <a href="{{ route('care.landing') }}#couverture" target="_blank" class="underline text-navy-900">conditions de couverture et les exclusions</a>. Je comprends qu’il s’agit d’une garantie commerciale de réparation, et non d’une assurance.</span>
@@ -51,8 +41,16 @@
                 @error('accept_terms')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
 
-            <button type="submit" class="btn-primary-gold w-full justify-center">Payer {{ $fmt($plan['price']) }}</button>
-            <p class="text-xs text-navy-400">La protection est activée dès la confirmation du paiement. Vous enregistrerez ensuite votre appareil depuis votre espace.</p>
+            <div class="space-y-3">
+                <p class="text-sm font-medium text-navy-900">Choisissez votre moyen de paiement</p>
+                @php $waveLogo = file_exists(public_path('images/wave.png')) ? asset('images/wave.png') : null; @endphp
+                <button type="submit" name="method" value="wave" class="w-full flex items-center justify-center gap-3 rounded-lg px-4 py-3.5 font-semibold text-white" style="background:#1DC8FF">
+                    @if ($waveLogo)<img src="{{ $waveLogo }}" alt="Wave" class="h-6">@else<span class="text-lg font-black">wave</span>@endif
+                    Payer {{ $fmt($plan['price']) }} avec Wave
+                </button>
+                <button type="submit" name="method" value="bictorys" class="btn-primary-gold w-full justify-center">Orange Money ou carte bancaire</button>
+            </div>
+            <p class="text-xs text-navy-400">La protection est activée dès la confirmation du paiement (quelques instants pour Orange Money et carte, après vérification pour Wave). Vous enregistrerez ensuite votre appareil depuis votre espace.</p>
         </form>
     </div>
 </section>
