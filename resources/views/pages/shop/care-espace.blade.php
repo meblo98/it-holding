@@ -52,6 +52,19 @@
                             <div><dt class="text-gray-400 text-xs">Prise en charge</dt><dd class="font-semibold text-navy-900">{{ $plan ? $plan['coverage_rate'] . ' %' : '—' }}</dd></div>
                         </dl>
 
+                        @if ($sub->payment_status !== 'paid' && $sub->manualPayment && $sub->status === 'pending')
+                            <div class="border-t border-gray-100 pt-4 flex flex-wrap items-center justify-between gap-3">
+                                <p class="text-sm text-gray-600">
+                                    @if ($sub->manualPayment->status === 'submitted') Paiement Wave en cours de vérification.
+                                    @elseif ($sub->manualPayment->status === 'rejected') Votre paiement Wave a été refusé : {{ $sub->manualPayment->rejection_reason }}
+                                    @else Paiement Wave à effectuer. @endif
+                                </p>
+                                @if ($sub->manualPayment->status !== 'submitted')
+                                    <a href="{{ route('wave.payment.show', $sub->manualPayment->id) }}" class="btn-primary-gold">{{ $sub->manualPayment->status === 'rejected' ? 'Corriger' : 'Finaliser le paiement' }}</a>
+                                @endif
+                            </div>
+                        @endif
+
                         @if ($sub->payment_status === 'paid')
                             <div class="border-t border-gray-100 pt-4 space-y-3">
                                 <div class="flex flex-wrap items-center justify-between gap-3">
