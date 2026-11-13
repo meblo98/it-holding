@@ -19,6 +19,13 @@
             <p><span class="text-gray-400">Livraison :</span> <strong>{{ $order->customer_name }}</strong> · {{ $order->customer_phone }}<br>{{ $order->customer_address }} @if($delivery->maps_url)<a href="{{ $delivery->maps_url }}" target="_blank" class="underline text-navy-700">carte</a>@endif</p>
             <p><span class="text-gray-400">Livreur :</span> <strong>{{ $delivery->courier?->name ?? '—' }}</strong>@if($delivery->distance_km !== null) · à {{ number_format($delivery->distance_km, 1) }} km du retrait @endif</p>
             @if($delivery->offer)<p><span class="text-gray-400">Fournisseur retenu :</span> {{ $delivery->offer->supplier->name }} ({{ number_format($delivery->offer->price, 0, ',', ' ') }} FCFA)</p>@endif
+            @if($delivery->purchaseOrder)
+                @php $bon = $delivery->purchaseOrder; @endphp
+                <p><span class="text-gray-400">Bon de commande :</span> <a href="{{ route('purchase.show', $bon->supplier_token) }}" target="_blank" class="font-bold text-navy-700 underline">{{ $bon->number }}</a>
+                    · code de remise <span class="font-mono font-bold">{{ $bon->pickup_code }}</span> · {{ $bon->status === 'handed_over' ? 'remis le ' . $bon->handed_over_at?->format('d/m H:i') : 'en attente de remise' }}@if($delivery->pickup_method) ({{ $delivery->pickup_method }})@endif</p>
+            @endif
+            <p><span class="text-gray-400">Code client :</span> <span class="font-mono font-bold">{{ $delivery->delivery_code ?? '—' }}</span>@if($delivery->dropoff_method) · validé par {{ $delivery->dropoff_method }}@endif</p>
+            @if($delivery->courier_fee !== null)<p><span class="text-gray-400">Revenu du livreur :</span> <strong>{{ number_format($delivery->courier_fee, 0, ',', ' ') }} FCFA</strong> {{ $delivery->fee_paid_at ? '(payé le ' . $delivery->fee_paid_at->format('d/m/Y') . ')' : '(à payer)' }}</p>@endif
             @if($order->payment_method === 'cod')<p class="font-bold text-red-700">Paiement à la livraison : {{ number_format($order->total_amount, 0, ',', ' ') }} FCFA à encaisser</p>@endif
         </div>
 
@@ -55,6 +62,16 @@
                 <form method="POST" action="{{ route('admin.deliveries.reassign', $delivery->id) }}">
                     @csrf<button class="w-full px-4 py-2.5 border border-navy-900 text-navy-900 font-bold rounded-md text-sm">Chercher un autre livreur</button>
                 </form>
+                @if($delivery->status === 'accepted')
+                    <form method="POST" action="{{ route('admin.deliveries.force', [$delivery->id, 'pickup']) }}" onsubmit="return confirm('Valider la remise sans code ni QR ?')">
+                        @csrf<button class="w-full px-4 py-2 text-sm font-bold text-amber-700 border border-amber-300 rounded-md hover:bg-amber-50">Valider la remise manuellement</button>
+                    </form>
+                @endif
+                @if(in_array($delivery->status, ['accepted', 'picked_up'], true))
+                    <form method="POST" action="{{ route('admin.deliveries.force', [$delivery->id, 'dropoff']) }}" onsubmit="return confirm('Valider la livraison sans code ni QR ?')">
+                        @csrf<button class="w-full px-4 py-2 text-sm font-bold text-amber-700 border border-amber-300 rounded-md hover:bg-amber-50">Valider la livraison manuellement</button>
+                    </form>
+                @endif
                 <form method="POST" action="{{ route('admin.deliveries.cancel', $delivery->id) }}" onsubmit="return confirm('Annuler cette livraison ?')">
                     @csrf<button class="w-full px-4 py-2 text-sm font-bold text-red-600 border border-red-200 rounded-md hover:bg-red-50">Annuler la livraison</button>
                 </form>
