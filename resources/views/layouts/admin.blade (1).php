@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@yield('title', 'Admin - IT Holding Services')</title>
+    <link rel="icon" type="image/jpeg" href="{{ asset('logo.jpeg') }}">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            50:  '#f1f5f9',
+                            100: '#e2e8f0',
+                            200: '#cbd5e1',
+                            300: '#94a3b8',
+                            400: '#64748b',
+                            500: '#1e293b',
+                            600: '#0f172a',
+                            700: '#020617',
+                            800: '#000000',
+                            900: '#000000',
+                        },
+                        gold: {
+                            50:  '#fffbeb',
+                            100: '#fef3c7',
+                            200: '#fde68a',
+                            300: '#fcd34d',
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309',
+                            800: '#92400e',
+                            900: '#78350f',
+                        },
+                    },
+                }
+            }
+        }
+    </script>
+    <!-- Alpine.js (CDN) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+
+        /* Réponses de l'assistant IA (Markdown rendu, HTML brut supprimé) */
+        .ai-md { font-size: 0.875rem; line-height: 1.6; color: #1f2937; }
+        .ai-md > * + * { margin-top: 0.6rem; }
+        .ai-md h1, .ai-md h2, .ai-md h3, .ai-md h4 { font-weight: 700; color: #111827; }
+        .ai-md h3 { font-size: 0.95rem; }
+        .ai-md ul { list-style: disc; padding-left: 1.25rem; }
+        .ai-md ol { list-style: decimal; padding-left: 1.25rem; }
+        .ai-md strong { font-weight: 700; }
+        .ai-md hr { border-color: #e5e7eb; }
+
+        /* ── Base field styling (input, textarea, select) ── */
+        .admin-input,
+        .admin-select,
+        .admin-textarea,
+        input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+        select,
+        textarea {
+            display: block;
+            width: 100%;
+            border-radius: 0.5rem !important;          /* rounded-lg */
+            border: 1.5px solid #cbd5e1 !important;    /* slate-300 */
+            background-color: #f8fafc !important;      /* slate-50 */
+            padding: 0.6rem 0.875rem !important;
+            font-size: 0.875rem !important;
+            line-height: 1.5 !important;
+            color: #0f172a !important;                 /* navy-600 */
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            outline: none !important;
+            box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.03) !important;
+        }
+
+        /* Focus state with gold border and premium glowing ring */
+        .admin-input:focus,
+        .admin-select:focus,
+        .admin-textarea:focus,
+        input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):focus,
+        select:focus,
+        textarea:focus {
+            border-color: #d97706 !important;          /* gold-600 */
+            background-color: #ffffff !important;
+            box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.15), 0 1px 2px 0 rgba(15, 23, 42, 0.05) !important;
+        }
+
+        /* Interactive hover state */
+        .admin-input:hover:not(:focus),
+        .admin-select:hover:not(:focus),
+        .admin-textarea:hover:not(:focus),
+        input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):hover:not(:focus),
+        select:hover:not(:focus),
+        textarea:hover:not(:focus) {
+            border-color: #94a3b8 !important;          /* slate-400 */
+            background-color: #ffffff !important;
+        }
+
+        /* Premium labels */
+        .admin-label,
+        label:not(.inline):not(.flex):not(.cursor-pointer):not(.sr-only) {
+            display: block !important;
+            font-size: 0.75rem !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.05em !important;
+            color: #475569 !important;                 /* slate-600 */
+            margin-bottom: 0.4rem !important;
+        }
+
+        /* Placeholders */
+        ::placeholder {
+            color: #94a3b8 !important;
+            font-style: normal !important;
+            opacity: 0.7 !important;
+        }
+
+        /* Select dropdowns with custom navy arrow */
+        .admin-select, select {
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%230f172a' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 0.75rem center !important;
+            background-size: 1rem 1rem !important;
+            padding-right: 2.5rem !important;
+        }
+        .admin-select:focus, select:focus {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23d97706' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E") !important;
+        }
+
+        /* Textarea vertical resize */
+        .admin-textarea, textarea {
+            resize: vertical !important;
+            min-height: 6rem !important;
+        }
+
+        /* Premium headers for sections */
+        .admin-section-title {
+            font-size: 0.75rem !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.08em !important;
+            color: #1e293b !important;
+            padding-bottom: 0.5rem !important;
+            border-bottom: 2px solid #f1f5f9 !important;
+            margin-bottom: 1.25rem !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+        }
+        .admin-section-title::before {
+            content: '' !important;
+            display: inline-block !important;
+            width: 4px !important;
+            height: 1.1em !important;
+            background: #d97706 !important;             /* gold-600 */
+            border-radius: 2px !important;
+        }
+
+        /* Checkbox & Radio customization */
+        input[type="checkbox"], input[type="radio"] {
+            accent-color: #d97706 !important;
+            cursor: pointer !important;
+        }
+
+        /* Modern card layout container */
+        .admin-card {
+            background: #ffffff !important;
+            border: 1px solid #f1f5f9 !important;
+            border-radius: 0.75rem !important;          /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+            padding: 1.5rem !important;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased bg-gray-100">
+    <div class="flex h-screen overflow-hidden" x-data="{ sidebarOpen: false }">
+        <!-- Sidebar -->
+        <aside class="flex-shrink-0 w-64 flex flex-col border-r border-navy-700 bg-navy-500 text-white transition-all duration-300 transform fixed md:relative z-30 h-full"
+               :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen, 'md:translate-x-0': true}">
+            <div class="flex items-center justify-center h-16 bg-navy-600 shadow-md border-b border-gold-500/20">
+                <span class="text-xl font-bold uppercase tracking-wider text-gold-400">IT Holding Admin</span>
+            </div>
+            
+            <div class="flex flex-col flex-1 overflow-y-auto">
+                <nav class="flex-1 px-2 py-4 space-y-1">
+                    <a href="{{ route('admin.dashboard') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.dashboard') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.dashboard') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        Dashboard
+                    </a>
+
+                    @if(auth()->user()?->hasPermission('services'))
+                    <a href="{{ route('admin.services.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.services*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.services*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        Services
+                    </a>
+                    @endif
+
+                    @if(auth()->user()?->hasPermission('projects'))
+                    <a href="{{ route('admin.projects.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.projects*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.projects*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Portfolio
+                    </a>
+                    @endif
+
+                    @if(auth()->user()?->hasPermission('posts'))
+                    <a href="{{ route('admin.posts.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.posts*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.posts*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                        </svg>
+                        Blog
+                    </a>
+                    @endif
+
+                    @if(auth()->user()?->hasPermission('products'))
+                    <a href="{{ route('admin.products.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.products*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.products*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                        Boutique
+                    </a>
+                    @endif
+
+                    @if(auth()->user()?->hasPermission('quotes'))
+                    <a href="{{ route('admin.quotes.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.quotes*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.quotes*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Devis
+                    </a>
+                    @endif
+
+                    @if(auth()->user()?->hasPermission('invoices'))
+                    <a href="{{ route('admin.invoices.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.invoices*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.invoices*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        Factures
+                    </a>
+                    @endif
+
+                    @if(auth()->user()?->hasPermission('delivery-notes'))
+                    <a href="{{ route('admin.delivery-notes.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.delivery-notes*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.delivery-notes*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V15a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h.586a1 1 0 00.707-.293l1.414-1.414A1 1 0 0019 14V6a1 1 0 00-1-1h-5" />
+                        </svg>
+                        Bons de livraison
+                    </a>
+                    @endif
+
+                    @if(auth()->user()?->hasPermission('suppliers'))
+                    <a href="{{ route('admin.suppliers.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.suppliers*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.suppliers*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Fournisseurs
+                    </a>
+                    @endif
+
+                    @if(auth()->user()?->hasPermission('stock'))
+                    <a href="{{ route('admin.stock.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.stock*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.stock*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        Gestion de stock
+                    </a>
+                    @endif
+
+                    @if(auth()->user()?->hasPermission('orders'))
+                    <a href="{{ route('admin.orders.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.orders*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.orders*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                        </svg>
+                        Commandes
+                    </a>
+                    @endif
+
+                    @if(auth()->user()?->hasPermission('orders'))
+                    <a href="{{ route('admin.sourcing.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.sourcing*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.sourcing*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12M8 12h12M8 17h12M4 7h.01M4 12h.01M4 17h.01" />
+                        </svg>
+                        Appels d'offres
+                    </a>
+                    @endif
+
+                    @if(auth()->user()?->hasPermission('orders'))
+                    <a href="{{ route('admin.deliveries.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.deliveries*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.deliveries*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                        </svg>
+                        Livraisons
+                    </a>
+                    @endif
+
+                    @if(auth()->user()?->hasPermission('orders'))
+                    @php $wavePending = \App\Models\ManualPayment::where('status', 'submitted')->count(); @endphp
+                    <a href="{{ route('admin.wave-payments.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.wave-payments*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.wave-payments*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        Paiements Wave
+                        @if($wavePending > 0)<span class="ml-auto inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold rounded-full bg-gold-500 text-navy-900">{{ $wavePending }}</span>@endif
+                    </a>
+                    @endif
+
+                    @if(auth()->user()?->hasPermission('orders'))
+                    <a href="{{ route('admin.courier-payouts.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.courier-payouts*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                        <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.courier-payouts*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Revenus livreurs
+                    </a>
+                    @endif
+
+                    @if(auth()->user()?->hasPermission('clients'))
+                    <a href="{{ route('admin.clients.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.clients*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                         <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.clients*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                         </svg>
+                         Clients
+                     </a>
+                    @endif
+
+                     @if(auth()->user()?->hasPermission('opportunities'))
+                     <a href="{{ route('admin.opportunities.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.opportunities*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                         <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.opportunities*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                         </svg>
+                         Opportunités
+                         @if($flaggedOpportunitiesCount ?? 0)
+                             <span class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ $flaggedOpportunitiesCount }}</span>
+                         @endif
+                     </a>
+                     @endif
+
+                     @if(auth()->user()?->hasPermission('crm'))
+                     <a href="{{ route('admin.crm.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.crm*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                         <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.crm*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
+                         </svg>
+                         Pipeline commercial
+                         @if($lateFollowUpsCount ?? 0)
+                             <span class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full" title="Relances en retard">{{ $lateFollowUpsCount }}</span>
+                         @endif
+                     </a>
+                     @endif
+
+                     @if(auth()->user()?->hasPermission('missions'))
+                     <a href="{{ route('admin.missions.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.missions*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                         <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.missions*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                         </svg>
+                         Missions & Projets
+                     </a>
+                     @endif
+
+                     @if(auth()->user()?->hasPermission('network_contracts'))
+                     <a href="{{ route('admin.network-contracts.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.network-contracts*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                         <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.network-contracts*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                         </svg>
+                         Contrats Réseau Pro
+                     </a>
+                     @endif
+
+                     @if(auth()->user()?->hasPermission('warranties'))
+                     <a href="{{ route('admin.warranties.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.warranties*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                         <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.warranties*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                         </svg>
+                         Garanties
+                     </a>
+                     @endif
+
+                     {{-- SAV / Tickets --}}
+                     @if(auth()->user()?->hasPermission('tickets'))
+                     <a href="{{ route('admin.tickets.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.tickets*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                         <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.tickets*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                         </svg>
+                         SAV & Tickets
+                     </a>
+                     @endif
+
+                     {{-- Chat Support --}}
+                     @if(auth()->user()?->hasPermission('chat'))
+                     <a href="{{ route('admin.chat.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.chat*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                         <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.chat*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                         </svg>
+                         Chat Support
+                     </a>
+                     @endif
+
+                     {{-- Contrats Maintenance --}}
+                     @if(auth()->user()?->hasPermission('contracts'))
+                     <a href="{{ route('admin.contracts.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.contracts*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                         <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.contracts*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                         </svg>
+                         Contrats Maintenance
+                     </a>
+                     @endif
+
+                     {{-- CARE+ --}}
+                     @if(auth()->user()?->hasPermission('care'))
+                     <a href="{{ route('admin.care.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.care*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                         <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.care*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                         </svg>
+                         IT HOLDING CARE+
+                     </a>
+                     @endif
+
+                      {{-- Trésorerie & Finance --}}
+                      @if(auth()->user()?->hasPermission('finance'))
+                     <a href="{{ route('admin.finance.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.finance*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                          <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.finance*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          </svg>
+                          Finance & Trésorerie
+                      </a>
+                     @endif
+
+                      {{-- Retraits des portefeuilles pro --}}
+                      @if(auth()->user()?->hasPermission('finance'))
+                     <a href="{{ route('admin.withdrawals.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.withdrawals*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                          <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.withdrawals*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                          </svg>
+                          Retraits pro
+                          @if($pendingWithdrawalsCount ?? 0)
+                              <span class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ $pendingWithdrawalsCount }}</span>
+                          @endif
+                      </a>
+                     @endif
+
+                      {{-- Moteur fiscal --}}
+                      @if(auth()->user()?->hasPermission('tax_engine'))
+                     <a href="{{ route('admin.tax-rules.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.tax-rules*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                          <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.tax-rules*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/>
+                          </svg>
+                          Moteur fiscal
+                      </a>
+                     @endif
+
+                      {{-- Gestion des Dépenses --}}
+                      @if(auth()->user()?->hasPermission('expenses'))
+                     <a href="{{ route('admin.expenses.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.expenses*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                          <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.expenses*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z"/>
+                          </svg>
+                          Gestion des Dépenses
+                      </a>
+                     @endif
+
+                     {{-- Rapports & Stats --}}
+                     @if(auth()->user()?->hasPermission('reports'))
+                     <a href="{{ route('admin.reports.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.reports*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                         <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.reports*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                         </svg>
+                         Rapports & Stats
+                     </a>
+                     @endif
+
+                     @if(auth()->user()?->hasPermission('users'))
+                     <a href="{{ route('admin.users.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.users*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                         <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.users*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                         </svg>
+                         Équipe & Accès
+                     </a>
+                     @endif
+
+                     @if(auth()->user()?->hasPermission('marketing'))
+                     <a href="{{ route('admin.marketing-assets.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.marketing-assets*') ? 'bg-navy-600 text-gold-400' : 'text-gray-300 hover:bg-navy-600 hover:text-gold-400' }}">
+                         <svg class="mr-3 flex-shrink-0 h-6 w-6 {{ request()->routeIs('admin.marketing-assets*') ? 'text-gold-400' : 'text-gray-400 group-hover:text-gold-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                         </svg>
+                         Ressources Marketing
+                     </a>
+                     @endif
+                </nav>
+            </div>
+            
+            <div class="p-4 border-t border-navy-500">
+                <a href="{{ url('/') }}" class="flex items-center text-gray-300 hover:text-gold-400">
+                    <svg class="mr-3 h-6 w-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                   Retour au site
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Topbar -->
+            <header class="flex items-center justify-between px-6 py-4 bg-white shadow-sm border-b border-gray-200">
+                <button @click="sidebarOpen = !sidebarOpen" class="text-gray-500 focus:outline-none md:hidden">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                
+                <h2 class="text-xl font-semibold text-gray-800">
+                    @yield('title')
+                </h2>
+
+                <div class="flex items-center" x-data="{ open: false }">
+                    <div class="relative ml-3">
+                        <div>
+                            <button @click="open = !open" type="button" class="max-w-xs bg-white flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold-500" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
+                                <span class="sr-only">Ouvrir le menu utilisateur</span>
+                                <span class="mr-3 text-navy-600 font-medium">{{ Auth::user()->name }}</span>
+                                <div class="h-8 w-8 rounded-full bg-gold-100 flex items-center justify-center text-navy-600 font-bold">
+                                    {{ substr(Auth::user()->name, 0, 1) }}
+                                </div>
+                            </button>
+                        </div>
+
+                        <div x-show="open" 
+                             @click.away="open = false" 
+                             x-cloak
+                             class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
+                            
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    Se déconnecter
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+                <div class="container mx-auto px-6 py-8">
+                    @if (session('success'))
+                        <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-md shadow-sm flex items-center justify-between">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span class="text-sm font-medium text-green-800">{{ session('success') }}</span>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if (session('error'))
+                        <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-md shadow-sm flex items-center justify-between">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-red-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span class="text-sm font-medium text-red-800">{{ session('error') }}</span>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if ($errors->any())
+                        <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-md shadow-sm">
+                            <div class="flex items-center mb-2">
+                                <svg class="w-5 h-5 text-red-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span class="text-sm font-semibold text-red-800">Veuillez corriger les erreurs de validation suivantes :</span>
+                            </div>
+                            <ul class="list-disc list-inside text-xs text-red-700 space-y-1 ml-8">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    @yield('content')
+                </div>
+            </main>
+        </div>
+        
+        <!-- Overlay for mobile -->
+        <div x-show="sidebarOpen" @click="sidebarOpen = false" x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden" x-cloak></div>
+    </div>
+    @stack('scripts')
+</body>
+</html>
