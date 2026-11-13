@@ -1,0 +1,487 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\PageController;
+use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\PortfolioController;
+use App\Http\Controllers\ShopController;
+use App\Http\Controllers\BlogController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+
+Route::get('/', [PageController::class, 'home'])->name('home');
+Route::get('/about', [PageController::class, 'about'])->name('about');
+Route::get('/care', [PageController::class, 'care'])->name('care.landing');
+Route::middleware('auth')->group(function () {
+    Route::get('/care/souscrire/{plan}', [\App\Http\Controllers\CareCheckoutController::class, 'show'])->name('care.subscribe');
+    Route::post('/care/souscrire/{plan}', [\App\Http\Controllers\CareCheckoutController::class, 'store'])->name('care.subscribe.store')->middleware('throttle:10,1');
+    Route::get('/care/paiement/succes', [\App\Http\Controllers\CareCheckoutController::class, 'success'])->name('care.success')->middleware('signed');
+    Route::get('/care/paiement/erreur', [\App\Http\Controllers\CareCheckoutController::class, 'error'])->name('care.error')->middleware('signed');
+
+    // Espace client Care+ : abonnements, appareil, certificat
+    Route::get('/dashboard/care', [\App\Http\Controllers\CareClientController::class, 'index'])->name('dashboard.care');
+    Route::get('/dashboard/care/{care}/appareil', [\App\Http\Controllers\CareClientController::class, 'deviceForm'])->whereNumber('care')->name('dashboard.care.device');
+    Route::post('/dashboard/care/{care}/appareil', [\App\Http\Controllers\CareClientController::class, 'storeDevice'])->whereNumber('care')->middleware('throttle:10,1')->name('dashboard.care.device.store');
+    Route::get('/dashboard/care/{care}/fichier/{type}/{index?}', [\App\Http\Controllers\CareClientController::class, 'file'])->whereNumber('care')->whereIn('type', ['photo', 'invoice'])->name('dashboard.care.file');
+    // Déclaration de panne et suivi
+    Route::get('/dashboard/care/{care}/panne', [\App\Http\Controllers\CareClaimController::class, 'form'])->whereNumber('care')->name('dashboard.care.claim.form');
+    Route::post('/dashboard/care/{care}/panne', [\App\Http\Controllers\CareClaimController::class, 'store'])->whereNumber('care')->middleware('throttle:10,1')->name('dashboard.care.claim.store');
+    Route::get('/dashboard/care/demande/{claim}', [\App\Http\Controllers\CareClaimController::class, 'show'])->whereNumber('claim')->name('dashboard.care.claim.show');
+    Route::post('/dashboard/care/demande/{claim}/annuler', [\App\Http\Controllers\CareClaimController::class, 'cancel'])->whereNumber('claim')->name('dashboard.care.claim.cancel');
+    Route::get('/dashboard/care/demande/{claim}/fichier/{type}/{index?}', [\App\Http\Controllers\CareClaimController::class, 'file'])->whereNumber('claim')->whereIn('type', ['photo', 'video'])->name('dashboard.care.claim.file');
+    Route::get('/dashboard/care/{care}/certificat', [\App\Http\Controllers\CareClientController::class, 'certificate'])->whereNumber('care')->name('dashboard.care.certificate');
+});
+
+// Paiement par lien Wave (confirmation par l'équipe)
+Route::middleware('auth')->group(function () {
+    Route::get('/paiement/wave/{payment}', [\App\Http\Controllers\ManualPaymentController::class, 'show'])->whereNumber('payment')->name('wave.payment.show');
+    Route::post('/paiement/wave/{payment}', [\App\Http\Controllers\ManualPaymentController::class, 'submit'])->whereNumber('payment')->middleware('throttle:10,1')->name('wave.payment.submit');
+});
+
+// Appel d'offres : page publique par lien secret (fournisseur, sans compte)
+Route::get('/offre/{token}', [\App\Http\Controllers\SupplierOfferController::class, 'show'])->name('supplier.offer.show');
+Route::post('/offre/{token}', [\App\Http\Controllers\SupplierOfferController::class, 'submit'])->middleware('throttle:20,1')->name('supplier.offer.submit');
+
+// Bon de commande du fournisseur (lien secret)
+Route::get('/bon/{token}', [\App\Http\Controllers\PurchaseOrderController::class, 'show'])->name('purchase.show');
+
+// Espace livreur : position, rayon et disponibilité
+Route::middleware('auth')->group(function () {
+    Route::get('/livreur', [\App\Http\Controllers\CourierController::class, 'home'])->name('courier.home');
+    Route::post('/livreur/profil', [\App\Http\Controllers\CourierController::class, 'update'])->name('courier.update');
+    Route::post('/livreur/course/{delivery}/accepter', [\App\Http\Controllers\CourierController::class, 'accept'])->name('courier.accept');
+    Route::get('/livreur/revenus', [\App\Http\Controllers\CourierController::class, 'earnings'])->name('courier.earnings');
+    Route::post('/livreur/course/{delivery}/code-retrait', [\App\Http\Controllers\CourierController::class, 'pickupCode'])->middleware('throttle:15,1')->name('courier.pickup.code');
+    Route::get('/livreur/retrait/{token}', [\App\Http\Controllers\CourierController::class, 'pickupScan'])->name('courier.pickup.scan');
+    Route::post('/livreur/retrait/{token}', [\App\Http\Controllers\CourierController::class, 'pickupConfirm'])->name('courier.pickup.confirm');
+    Route::post('/livreur/course/{delivery}/code-livraison', [\App\Http\Controllers\CourierController::class, 'dropoffCode'])->middleware('throttle:15,1')->name('courier.dropoff.code');
+    Route::get('/livreur/livraison/{token}', [\App\Http\Controllers\CourierController::class, 'dropoffScan'])->name('courier.dropoff.scan');
+    Route::post('/livreur/livraison/{token}', [\App\Http\Controllers\CourierController::class, 'dropoffConfirm'])->name('courier.dropoff.confirm');
+    Route::post('/livreur/course/{delivery}/refuser', [\App\Http\Controllers\CourierController::class, 'decline'])->name('courier.decline');
+});
+
+// Vérification publique (QR code du certificat) : aucune donnée personnelle
+Route::get('/care/verification/{token}', [\App\Http\Controllers\CareClientController::class, 'verify'])->name('care.verify');
+Route::view('/devenir-partenaire', 'pages.partenaire')->name('partner.landing');
+// « register » est exclu : sinon cette route intercepte le formulaire /partner/register déclaré plus bas.
+Route::get('/partner/{identifier}', [\App\Http\Controllers\PartnerReferralController::class, 'track'])
+    ->where('identifier', '(?!register$)[A-Za-z0-9_-]+')
+    ->name('partner.referral');
+
+Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
+Route::get('/services/{slug}', [ServiceController::class, 'show'])->name('services.show');
+
+Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.index');
+Route::get('/portfolio/{slug}', [PortfolioController::class, 'show'])->name('portfolio.show');
+
+Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
+
+Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
+Route::get('/shop/{slug}', [ShopController::class, 'show'])->name('shop.show');
+Route::get('/cart', [ShopController::class, 'cart'])->name('shop.cart');
+Route::get('/checkout', [ShopController::class, 'checkout'])->name('shop.checkout')->middleware('auth');
+Route::post('/checkout', [ShopController::class, 'placeOrder'])->name('shop.placeOrder')->middleware('auth');
+Route::get('/checkout/bictorys/success', [ShopController::class, 'bictorysSuccess'])->name('shop.bictorys.success')->middleware('signed');
+Route::get('/checkout/bictorys/error', [ShopController::class, 'bictorysError'])->name('shop.bictorys.error')->middleware('signed');
+Route::post('/webhook/bictorys', [ShopController::class, 'bictorysWebhook'])->name('webhook.bictorys');
+Route::get('/thanks/{order}', [ShopController::class, 'thanks'])->name('shop.thanks')->middleware('auth');
+Route::post('/cart/add/{id}', [ShopController::class, 'addToCart'])->name('shop.addToCart');
+Route::post('/cart/update', [ShopController::class, 'updateCart'])->name('shop.updateCart');
+Route::get('/remove-from-cart/{id}', [ShopController::class, 'removeFromCart'])->name('shop.removeFromCart');
+Route::post('/shop/quote-request', [ShopController::class, 'requestQuote'])->name('shop.requestQuote')->middleware('auth');
+Route::post('/promo/apply', [ShopController::class, 'applyPromoCode'])->name('shop.promo.apply');
+Route::post('/promo/remove', [ShopController::class, 'removePromoCode'])->name('shop.promo.remove');
+Route::post('/tva/toggle', [ShopController::class, 'toggleTva'])->name('shop.tva.toggle');
+
+// Support Chat Routes (Client side)
+Route::get('/chat/messages', [\App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
+Route::post('/chat/send', [\App\Http\Controllers\ChatController::class, 'sendMessage'])->name('chat.send');
+
+// Public Warranty Verification & QR Code Download
+Route::get('/warranty/verify/{number}', [\App\Http\Controllers\WarrantyVerificationController::class, 'verify'])->name('warranty.verify');
+Route::get('/warranty/{number}/qrcode/download', [\App\Http\Controllers\WarrantyVerificationController::class, 'downloadQrCode'])->name('warranty.qrcode.download');
+
+// Public Professional Profile Verification (badge QR code) & QR Code Download
+Route::get('/pro/verify/{proId}', [\App\Http\Controllers\ProfessionalVerificationController::class, 'verify'])->name('professional.verify');
+Route::get('/pro/{proId}/qrcode/download', [\App\Http\Controllers\ProfessionalVerificationController::class, 'downloadQrCode'])->name('professional.qrcode.download');
+Route::get('/badge/verify/{number}', [\App\Http\Controllers\ProfessionalVerificationController::class, 'verifyBadge'])->name('badge.verify');
+
+
+Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store')->middleware('throttle:5,1');
+
+Route::middleware('guest')->group(function () {
+    Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('login', [LoginController::class, 'login'])->middleware('throttle:5,1');
+
+    Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::post('register', [RegisterController::class, 'register'])->middleware('throttle:3,1');
+
+    Route::get('partner/register', [\App\Http\Controllers\Auth\PartnerRegisterController::class, 'showRegistrationForm'])->name('partner.register');
+    Route::post('partner/register', [\App\Http\Controllers\Auth\PartnerRegisterController::class, 'register'])->middleware('throttle:3,1');
+});
+
+Route::post('logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
+
+Route::middleware(['auth', 'redirect.admin'])->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/orders', [\App\Http\Controllers\DashboardController::class, 'orders'])->name('dashboard.orders');
+    Route::get('/dashboard/orders/{order}', [\App\Http\Controllers\DashboardController::class, 'showOrder'])->name('dashboard.orders.show');
+    Route::get('/dashboard/settings', [\App\Http\Controllers\DashboardController::class, 'settings'])->name('dashboard.settings');
+    Route::get('/dashboard/warranties', [\App\Http\Controllers\DashboardController::class, 'warranties'])->name('dashboard.warranties');
+    
+    // Partner Promo & Commission Routes
+    Route::get('/dashboard/partner', [\App\Http\Controllers\DashboardController::class, 'partner'])->name('dashboard.partner');
+    Route::post('/dashboard/partner/promo', [\App\Http\Controllers\DashboardController::class, 'generatePromoCode'])->name('dashboard.partner.promo.generate');
+    Route::post('/dashboard/partner/apply', [\App\Http\Controllers\DashboardController::class, 'applyAsPartner'])->name('dashboard.partner.apply');
+    
+    // Partner CRM Routes
+    Route::get('/dashboard/partner/crm', [\App\Http\Controllers\PartnerCRMController::class, 'index'])->name('dashboard.partner.crm');
+    Route::post('/dashboard/partner/crm', [\App\Http\Controllers\PartnerCRMController::class, 'store'])->name('dashboard.partner.crm.store');
+    Route::put('/dashboard/partner/crm/{prospect}', [\App\Http\Controllers\PartnerCRMController::class, 'update'])->name('dashboard.partner.crm.update');
+    Route::delete('/dashboard/partner/crm/{prospect}', [\App\Http\Controllers\PartnerCRMController::class, 'destroy'])->name('dashboard.partner.crm.destroy');
+
+    // Partner Opportunities Routes (apporteurs d'affaires)
+    Route::get('/dashboard/partner/opportunities', [\App\Http\Controllers\PartnerOpportunityController::class, 'index'])->name('dashboard.partner.opportunities');
+    Route::post('/dashboard/partner/opportunities', [\App\Http\Controllers\PartnerOpportunityController::class, 'store'])->name('dashboard.partner.opportunities.store');
+
+    // Partner Contract Routes
+    Route::get('/dashboard/partner/contract', [\App\Http\Controllers\PartnerContractController::class, 'show'])->name('dashboard.partner.contract');
+    Route::post('/dashboard/partner/contract/{contract}/accept', [\App\Http\Controllers\PartnerContractController::class, 'accept'])->name('dashboard.partner.contract.accept');
+
+    // Partner Professional Wallet (doc §37-38)
+    Route::get('/dashboard/partner/wallet', [\App\Http\Controllers\PartnerWalletController::class, 'index'])->name('dashboard.partner.wallet');
+    Route::post('/dashboard/partner/wallet/withdraw', [\App\Http\Controllers\PartnerWalletController::class, 'withdraw'])->middleware('throttle:5,1')->name('dashboard.partner.wallet.withdraw');
+    Route::post('/dashboard/partner/wallet/shop-credit', [\App\Http\Controllers\PartnerWalletController::class, 'transferToShopCredit'])->middleware('throttle:5,1')->name('dashboard.partner.wallet.shop-credit');
+    Route::get('/dashboard/partner/wallet/certificate/{type}/{id}', [\App\Http\Controllers\PartnerWalletController::class, 'certificate'])->name('dashboard.partner.wallet.certificate');
+
+    // Partner Professional Profile
+    Route::get('/dashboard/partner/profile', [\App\Http\Controllers\PartnerProfileController::class, 'edit'])->name('dashboard.partner.profile');
+    Route::put('/dashboard/partner/profile', [\App\Http\Controllers\PartnerProfileController::class, 'update'])->name('dashboard.partner.profile.update');
+
+    // Partner Missions Routes (freelances & prestataires)
+    Route::get('/dashboard/partner/missions', [\App\Http\Controllers\PartnerMissionController::class, 'index'])->name('dashboard.partner.missions');
+    Route::get('/dashboard/partner/missions/{mission}', [\App\Http\Controllers\PartnerMissionController::class, 'show'])->name('dashboard.partner.missions.show');
+    Route::post('/dashboard/partner/missions/{mission}/apply', [\App\Http\Controllers\PartnerMissionController::class, 'apply'])->name('dashboard.partner.missions.apply');
+    Route::get('/dashboard/partner/missions/{mission}/workspace', [\App\Http\Controllers\MissionWorkspaceController::class, 'show'])->name('dashboard.partner.missions.workspace');
+    Route::post('/dashboard/partner/missions/{mission}/workspace/messages', [\App\Http\Controllers\MissionWorkspaceController::class, 'storeMessage'])->name('dashboard.partner.missions.workspace.messages.store');
+    Route::put('/dashboard/partner/mission-tasks/{task}', [\App\Http\Controllers\MissionWorkspaceController::class, 'updateTask'])->name('dashboard.partner.missions.workspace.tasks.update');
+    Route::get('/dashboard/partner/mission-messages/{message}/download', [\App\Http\Controllers\MissionWorkspaceController::class, 'downloadAttachment'])->name('dashboard.partner.missions.workspace.messages.download');
+
+    // Partner AI Assistant Routes
+    Route::get('/dashboard/partner/assistant', [\App\Http\Controllers\PartnerCRMController::class, 'assistantIndex'])->name('dashboard.partner.assistant');
+    Route::post('/dashboard/partner/assistant/chat', [\App\Http\Controllers\PartnerCRMController::class, 'assistantChat'])->name('dashboard.partner.assistant.chat');
+    
+    // Partner Marketing Studio Routes
+    Route::get('/dashboard/partner/marketing', [\App\Http\Controllers\PartnerMarketingController::class, 'index'])->name('dashboard.partner.marketing');
+    Route::post('/dashboard/partner/marketing/catalog', [\App\Http\Controllers\PartnerMarketingController::class, 'generateCatalog'])->name('dashboard.partner.marketing.catalog');
+    Route::post('/dashboard/partner/marketing/posts', [\App\Http\Controllers\PartnerMarketingController::class, 'storePost'])->name('dashboard.partner.marketing.posts.store');
+    Route::post('/dashboard/partner/marketing/posts/{post}/publish', [\App\Http\Controllers\PartnerMarketingController::class, 'publishPost'])->name('dashboard.partner.marketing.posts.publish');
+    Route::delete('/dashboard/partner/marketing/posts/{post}', [\App\Http\Controllers\PartnerMarketingController::class, 'destroyPost'])->name('dashboard.partner.marketing.posts.destroy');
+    Route::post('/dashboard/partner/marketing/video-script', [\App\Http\Controllers\PartnerMarketingController::class, 'generateVideoScript'])->name('dashboard.partner.marketing.video');
+    Route::post('/dashboard/partner/marketing/poster-ai', [\App\Http\Controllers\PartnerMarketingController::class, 'generatePosterAI'])->name('dashboard.partner.marketing.poster.ai');
+    Route::post('/dashboard/partner/marketing/ai-image/generate', [\App\Http\Controllers\PartnerImageStudioController::class, 'generate'])->middleware('throttle:10,1')->name('dashboard.partner.marketing.ai.generate');
+    Route::post('/dashboard/partner/marketing/ai-image/edit', [\App\Http\Controllers\PartnerImageStudioController::class, 'edit'])->middleware('throttle:10,1')->name('dashboard.partner.marketing.ai.edit');
+    Route::get('/dashboard/partner/marketing/ai-image/{image}', [\App\Http\Controllers\PartnerImageStudioController::class, 'show'])->name('dashboard.partner.marketing.ai.show');
+    Route::delete('/dashboard/partner/marketing/ai-image/{image}', [\App\Http\Controllers\PartnerImageStudioController::class, 'destroy'])->name('dashboard.partner.marketing.ai.destroy');
+    Route::get('/dashboard/partner/marketing/proxy-image', [\App\Http\Controllers\PartnerMarketingController::class, 'proxyImage'])->name('dashboard.partner.marketing.proxy.image');
+
+    // Catalogue partenaire (revendeurs et partenaires commerciaux)
+    Route::get('/dashboard/partner/catalog', [\App\Http\Controllers\PartnerCatalogController::class, 'index'])->name('dashboard.partner.catalog');
+    
+    // Client Savings Routes
+    Route::get('/dashboard/savings', [\App\Http\Controllers\DashboardController::class, 'savings'])->name('dashboard.savings');
+    Route::get('/dashboard/savings/create', [\App\Http\Controllers\DashboardController::class, 'createSavingPlan'])->name('dashboard.savings.create');
+    Route::post('/dashboard/savings', [\App\Http\Controllers\DashboardController::class, 'storeSavingPlan'])->name('dashboard.savings.store');
+    Route::get('/dashboard/savings/{savingPlan}', [\App\Http\Controllers\DashboardController::class, 'showSavingPlan'])->name('dashboard.savings.show');
+    Route::post('/dashboard/savings/{savingPlan}/deposit', [\App\Http\Controllers\DashboardController::class, 'depositSavingPlan'])->name('dashboard.savings.deposit');
+    Route::post('/dashboard/savings/{savingPlan}/withdraw', [\App\Http\Controllers\DashboardController::class, 'withdrawSavingPlan'])->name('dashboard.savings.withdraw');
+
+    // Client Ticket / SAV Routes
+    Route::get('/dashboard/tickets', [\App\Http\Controllers\DashboardController::class, 'tickets'])->name('dashboard.tickets');
+    Route::get('/dashboard/tickets/create', [\App\Http\Controllers\DashboardController::class, 'createTicket'])->name('dashboard.tickets.create');
+    Route::post('/dashboard/tickets', [\App\Http\Controllers\DashboardController::class, 'storeTicket'])->name('dashboard.tickets.store');
+    Route::get('/dashboard/tickets/{ticket}', [\App\Http\Controllers\DashboardController::class, 'showTicket'])->name('dashboard.tickets.show');
+
+    Route::post('/dashboard/settings/profile', [\App\Http\Controllers\DashboardController::class, 'updateProfile'])->name('dashboard.settings.updateProfile');
+    Route::post('/dashboard/settings/address', [\App\Http\Controllers\DashboardController::class, 'updateAddress'])->name('dashboard.settings.updateAddress');
+    Route::post('/dashboard/settings/password', [\App\Http\Controllers\DashboardController::class, 'updatePassword'])->name('dashboard.settings.updatePassword');
+    Route::get('/dashboard/track', [\App\Http\Controllers\DashboardController::class, 'trackOrder'])->name('dashboard.track');
+});
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+    // Services
+    Route::middleware('permission:services')->group(function () {
+        Route::resource('services', \App\Http\Controllers\Admin\ServiceController::class);
+    });
+
+    // Portfolio
+    Route::middleware('permission:projects')->group(function () {
+        Route::resource('projects', \App\Http\Controllers\Admin\ProjectController::class);
+    });
+
+    // Blog
+    Route::middleware('permission:posts')->group(function () {
+        Route::resource('posts', \App\Http\Controllers\Admin\PostController::class);
+    });
+
+    // Boutique (Products, Categories, Brands)
+    Route::middleware('permission:products')->group(function () {
+        Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
+        Route::resource('brands', \App\Http\Controllers\Admin\BrandController::class);
+        Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
+        Route::post('products/{product}/duplicate', [\App\Http\Controllers\Admin\ProductController::class, 'duplicate'])->name('products.duplicate');
+        Route::delete('products/{product}/images/{image}', [\App\Http\Controllers\Admin\ProductController::class, 'destroyImage'])->name('products.images.destroy');
+    });
+
+    // Commandes
+    Route::middleware('permission:orders')->group(function () {
+        Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class)->only(['index', 'show', 'update']);
+
+        // Appels d'offres fournisseurs (livraison automatique)
+        Route::get('sourcing', [\App\Http\Controllers\Admin\SourcingController::class, 'index'])->name('sourcing.index');
+        Route::get('sourcing/{sourcing}', [\App\Http\Controllers\Admin\SourcingController::class, 'show'])->name('sourcing.show');
+        Route::post('sourcing/{sourcing}/award', [\App\Http\Controllers\Admin\SourcingController::class, 'awardNow'])->name('sourcing.award');
+        Route::post('sourcing/{sourcing}/manual', [\App\Http\Controllers\Admin\SourcingController::class, 'awardManually'])->name('sourcing.manual');
+        Route::post('sourcing/{sourcing}/relaunch', [\App\Http\Controllers\Admin\SourcingController::class, 'relaunch'])->name('sourcing.relaunch');
+        Route::post('sourcing/{sourcing}/location', [\App\Http\Controllers\Admin\SourcingController::class, 'setLocation'])->name('sourcing.location');
+        Route::post('sourcing/{sourcing}/cancel', [\App\Http\Controllers\Admin\SourcingController::class, 'cancel'])->name('sourcing.cancel');
+
+        // Paiements Wave à vérifier
+        Route::get('wave-payments', [\App\Http\Controllers\Admin\ManualPaymentAdminController::class, 'index'])->name('wave-payments.index');
+        Route::post('wave-payments/{payment}/confirm', [\App\Http\Controllers\Admin\ManualPaymentAdminController::class, 'confirm'])->name('wave-payments.confirm');
+        Route::post('wave-payments/{payment}/reject', [\App\Http\Controllers\Admin\ManualPaymentAdminController::class, 'reject'])->name('wave-payments.reject');
+        Route::get('wave-payments/{payment}/proof', [\App\Http\Controllers\Admin\ManualPaymentAdminController::class, 'proof'])->name('wave-payments.proof');
+
+        // Livraisons (attribution aux livreurs)
+        Route::get('deliveries', [\App\Http\Controllers\Admin\DeliveryController::class, 'index'])->name('deliveries.index');
+        Route::get('deliveries/{delivery}', [\App\Http\Controllers\Admin\DeliveryController::class, 'show'])->name('deliveries.show');
+        Route::post('deliveries/{delivery}/assign', [\App\Http\Controllers\Admin\DeliveryController::class, 'assign'])->name('deliveries.assign');
+        Route::post('deliveries/{delivery}/reassign', [\App\Http\Controllers\Admin\DeliveryController::class, 'reassign'])->name('deliveries.reassign');
+        Route::post('deliveries/{delivery}/force/{step}', [\App\Http\Controllers\Admin\DeliveryController::class, 'force'])->name('deliveries.force');
+        Route::get('courier-payouts', [\App\Http\Controllers\Admin\CourierPayoutController::class, 'index'])->name('courier-payouts.index');
+        Route::post('courier-payouts/{courier}/pay', [\App\Http\Controllers\Admin\CourierPayoutController::class, 'pay'])->name('courier-payouts.pay');
+        Route::post('deliveries/{delivery}/cancel', [\App\Http\Controllers\Admin\DeliveryController::class, 'cancel'])->name('deliveries.cancel');
+    });
+    
+    // Marketing Assets
+    Route::middleware('permission:marketing')->group(function () {
+        Route::resource('marketing-assets', \App\Http\Controllers\Admin\MarketingAssetController::class);
+    });
+
+    // Devis (Quotes)
+    Route::middleware('permission:quotes')->group(function () {
+        Route::get('quotes/{quote}/print', [\App\Http\Controllers\Admin\QuoteController::class, 'print'])->name('quotes.print');
+        Route::post('quotes/{quote}/convert', [\App\Http\Controllers\Admin\QuoteController::class, 'convert'])->name('quotes.convert');
+        Route::get('quotes/{quote}/share', [\App\Http\Controllers\Admin\QuoteController::class, 'share'])->name('quotes.share');
+        Route::resource('quotes', \App\Http\Controllers\Admin\QuoteController::class);
+    });
+
+    // Factures (Invoices)
+    Route::middleware('permission:invoices')->group(function () {
+        Route::get('invoices/{invoice}/print', [\App\Http\Controllers\Admin\InvoiceController::class, 'print'])->name('invoices.print');
+        Route::get('invoices/{invoice}/share', [\App\Http\Controllers\Admin\InvoiceController::class, 'share'])->name('invoices.share');
+        Route::post('invoices/{invoice}/credit-note', [\App\Http\Controllers\Admin\InvoiceController::class, 'createCreditNote'])->name('invoices.credit-note');
+        Route::get('invoices/{invoice}/receipt', [\App\Http\Controllers\Admin\InvoiceController::class, 'printReceipt'])->name('invoices.receipt');
+        Route::resource('invoices', \App\Http\Controllers\Admin\InvoiceController::class);
+    });
+
+    // Bons de livraison (Delivery Notes)
+    Route::middleware('permission:delivery-notes')->group(function () {
+        Route::get('delivery-notes/{delivery_note}/print', [\App\Http\Controllers\Admin\DeliveryNoteController::class, 'print'])->name('delivery-notes.print');
+        Route::resource('delivery-notes', \App\Http\Controllers\Admin\DeliveryNoteController::class);
+    });
+
+    // Fournisseurs (Suppliers)
+    Route::middleware('permission:suppliers')->group(function () {
+        Route::resource('suppliers', \App\Http\Controllers\Admin\SupplierController::class);
+    });
+
+    // Gestion de stock
+    Route::middleware('permission:stock')->group(function () {
+        Route::get('stock', [\App\Http\Controllers\Admin\StockController::class, 'index'])->name('stock.index');
+        Route::post('stock/{product}/adjust', [\App\Http\Controllers\Admin\StockController::class, 'adjust'])->name('stock.adjust');
+    });
+
+    // Clients CRM
+    Route::middleware('permission:clients')->group(function () {
+        Route::resource('clients', \App\Http\Controllers\Admin\ClientController::class);
+        Route::post('clients/{client}/deposit', [\App\Http\Controllers\Admin\ClientController::class, 'deposit'])->name('clients.deposit');
+        Route::post('clients/{client}/pay-debt', [\App\Http\Controllers\Admin\ClientController::class, 'payDebt'])->name('clients.pay-debt');
+    });
+
+    // Contrats numériques du réseau pro (partenaires, apporteurs, freelances...)
+    Route::middleware('permission:network_contracts')->group(function () {
+        Route::get('network-contracts', [\App\Http\Controllers\Admin\ContractController::class, 'index'])->name('network-contracts.index');
+        Route::get('network-contracts/create', [\App\Http\Controllers\Admin\ContractController::class, 'create'])->name('network-contracts.create');
+        Route::post('network-contracts', [\App\Http\Controllers\Admin\ContractController::class, 'store'])->name('network-contracts.store');
+        Route::get('network-contracts/{contract}', [\App\Http\Controllers\Admin\ContractController::class, 'show'])->name('network-contracts.show');
+        Route::get('network-contracts/{contract}/edit', [\App\Http\Controllers\Admin\ContractController::class, 'edit'])->name('network-contracts.edit');
+        Route::put('network-contracts/{contract}', [\App\Http\Controllers\Admin\ContractController::class, 'update'])->name('network-contracts.update');
+        Route::delete('network-contracts/{contract}', [\App\Http\Controllers\Admin\ContractController::class, 'destroy'])->name('network-contracts.destroy');
+    });
+
+    // CRM global et assistant commercial IA (doc §43-45)
+    Route::middleware('permission:crm')->group(function () {
+        Route::get('crm', [\App\Http\Controllers\Admin\CrmDealController::class, 'index'])->name('crm.index');
+        Route::get('crm/create', [\App\Http\Controllers\Admin\CrmDealController::class, 'create'])->name('crm.create');
+        Route::post('crm', [\App\Http\Controllers\Admin\CrmDealController::class, 'store'])->name('crm.store');
+        Route::get('crm/partner-prospects', [\App\Http\Controllers\Admin\CrmDealController::class, 'partnerProspects'])->name('crm.partner-prospects');
+        Route::post('crm/partner-prospects/{prospect}/import', [\App\Http\Controllers\Admin\CrmDealController::class, 'importPartnerProspect'])->name('crm.partner-prospects.import');
+        Route::get('crm/assistant', [\App\Http\Controllers\Admin\SalesAssistantController::class, 'index'])->name('crm.assistant');
+        Route::post('crm/assistant/promote', [\App\Http\Controllers\Admin\SalesAssistantController::class, 'promote'])->middleware('throttle:10,1')->name('crm.assistant.promote');
+        Route::post('crm/assistant/partners', [\App\Http\Controllers\Admin\SalesAssistantController::class, 'partners'])->middleware('throttle:10,1')->name('crm.assistant.partners');
+        Route::get('crm/{deal}', [\App\Http\Controllers\Admin\CrmDealController::class, 'show'])->name('crm.show');
+        Route::get('crm/{deal}/edit', [\App\Http\Controllers\Admin\CrmDealController::class, 'edit'])->name('crm.edit');
+        Route::put('crm/{deal}', [\App\Http\Controllers\Admin\CrmDealController::class, 'update'])->name('crm.update');
+        Route::post('crm/{deal}/stage', [\App\Http\Controllers\Admin\CrmDealController::class, 'moveStage'])->name('crm.stage');
+        Route::post('crm/{deal}/activities', [\App\Http\Controllers\Admin\CrmDealController::class, 'storeActivity'])->name('crm.activities.store');
+        Route::post('crm/{deal}/quote', [\App\Http\Controllers\Admin\CrmDealController::class, 'linkQuote'])->name('crm.quote.link');
+        Route::post('crm/{deal}/ai/follow-up', [\App\Http\Controllers\Admin\CrmDealController::class, 'aiFollowUp'])->middleware('throttle:10,1')->name('crm.ai.follow-up');
+        Route::post('crm/{deal}/ai/analyze', [\App\Http\Controllers\Admin\CrmDealController::class, 'aiAnalyze'])->middleware('throttle:10,1')->name('crm.ai.analyze');
+        Route::post('crm/{deal}/ai/quote', [\App\Http\Controllers\Admin\CrmDealController::class, 'aiQuote'])->middleware('throttle:10,1')->name('crm.ai.quote');
+    });
+
+    // Missions freelance / prestataires, candidatures et espaces projet (doc §14-20)
+    Route::middleware('permission:missions')->group(function () {
+        Route::get('missions', [\App\Http\Controllers\Admin\MissionController::class, 'index'])->name('missions.index');
+        Route::get('missions/create', [\App\Http\Controllers\Admin\MissionController::class, 'create'])->name('missions.create');
+        Route::post('missions', [\App\Http\Controllers\Admin\MissionController::class, 'store'])->name('missions.store');
+        Route::get('missions/{mission}', [\App\Http\Controllers\Admin\MissionController::class, 'show'])->name('missions.show');
+        Route::get('missions/{mission}/edit', [\App\Http\Controllers\Admin\MissionController::class, 'edit'])->name('missions.edit');
+        Route::put('missions/{mission}', [\App\Http\Controllers\Admin\MissionController::class, 'update'])->name('missions.update');
+        Route::put('mission-applications/{application}', [\App\Http\Controllers\Admin\MissionController::class, 'updateApplication'])->name('missions.applications.update');
+        Route::get('mission-applications/{application}/document', [\App\Http\Controllers\Admin\MissionController::class, 'downloadApplicationDocument'])->name('missions.applications.document');
+
+        Route::get('missions/{mission}/workspace', [\App\Http\Controllers\MissionWorkspaceController::class, 'show'])->name('missions.workspace');
+        Route::post('missions/{mission}/workspace/messages', [\App\Http\Controllers\MissionWorkspaceController::class, 'storeMessage'])->name('missions.workspace.messages.store');
+        Route::post('missions/{mission}/workspace/tasks', [\App\Http\Controllers\MissionWorkspaceController::class, 'storeTask'])->name('missions.workspace.tasks.store');
+        Route::put('mission-tasks/{task}', [\App\Http\Controllers\MissionWorkspaceController::class, 'updateTask'])->name('missions.workspace.tasks.update');
+        Route::get('mission-messages/{message}/download', [\App\Http\Controllers\MissionWorkspaceController::class, 'downloadAttachment'])->name('missions.workspace.messages.download');
+    });
+
+    // Opportunités & Apporteurs d'affaires
+    Route::middleware('permission:opportunities')->group(function () {
+        Route::get('opportunities', [\App\Http\Controllers\Admin\OpportunityController::class, 'index'])->name('opportunities.index');
+        Route::get('opportunities/{opportunity}', [\App\Http\Controllers\Admin\OpportunityController::class, 'show'])->name('opportunities.show');
+        Route::put('opportunities/{opportunity}', [\App\Http\Controllers\Admin\OpportunityController::class, 'update'])->name('opportunities.update');
+        Route::post('opportunities/{opportunity}/arbitrate', [\App\Http\Controllers\Admin\OpportunityController::class, 'arbitrate'])->name('opportunities.arbitrate');
+    });
+
+    // Garanties
+    Route::middleware('permission:warranties')->group(function () {
+        Route::get('warranties/scanner', [\App\Http\Controllers\Admin\WarrantyController::class, 'scanner'])->name('warranties.scanner');
+        Route::get('warranties/scan-search/{code?}', [\App\Http\Controllers\Admin\WarrantyController::class, 'scanSearch'])->name('warranties.scanSearch');
+        Route::resource('warranties', \App\Http\Controllers\Admin\WarrantyController::class);
+    });
+
+    // SAV / Tickets
+    Route::middleware('permission:tickets')->group(function () {
+        Route::resource('tickets', \App\Http\Controllers\Admin\TicketController::class);
+    });
+
+    // Contrats de Maintenance
+    Route::middleware('permission:contracts')->group(function () {
+        Route::resource('contracts', \App\Http\Controllers\Admin\MaintenanceContractController::class);
+    });
+
+    // IT HOLDING CARE+
+    Route::middleware('permission:care')->group(function () {
+        // Pannes et réparations Care+ (chemin « care-pannes » pour ne pas entrer en conflit avec care/{care})
+        Route::get('care-pannes', [\App\Http\Controllers\Admin\CareClaimAdminController::class, 'index'])->name('care.claims.index');
+        Route::get('care-pannes/{claim}', [\App\Http\Controllers\Admin\CareClaimAdminController::class, 'show'])->name('care.claims.show');
+        Route::post('care-pannes/{claim}/statut', [\App\Http\Controllers\Admin\CareClaimAdminController::class, 'updateStatus'])->name('care.claims.status');
+        Route::post('care-pannes/{claim}/refus', [\App\Http\Controllers\Admin\CareClaimAdminController::class, 'refuse'])->name('care.claims.refuse');
+        Route::get('care-pannes/{claim}/fichier/{type}/{index?}', [\App\Http\Controllers\Admin\CareClaimAdminController::class, 'file'])->whereIn('type', ['photo', 'video'])->name('care.claims.file');
+        Route::post('care/{care}/device-review', [\App\Http\Controllers\Admin\CareSubscriptionController::class, 'reviewDevice'])->name('care.device.review');
+        Route::get('care/{care}/device-file/{type}/{index?}', [\App\Http\Controllers\Admin\CareSubscriptionController::class, 'deviceFile'])->whereIn('type', ['photo', 'invoice'])->name('care.device.file');
+        Route::resource('care', \App\Http\Controllers\Admin\CareSubscriptionController::class);
+    });
+
+    // Expenses (Gestion des Dépenses)
+    Route::middleware('permission:expenses')->group(function () {
+        Route::resource('expenses', \App\Http\Controllers\Admin\ExpenseController::class);
+    });
+
+    // Moteur fiscal (TAX ENGINE) — retenues à la source configurables, réservé au comptable
+    Route::middleware('permission:tax_engine')->group(function () {
+        Route::get('tax-rules/withholdings', [\App\Http\Controllers\Admin\TaxRuleController::class, 'withholdings'])->name('tax-rules.withholdings');
+        Route::get('tax-rules/certificate/{type}/{id}', [\App\Http\Controllers\Admin\TaxRuleController::class, 'certificate'])->name('tax-rules.certificate');
+        Route::resource('tax-rules', \App\Http\Controllers\Admin\TaxRuleController::class)->except(['show']);
+    });
+
+    // Finance & Bank
+    Route::middleware('permission:finance')->group(function () {
+        // Retraits des portefeuilles professionnels (doc §37-38)
+        Route::get('withdrawals', [\App\Http\Controllers\Admin\WithdrawalController::class, 'index'])->name('withdrawals.index');
+        Route::get('withdrawals/export', [\App\Http\Controllers\Admin\WithdrawalController::class, 'export'])->name('withdrawals.export');
+        Route::post('withdrawals/{withdrawal}/approve', [\App\Http\Controllers\Admin\WithdrawalController::class, 'approve'])->name('withdrawals.approve');
+        Route::post('withdrawals/{withdrawal}/paid', [\App\Http\Controllers\Admin\WithdrawalController::class, 'markPaid'])->name('withdrawals.paid');
+        Route::post('withdrawals/{withdrawal}/reject', [\App\Http\Controllers\Admin\WithdrawalController::class, 'reject'])->name('withdrawals.reject');
+
+        Route::get('finance', [\App\Http\Controllers\Admin\FinanceController::class, 'index'])->name('finance.index');
+        Route::post('finance/bank-accounts', [\App\Http\Controllers\Admin\FinanceController::class, 'storeAccount'])->name('finance.bank-accounts.store');
+        Route::post('finance/transactions', [\App\Http\Controllers\Admin\FinanceController::class, 'storeTransaction'])->name('finance.transactions.store');
+        Route::post('finance/reconcile/{transaction}', [\App\Http\Controllers\Admin\FinanceController::class, 'reconcile'])->name('finance.reconcile');
+    });
+
+    // Administrative Reports (Rapports & Stats)
+    Route::middleware('permission:reports')->group(function () {
+        Route::get('reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
+        Route::get('reports/sales', [\App\Http\Controllers\Admin\ReportController::class, 'sales'])->name('reports.sales');
+        Route::get('reports/stocks', [\App\Http\Controllers\Admin\ReportController::class, 'stocks'])->name('reports.stocks');
+        Route::get('reports/profits', [\App\Http\Controllers\Admin\ReportController::class, 'profits'])->name('reports.profits');
+        Route::get('reports/suppliers', [\App\Http\Controllers\Admin\ReportController::class, 'suppliers'])->name('reports.suppliers');
+        Route::get('reports/sav', [\App\Http\Controllers\Admin\ReportController::class, 'sav'])->name('reports.sav');
+        Route::get('reports/export', [\App\Http\Controllers\Admin\ReportController::class, 'export'])->name('reports.export');
+    });
+
+    // Support Chat Routes (Admin side)
+    Route::middleware('permission:chat')->group(function () {
+        Route::get('chat', [\App\Http\Controllers\ChatController::class, 'adminIndex'])->name('chat.index');
+        Route::get('chat/messages/{identifier}', [\App\Http\Controllers\ChatController::class, 'adminGetMessages'])->name('chat.messages');
+        Route::post('chat/send/{identifier}', [\App\Http\Controllers\ChatController::class, 'adminSendMessage'])->name('chat.send');
+    });
+
+    // Équipe & Accès / Users (internal staff)
+    Route::middleware('permission:users')->group(function () {
+        Route::get('users/permissions', [\App\Http\Controllers\Admin\UserController::class, 'permissions'])->name('users.permissions');
+        Route::post('users/permissions', [\App\Http\Controllers\Admin\UserController::class, 'updatePermissions'])->name('users.permissions.update');
+        Route::post('users/{user}/approve-partner', [\App\Http\Controllers\Admin\UserController::class, 'approvePartner'])->name('users.approvePartner');
+        Route::post('users/{user}/reject-partner', [\App\Http\Controllers\Admin\UserController::class, 'rejectPartner'])->name('users.rejectPartner');
+
+        // Profil pro, niveau de vérification et badges (doc §10-13)
+        Route::get('professionals/{user}', [\App\Http\Controllers\Admin\ProfessionalController::class, 'show'])->name('professionals.show');
+        Route::put('professionals/{user}', [\App\Http\Controllers\Admin\ProfessionalController::class, 'updateProfile'])->name('professionals.update');
+        Route::post('professionals/{user}/badges', [\App\Http\Controllers\Admin\ProfessionalController::class, 'assignBadge'])->name('professionals.badges.assign');
+        Route::post('user-badges/{userBadge}/revoke', [\App\Http\Controllers\Admin\ProfessionalController::class, 'revokeBadge'])->name('professionals.badges.revoke');
+        Route::resource('users', \App\Http\Controllers\Admin\UserController::class)->except(['show']);
+    });
+});
+
+// Public views for shared docs
+Route::get('view/quote/{token}', [\App\Http\Controllers\Admin\QuoteController::class, 'publicView'])->name('quotes.public_view');
+Route::get('view/invoice/{token}', [\App\Http\Controllers\Admin\InvoiceController::class, 'publicView'])->name('invoices.public_view');
+
+// Storage Bypass Route for environments with blocked symlinks
+Route::get('storage-bypass/{path}', function ($path) {
+    if (str_contains($path, '..')) {
+        abort(403, 'Unauthorized action.');
+    }
+    
+    $fullPath = storage_path('app/public/' . $path);
+    
+    if (!file_exists($fullPath)) {
+        abort(404);
+    }
+    
+    return response()->file($fullPath);
+})->where('path', '.*')->name('storage.bypass');
+
+
+
