@@ -26,6 +26,7 @@ class SupplierOfferController extends Controller
             'open'   => SourcingService::isOpen($offer->request),
             'items'  => $order->items,
             'zone'   => SourcingService::cityLabel($order),
+            'bon'    => \App\Models\PurchaseOrder::where('supplier_offer_id', $offer->id)->first(),
         ]);
     }
 
