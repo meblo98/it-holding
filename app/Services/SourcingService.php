@@ -141,7 +141,9 @@ class SourcingService
                 }
             }
 
-            $links[] = ($emailed ? '✉️' : '📲') . " {$supplier->name} ({$supplier->phone}) : {$url}";
+            $whatsapped = $supplier->phone ? WhatsAppService::send($supplier->phone, $message) : false;
+
+            $links[] = (($emailed || $whatsapped) ? '✉️' : '📲') . " {$supplier->name} ({$supplier->phone}) : {$url}";
         }
 
         if ($count > 0) {

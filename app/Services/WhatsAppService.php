@@ -52,6 +52,47 @@ class WhatsAppService
     }
 
     /**
+     * Envoie un message WhatsApp à un numéro quelconque (fournisseur, livreur…) via la même passerelle.
+     * Retourne false si la passerelle est désactivée ou si l'envoi échoue : il faut alors transmettre le message à la main.
+     */
+    public static function send(?string $to, string $message): bool
+    {
+        $to = self::normalizePhone($to);
+        if (!$to) {
+            return false;
+        }
+
+        if (!env('WHATSAPP_ENABLED', false)) {
+            Log::info("WhatsApp (simulation) vers {$to} : {$message}");
+            return false;
+        }
+
+        try {
+            $response = Http::timeout(5)->post(env('WHATSAPP_API_URL', 'https://api.whatsapp-gateway.local/v1/send'), [
+                'token' => env('WHATSAPP_TOKEN', 'dummy-token'),
+                'to'    => $to,
+                'body'  => $message,
+            ]);
+
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error('WhatsApp send exception: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /** Numéros sénégalais : 77xxxxxxx devient 22177xxxxxxx. */
+    public static function normalizePhone(?string $phone): ?string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $phone);
+        if ($digits === '') {
+            return null;
+        }
+
+        return strlen($digits) === 9 ? '221' . $digits : $digits;
+    }
+
+    /**
      * Send order notification to admin.
      *
      * @param \App\Models\Order $order
