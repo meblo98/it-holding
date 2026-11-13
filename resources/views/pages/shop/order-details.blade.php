@@ -44,6 +44,15 @@
                         <div class="px-8 py-4 bg-blue-50 border-b border-blue-100">
                             <p class="text-[10px] font-black text-blue-700 uppercase tracking-widest">Livraison · {{ $dl->status_label }}</p>
                             <p class="text-sm text-blue-900 mt-1">{{ $dlText }}</p>
+                            @if($dl->status === 'picked_up' && $dl->delivery_code)
+                                <div class="mt-3 flex items-center gap-4 bg-white rounded-lg border border-blue-100 p-3">
+                                    <img src="{{ $dl->dropoff_qr_url }}" alt="QR de réception" width="96" height="96" class="rounded">
+                                    <div>
+                                        <p class="text-xs text-gray-500">À la livraison, montrez ce QR code au livreur ou donnez-lui ce code. Ne le donnez qu'en main propre.</p>
+                                        <p class="mt-1 text-2xl font-black tracking-[0.25em] text-navy-900">{{ $dl->delivery_code }}</p>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     @endif
 
