@@ -32,6 +32,7 @@
         @if ($offer->status === 'selected')
             <div class="mt-6 rounded-lg border border-green-200 bg-green-50 text-green-800 p-5 text-sm">
                 <strong>Votre offre a été retenue.</strong> Prix : {{ number_format($offer->price, 0, ',', ' ') }} FCFA · délai : {{ $offer->delay_hours }} h. Préparez la commande, un livreur viendra la récupérer.
+                @if ($bon)<a href="{{ route('purchase.show', $bon->supplier_token) }}" class="mt-3 inline-flex btn-primary-gold">Ouvrir le bon de commande</a>@endif
             </div>
         @elseif (in_array($offer->status, ['rejected', 'expired'], true) || $offer->request->status !== 'open')
             <div class="mt-6 rounded-lg border border-gray-200 bg-white text-gray-600 p-5 text-sm">

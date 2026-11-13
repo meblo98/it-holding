@@ -8,6 +8,10 @@
         <p class="text-xs font-bold tracking-widest text-gold-600 uppercase">IT Holding Services</p>
         <h1 class="mt-1 text-2xl font-semibold text-navy-900">Espace livreur</h1>
         <p class="text-sm text-gray-500">Bonjour {{ auth()->user()->name }}. Gardez votre position à jour pour recevoir les courses proches de vous.</p>
+        <a href="{{ route('courier.earnings') }}" class="mt-4 flex items-center justify-between rounded-xl bg-navy-900 text-white px-5 py-4">
+            <span class="text-sm">Mes revenus aujourd'hui</span>
+            <span class="text-lg font-black">{{ number_format($todayTotal, 0, ',', ' ') }} FCFA ›</span>
+        </a>
 
         @foreach (['success', 'error'] as $flash)
             @if (session($flash))
@@ -24,7 +28,7 @@
                     <span class="text-xs text-gray-500">à accepter avant {{ $d->offer_expires_at?->format('H:i') }}</span>
                 </div>
                 <p class="text-sm text-gray-600">Point de retrait : <strong>{{ $d->pickup_label ?: 'à confirmer' }}</strong> · à {{ number_format($d->distance_km ?? 0, 1) }} km de vous</p>
-                <p class="text-sm text-gray-600">{{ $d->order->items->sum('quantity') }} article(s)</p>
+                <p class="text-sm text-gray-600">{{ $d->order->items->sum('quantity') }} article(s) · gain estimé : <strong>{{ number_format(\App\Services\DeliveryService::computeFee($d), 0, ',', ' ') }} FCFA</strong></p>
                 <div class="flex gap-3">
                     <form method="POST" action="{{ route('courier.accept', $d->id) }}" class="flex-1">@csrf
                         <button class="w-full px-4 py-3 rounded-lg bg-green-600 text-white font-semibold text-sm">Accepter</button></form>
@@ -54,12 +58,23 @@
                         <p class="font-semibold text-red-700">Paiement à la livraison : encaisser {{ number_format($d->order->total_amount, 0, ',', ' ') }} FCFA</p>
                     @endif
                 </div>
+                <p class="text-sm text-gray-600">Gain estimé : <strong>{{ number_format(\App\Services\DeliveryService::computeFee($d), 0, ',', ' ') }} FCFA</strong></p>
                 @if ($d->status === 'accepted')
-                    <form method="POST" action="{{ route('courier.pickedup', $d->id) }}">@csrf
-                        <button class="w-full btn-primary-gold justify-center">J'ai récupéré le colis</button></form>
+                    <div class="rounded-lg bg-gray-50 border border-gray-200 p-4 space-y-3">
+                        <p class="text-sm font-semibold text-navy-900">Retrait chez le fournisseur</p>
+                        <p class="text-xs text-gray-500">Scannez le QR code de son bon de commande avec l'appareil photo de votre téléphone, ou saisissez le code à 6 chiffres qu'il vous donne.</p>
+                        <form method="POST" action="{{ route('courier.pickup.code', $d->id) }}" class="flex gap-2">@csrf
+                            <input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required placeholder="Code à 6 chiffres" class="flex-1 rounded-md border border-gray-300 px-3 py-2.5 text-center tracking-widest text-lg">
+                            <button class="px-4 rounded-md btn-primary-gold">Valider</button></form>
+                    </div>
                 @else
-                    <form method="POST" action="{{ route('courier.delivered', $d->id) }}" onsubmit="return confirm('Confirmer la livraison au client ?')">@csrf
-                        <button class="w-full px-4 py-3 rounded-lg bg-green-600 text-white font-semibold text-sm">Colis livré</button></form>
+                    <div class="rounded-lg bg-gray-50 border border-gray-200 p-4 space-y-3">
+                        <p class="text-sm font-semibold text-navy-900">Remise au client</p>
+                        <p class="text-xs text-gray-500">Scannez le QR code affiché sur le téléphone du client, ou saisissez le code à 6 chiffres qu'il vous donne.</p>
+                        <form method="POST" action="{{ route('courier.dropoff.code', $d->id) }}" class="flex gap-2">@csrf
+                            <input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required placeholder="Code à 6 chiffres" class="flex-1 rounded-md border border-gray-300 px-3 py-2.5 text-center tracking-widest text-lg">
+                            <button class="px-4 rounded-md bg-green-600 text-white font-semibold">Livré</button></form>
+                    </div>
                 @endif
             </div>
         @endforeach
