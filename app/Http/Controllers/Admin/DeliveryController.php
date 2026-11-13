@@ -35,7 +35,7 @@ class DeliveryController extends Controller
 
     public function show(Delivery $delivery)
     {
-        $delivery->load(['order.items.product', 'courier', 'offer.supplier']);
+        $delivery->load(['order.items.product', 'courier', 'offer.supplier', 'purchaseOrder']);
 
         $couriers = User::where('role', 'livreur')->orderBy('name')->get();
         $profiles = CourierProfile::whereIn('user_id', $couriers->pluck('id'))->get()->keyBy('user_id');
@@ -56,6 +56,15 @@ class DeliveryController extends Controller
         $found = DeliveryService::adminReassign($delivery);
 
         return back()->with($found ? 'success' : 'error', $found ? 'Course proposée à un autre livreur.' : 'Aucun autre livreur disponible pour le moment. Nouvelle tentative automatique chaque minute.');
+    }
+
+    /** Validation manuelle d'une remise ou d'une livraison (code perdu, téléphone en panne…). */
+    public function force(Delivery $delivery, string $step)
+    {
+        abort_unless(in_array($step, ['pickup', 'dropoff'], true), 404);
+        DeliveryService::adminForce($delivery, $step);
+
+        return back()->with('success', $step === 'pickup' ? 'Remise validée manuellement.' : 'Livraison validée manuellement.');
     }
 
     public function cancel(Delivery $delivery)
