@@ -22,6 +22,15 @@ return [
     // Rayon de service par défaut (km) d'un fournisseur ou d'un livreur sans réglage.
     'default_radius_km' => 30,
 
+    // Revenu du livreur par course : forfait + prix au kilomètre (retrait -> client), arrondi à 50 FCFA.
+    // Valeurs de départ à valider.
+    'courier_fee' => [
+        'base'   => 1000,
+        'per_km' => 100,
+        'min'    => 1000,
+        'max'    => 15000,
+    ],
+
     // Positions approximatives des villes (utilisées si le client n'a pas partagé sa position GPS).
     'cities' => [
         'dakar'       => [14.7167, -17.4677],
