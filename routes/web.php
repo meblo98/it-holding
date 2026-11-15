@@ -44,14 +44,22 @@ Route::middleware('auth')->group(function () {
 Route::get('/offre/{token}', [\App\Http\Controllers\SupplierOfferController::class, 'show'])->name('supplier.offer.show');
 Route::post('/offre/{token}', [\App\Http\Controllers\SupplierOfferController::class, 'submit'])->middleware('throttle:20,1')->name('supplier.offer.submit');
 
+// Bon de commande du fournisseur (lien secret)
+Route::get('/bon/{token}', [\App\Http\Controllers\PurchaseOrderController::class, 'show'])->name('purchase.show');
+
 // Espace livreur : position, rayon et disponibilité
 Route::middleware('auth')->group(function () {
     Route::get('/livreur', [\App\Http\Controllers\CourierController::class, 'home'])->name('courier.home');
     Route::post('/livreur/profil', [\App\Http\Controllers\CourierController::class, 'update'])->name('courier.update');
     Route::post('/livreur/course/{delivery}/accepter', [\App\Http\Controllers\CourierController::class, 'accept'])->name('courier.accept');
+    Route::get('/livreur/revenus', [\App\Http\Controllers\CourierController::class, 'earnings'])->name('courier.earnings');
+    Route::post('/livreur/course/{delivery}/code-retrait', [\App\Http\Controllers\CourierController::class, 'pickupCode'])->middleware('throttle:15,1')->name('courier.pickup.code');
+    Route::get('/livreur/retrait/{token}', [\App\Http\Controllers\CourierController::class, 'pickupScan'])->name('courier.pickup.scan');
+    Route::post('/livreur/retrait/{token}', [\App\Http\Controllers\CourierController::class, 'pickupConfirm'])->name('courier.pickup.confirm');
+    Route::post('/livreur/course/{delivery}/code-livraison', [\App\Http\Controllers\CourierController::class, 'dropoffCode'])->middleware('throttle:15,1')->name('courier.dropoff.code');
+    Route::get('/livreur/livraison/{token}', [\App\Http\Controllers\CourierController::class, 'dropoffScan'])->name('courier.dropoff.scan');
+    Route::post('/livreur/livraison/{token}', [\App\Http\Controllers\CourierController::class, 'dropoffConfirm'])->name('courier.dropoff.confirm');
     Route::post('/livreur/course/{delivery}/refuser', [\App\Http\Controllers\CourierController::class, 'decline'])->name('courier.decline');
-    Route::post('/livreur/course/{delivery}/recupere', [\App\Http\Controllers\CourierController::class, 'pickedUp'])->name('courier.pickedup');
-    Route::post('/livreur/course/{delivery}/livre', [\App\Http\Controllers\CourierController::class, 'delivered'])->name('courier.delivered');
 });
 
 // Vérification publique (QR code du certificat) : aucune donnée personnelle
@@ -226,6 +234,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::middleware('permission:products')->group(function () {
         Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
         Route::resource('brands', \App\Http\Controllers\Admin\BrandController::class);
+        // Import / export du catalogue (JSON, CSV) — à placer AVANT la route resource.
+        Route::get('products/export/{format}', [\App\Http\Controllers\Admin\ProductController::class, 'export'])->whereIn('format', ['json', 'csv'])->name('products.export');
+        Route::post('products/import', [\App\Http\Controllers\Admin\ProductController::class, 'import'])->name('products.import');
         Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
         Route::post('products/{product}/duplicate', [\App\Http\Controllers\Admin\ProductController::class, 'duplicate'])->name('products.duplicate');
         Route::delete('products/{product}/images/{image}', [\App\Http\Controllers\Admin\ProductController::class, 'destroyImage'])->name('products.images.destroy');
@@ -255,6 +266,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('deliveries/{delivery}', [\App\Http\Controllers\Admin\DeliveryController::class, 'show'])->name('deliveries.show');
         Route::post('deliveries/{delivery}/assign', [\App\Http\Controllers\Admin\DeliveryController::class, 'assign'])->name('deliveries.assign');
         Route::post('deliveries/{delivery}/reassign', [\App\Http\Controllers\Admin\DeliveryController::class, 'reassign'])->name('deliveries.reassign');
+        Route::post('deliveries/{delivery}/force/{step}', [\App\Http\Controllers\Admin\DeliveryController::class, 'force'])->name('deliveries.force');
+        Route::get('courier-payouts', [\App\Http\Controllers\Admin\CourierPayoutController::class, 'index'])->name('courier-payouts.index');
+        Route::post('courier-payouts/{courier}/pay', [\App\Http\Controllers\Admin\CourierPayoutController::class, 'pay'])->name('courier-payouts.pay');
         Route::post('deliveries/{delivery}/cancel', [\App\Http\Controllers\Admin\DeliveryController::class, 'cancel'])->name('deliveries.cancel');
     });
     
