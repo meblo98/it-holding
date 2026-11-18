@@ -190,6 +190,7 @@
                                 </label>
                             </template>
                         </div>
+                        @include('partials.payment-trust')
                         <p x-show="method === 'wave_manual'" x-cloak class="text-sm text-gray-600 bg-blue-50 border border-blue-100 rounded-lg px-4 py-3">
                             Après validation de la commande, vous serez redirigé vers Wave avec le montant déjà rempli. Votre commande est traitée dès que votre paiement est confirmé.
                         </p>
