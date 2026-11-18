@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/care', [PageController::class, 'care'])->name('care.landing');
+Route::view('/securite', 'pages.securite')->name('security.page');
 Route::middleware('auth')->group(function () {
     Route::get('/care/souscrire/{plan}', [\App\Http\Controllers\CareCheckoutController::class, 'show'])->name('care.subscribe');
     Route::post('/care/souscrire/{plan}', [\App\Http\Controllers\CareCheckoutController::class, 'store'])->name('care.subscribe.store')->middleware('throttle:10,1');
