@@ -34,6 +34,7 @@
                     <li><a href="{{ route('about') }}" class="hover:text-white transition-colors">À propos</a></li>
                     <li><a href="{{ route('services.index') }}" class="hover:text-white transition-colors">Services</a></li>
                     <li><a href="{{ route('care.landing') }}" class="hover:text-white transition-colors">Garantie &amp; Protection</a></li>
+                    <li><a href="{{ route('security.page') }}" class="hover:text-white transition-colors">Sécurité &amp; paiements</a></li>
                     <li><a href="{{ route('portfolio.index') }}" class="hover:text-white transition-colors">Portfolio</a></li>
                     <li><a href="{{ route('blog.index') }}" class="hover:text-white transition-colors">Blog</a></li>
                     <li><a href="{{ route('partner.landing') }}" class="hover:text-white transition-colors">Devenir partenaire</a></li>
