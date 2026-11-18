@@ -50,6 +50,7 @@
                 </button>
                 <button type="submit" name="method" value="bictorys" class="btn-primary-gold w-full justify-center">Orange Money ou carte bancaire</button>
             </div>
+            @include('partials.payment-trust')
             <p class="text-xs text-navy-400">La protection est activée dès la confirmation du paiement (quelques instants pour Orange Money et carte, après vérification pour Wave). Vous enregistrerez ensuite votre appareil depuis votre espace.</p>
         </form>
     </div>
